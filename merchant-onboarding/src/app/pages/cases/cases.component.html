@@ -1,0 +1,186 @@
+<app-navbar></app-navbar>
+
+<div class="container">
+  <div class="page-header">
+    <h1>Merchant Onboarding Cases</h1>
+    <button *ngIf="canCreateCase" class="btn-primary" (click)="openCreateModal()">Add New</button>
+  </div>
+
+  <!-- Role Information Banner -->
+  <div *ngIf="roleBanner" class="role-info-banner" [ngClass]="roleBanner.bannerClass">
+    <div class="banner-icon">{{ roleBanner.icon }}</div>
+    <div class="banner-text">
+      <strong>{{ roleBanner.title }}</strong>
+      <p>{{ roleBanner.message }}</p>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label for="statusFilter">Status:</label>
+      <select id="statusFilter" [(ngModel)]="statusFilter" (change)="filterCases()">
+        <option value="">All Status</option>
+        <option value="draft">Draft</option>
+        <option value="pending_review">Pending Review</option>
+        <option value="compliance_review">Compliance Review</option>
+        <option value="background_verification">Background Verification</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="dateFrom">Date Range:</label>
+      <input type="date" id="dateFrom" [(ngModel)]="dateFrom">
+      <input type="date" id="dateTo" [(ngModel)]="dateTo">
+    </div>
+    <div class="filter-group">
+      <input type="text" id="searchBox" placeholder="Search by business name or case ID..."
+             [(ngModel)]="searchTerm" (keyup)="searchCases()">
+    </div>
+  </div>
+
+  <div class="cases-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Case ID</th>
+          <th>Business Name</th>
+          <th>Business Type</th>
+          <th>Status</th>
+          <th>Created Date</th>
+          <th>Assigned To</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of cases">
+          <td>{{ c.caseId }}</td>
+          <td>{{ c.businessName }}</td>
+          <td>{{ c.merchantCategory }}</td>
+          <td><span>{{ c.status }}</span></td>
+          <td>{{ c.createdDate }}</td>
+          <td>{{ c.assignedTo }}</td>
+          <td>
+            <button class="btn-small btn-primary" (click)="viewCase(c.caseId)">View</button>
+          </td>
+        </tr>
+        <tr *ngIf="cases.length === 0">
+          <td colspan="7" style="text-align: center; padding: 2rem;">No cases found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination">
+    <button class="btn-secondary">Previous</button>
+    <span>Page 1 of 1</span>
+    <button class="btn-secondary">Next</button>
+  </div>
+</div>
+
+<!-- Create New Case Modal -->
+<div *ngIf="showCreateModal" class="modal" style="display: block;" (click)="onModalBackdropClick($event)">
+  <div class="modal-content large-modal">
+    <div class="modal-header">
+      <h3>Add Merchant Onboarding Case</h3>
+      <span class="close" (click)="closeCreateModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form class="case-form">
+        <div class="form-section">
+          <h4>Business Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="businessName">Business Name *</label>
+              <input type="text" id="businessName" [(ngModel)]="newCase.businessName" name="businessName" required>
+            </div>
+            <div class="form-group">
+              <label for="registrationNumber">Registration Number *</label>
+              <input type="text" id="registrationNumber" [(ngModel)]="newCase.registrationNumber" name="registrationNumber" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="businessType">Business Type *</label>
+              <select id="businessType" [(ngModel)]="newCase.businessType" name="businessType" required>
+                <option value="">Select Business Type</option>
+                <option value="sole_proprietorship">Sole Proprietorship</option>
+                <option value="partnership">Partnership</option>
+                <option value="sdn_bhd">Sdn Bhd</option>
+                <option value="bhd">Bhd</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="merchantCategory">Merchant Category *</label>
+              <select id="merchantCategory" [(ngModel)]="newCase.merchantCategory" name="merchantCategory" required>
+                <option value="">Select Category</option>
+                <option value="retail">Retail</option>
+                <option value="restaurant">Restaurant</option>
+                <option value="ecommerce">E-commerce</option>
+                <option value="services">Services</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="businessAddress">Business Address *</label>
+            <textarea id="businessAddress" [(ngModel)]="newCase.businessAddress" name="businessAddress" rows="3" required></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Director Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="directorName">Director Name *</label>
+              <input type="text" id="directorName" [(ngModel)]="newCase.directorName" name="directorName" required>
+            </div>
+            <div class="form-group">
+              <label for="directorIC">Director IC Number *</label>
+              <input type="text" id="directorIC" [(ngModel)]="newCase.directorIC" name="directorIC" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="directorPhone">Phone Number *</label>
+              <input type="tel" id="directorPhone" [(ngModel)]="newCase.directorPhone" name="directorPhone" required>
+            </div>
+            <div class="form-group">
+              <label for="directorEmail">Email Address *</label>
+              <input type="email" id="directorEmail" [(ngModel)]="newCase.directorEmail" name="directorEmail" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Document Upload</h4>
+          <div class="upload-area">
+            <div class="upload-group">
+              <label for="businessReg">Business Registration Certificate *</label>
+              <input type="file" id="businessReg" name="businessReg" accept=".pdf,.jpg,.png">
+            </div>
+            <div class="upload-group">
+              <label for="directorID">Director ID Copy *</label>
+              <input type="file" id="directorID" name="directorID" accept=".pdf,.jpg,.png">
+            </div>
+            <div class="upload-group">
+              <label for="financialStatement">Financial Statement</label>
+              <input type="file" id="financialStatement" name="financialStatement" accept=".pdf,.xls,.xlsx">
+            </div>
+            <div class="upload-group">
+              <label for="bankStatement">Bank Statement</label>
+              <input type="file" id="bankStatement" name="bankStatement" accept=".pdf">
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="closeCreateModal()" class="btn-secondary">Cancel</button>
+      <button type="button" (click)="saveDraft()" class="btn-secondary">Save as Draft</button>
+      <button type="button" (click)="submitCase()" class="btn-primary">Submit Case</button>
+    </div>
+  </div>
+</div>

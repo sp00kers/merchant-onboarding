@@ -1,0 +1,161 @@
+<app-navbar></app-navbar>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a routerLink="/account-management">Account Management</a>
+    <span class="breadcrumb-separator">&gt;</span>
+    <span class="breadcrumb-current">Permission Management</span>
+  </div>
+
+  <div class="page-header">
+    <h1>Permission Management</h1>
+    <button class="btn-primary" (click)="showCreatePermissionModal()">Add New</button>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filters">
+    <div class="search-bar">
+      <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search by permission name or description...">
+    </div>
+    <div class="filter-controls">
+      <select [(ngModel)]="categoryFilter" (ngModelChange)="applyFilters()">
+        <option value="">All Categories</option>
+        <option *ngFor="let cat of categoryOptions" [value]="cat.value">{{ cat.label }}</option>
+      </select>
+      <select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="users-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Permission ID</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Used In Roles</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let perm of filteredPermissions">
+          <td>{{ perm.id }}</td>
+          <td>{{ perm.name }}</td>
+          <td>{{ perm.description }}</td>
+          <td>{{ getCategoryLabel(perm.category) }}</td>
+          <td><span [class]="'status-' + (perm.isActive !== false ? 'active' : 'inactive')">{{ perm.isActive !== false ? 'Active' : 'Inactive' }}</span></td>
+          <td>{{ getUsedInRolesCount(perm.id) }} roles</td>
+          <td>
+            <button class="btn-small" (click)="openViewPermission(perm.id)">View</button>
+            <button class="btn-small" (click)="editPermission(perm.id)">Edit</button>
+            <button class="btn-small" [ngClass]="perm.isActive !== false ? 'btn-warning' : 'btn-success'"
+                    (click)="togglePermissionStatus(perm.id)">{{ perm.isActive !== false ? 'Deactivate' : 'Activate' }}</button>
+            <button class="btn-small btn-danger" (click)="deletePermission(perm.id)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="filteredPermissions.length === 0">
+          <td colspan="7" style="text-align: center; padding: 20px;">No permissions found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create/Edit Permission Modal -->
+<div class="modal" *ngIf="showPermissionModal" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>{{ modalTitle }}</h3>
+      <span class="close" (click)="closePermissionModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Permission ID:</label>
+            <input type="text" [(ngModel)]="permissionId" name="permissionId" required [disabled]="isIdDisabled">
+          </div>
+          <div class="form-group">
+            <label>Permission Name:</label>
+            <input type="text" [(ngModel)]="permissionName" name="permissionName" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category:</label>
+            <select [(ngModel)]="permissionCategory" name="permissionCategory" required>
+              <option value="">Select Category</option>
+              <option *ngFor="let cat of categoryOptions" [value]="cat.value">{{ cat.label }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status:</label>
+            <select [(ngModel)]="permissionStatus" name="permissionStatus" required>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description:</label>
+          <textarea [(ngModel)]="permissionDescription" name="permissionDescription" rows="3"
+                    placeholder="Describe what this permission allows..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closePermissionModal()">Cancel</button>
+      <button type="button" class="btn-primary" (click)="savePermission()">Save Permission</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Permission Modal -->
+<div class="modal" *ngIf="showViewModal" (click)="onBackdropClick($event)">
+  <div class="modal-content" *ngIf="viewPermission">
+    <div class="modal-header">
+      <h3>Permission Details</h3>
+      <span class="close" (click)="closeViewModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="permission-view-section">
+        <h4>Permission Information</h4>
+        <div class="info-grid">
+          <div class="info-item"><label>Permission ID:</label><span>{{ viewPermission.id }}</span></div>
+          <div class="info-item"><label>Name:</label><span>{{ viewPermission.name }}</span></div>
+          <div class="info-item"><label>Description:</label><span>{{ viewPermission.description }}</span></div>
+          <div class="info-item"><label>Category:</label><span>{{ getCategoryLabel(viewPermission.category) }}</span></div>
+          <div class="info-item"><label>Status:</label><span [class]="'status-' + (viewPermission.isActive !== false ? 'active' : 'inactive')">{{ viewPermission.isActive !== false ? 'Active' : 'Inactive' }}</span></div>
+        </div>
+      </div>
+      <div class="permission-view-section">
+        <h4>Used in Roles ({{ getViewPermissionRoles().length }})</h4>
+        <div class="roles-display">
+          <div class="role-item-view" *ngFor="let role of getViewPermissionRoles()">
+            <span class="role-name">{{ role.name }}</span>
+            <span class="role-desc">{{ role.description }}</span>
+            <span [class]="'role-status status-' + (role.isActive ? 'active' : 'inactive')">{{ role.isActive ? 'Active' : 'Inactive' }}</span>
+          </div>
+          <p *ngIf="getViewPermissionRoles().length === 0">This permission is not assigned to any roles</p>
+        </div>
+      </div>
+      <div class="permission-view-section">
+        <h4>Additional Information</h4>
+        <div class="info-grid">
+          <div class="info-item"><label>Created:</label><span>{{ viewPermission.createdAt || 'N/A' }}</span></div>
+          <div class="info-item"><label>Last Updated:</label><span>{{ viewPermission.updatedAt || 'Never' }}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeViewModal()">Close</button>
+      <button type="button" class="btn-primary" (click)="editFromView()">Edit Permission</button>
+    </div>
+  </div>
+</div>

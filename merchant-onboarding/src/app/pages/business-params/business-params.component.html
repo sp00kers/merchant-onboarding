@@ -1,0 +1,50 @@
+<app-navbar></app-navbar>
+
+<div class="container">
+  <div class="page-header">
+    <h1>Business Parameters Management</h1>
+    <p class="page-description">Configure business types, merchant categories, and risk categories for the onboarding system</p>
+  </div>
+
+  <!-- Management Options -->
+  <div class="management-options">
+    <div class="option-card" (click)="navigateTo('/business-params/business-types')">
+      <div class="option-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12,7V3H2V21H22V7H12M6,19H4V17H6V19M6,15H4V13H6V15M6,11H4V9H6V11M6,7H4V5H6V7M10,19H8V17H10V19M10,15H8V13H10V15M10,11H8V9H10V11M10,7H8V5H10V7M20,19H12V17H20V19M20,15H12V13H20V15M20,11H12V9H20V11Z"/>
+        </svg>
+      </div>
+      <div class="option-content">
+        <h3>Business Types</h3>
+        <p>Manage business entity types such as Sole Proprietorship, Partnership, Sdn Bhd, and Public Companies.</p>
+      </div>
+      <div class="option-arrow">→</div>
+    </div>
+
+    <div class="option-card" (click)="navigateTo('/business-params/merchant-categories')">
+      <div class="option-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19,7H22V9H19V7M19,11H22V13H19V11M19,15H22V17H19V15M11,7H15V9H11V7M11,11H15V13H11V11M11,15H15V17H11V15M3,7H7V9H3V7M3,11H7V13H3V11M3,15H7V17H3V15Z"/>
+        </svg>
+      </div>
+      <div class="option-content">
+        <h3>Merchant Categories</h3>
+        <p>Configure merchant business categories with associated risk levels for onboarding assessment.</p>
+      </div>
+      <div class="option-arrow">→</div>
+    </div>
+
+    <div class="option-card" (click)="navigateTo('/business-params/risk-categories')">
+      <div class="option-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12,2L13.09,8.26L22,9L13.09,9.74L12,16L10.91,9.74L2,9L10.91,8.26L12,2M12,2L13.09,8.26L22,9L13.09,9.74L12,16L10.91,9.74L2,9L10.91,8.26L12,2Z"/>
+        </svg>
+      </div>
+      <div class="option-content">
+        <h3>Risk Categories</h3>
+        <p>Define risk assessment levels and scoring ranges for merchant evaluation and approval workflow.</p>
+      </div>
+      <div class="option-arrow">→</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,161 @@
+<app-navbar></app-navbar>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a routerLink="/account-management">Account Management</a>
+    <span class="breadcrumb-separator">&gt;</span>
+    <span class="breadcrumb-current">Role Management</span>
+  </div>
+
+  <div class="page-header">
+    <h1>Role Management</h1>
+    <button class="btn-primary" (click)="showCreateRoleModal()">Add New</button>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filters">
+    <div class="search-bar">
+      <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search by role name or description...">
+    </div>
+    <div class="filter-controls">
+      <select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="users-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Role ID</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Permissions</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let role of filteredRoles">
+          <td>{{ role.id }}</td>
+          <td>{{ role.name }}</td>
+          <td>{{ role.description }}</td>
+          <td>
+            <span class="permission-count">{{ role.permissions.length }} permissions</span>
+            <div class="permission-preview">
+              <span class="permission-tag" *ngFor="let name of getPermissionNames(role)">{{ name }}</span>
+              <span class="permission-more" *ngIf="getRemainingCount(role) > 0">+{{ getRemainingCount(role) }} more</span>
+            </div>
+          </td>
+          <td><span [class]="'status-' + (role.isActive ? 'active' : 'inactive')">{{ role.isActive ? 'Active' : 'Inactive' }}</span></td>
+          <td>{{ formatDate(role.createdAt) }}</td>
+          <td>
+            <button class="btn-small" (click)="openViewRole(role.id)">View</button>
+            <button class="btn-small" (click)="editRole(role.id)">Edit</button>
+            <button class="btn-small" [ngClass]="role.isActive ? 'btn-warning' : 'btn-success'"
+                    (click)="toggleRoleStatus(role.id)">{{ role.isActive ? 'Deactivate' : 'Activate' }}</button>
+            <button class="btn-small btn-danger" (click)="deleteRole(role.id)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="filteredRoles.length === 0">
+          <td colspan="7" style="text-align: center; padding: 20px;">No roles found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create/Edit Role Modal -->
+<div class="modal" *ngIf="showRoleModal" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>{{ modalTitle }}</h3>
+      <span class="close" (click)="closeRoleModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form>
+        <div class="form-group">
+          <label>Role Name:</label>
+          <input type="text" [(ngModel)]="roleName" name="roleName" required>
+        </div>
+        <div class="form-group">
+          <label>Description:</label>
+          <textarea [(ngModel)]="roleDescription" name="roleDescription" rows="3"
+                    placeholder="Describe the purpose and responsibilities of this role..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Status:</label>
+          <select [(ngModel)]="roleStatus" name="roleStatus" required>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Permissions:</label>
+          <div class="permissions-search">
+            <input type="text" [(ngModel)]="permissionSearch" name="permissionSearch" placeholder="Search permissions...">
+          </div>
+          <div class="permissions-container">
+            <label class="permission-checkbox" *ngFor="let perm of getFilteredPermissions()">
+              <input type="checkbox" [(ngModel)]="selectedPermissions[perm.id]" [name]="'perm_' + perm.id">
+              <div class="permission-info">
+                <span class="permission-name">{{ perm.name }}</span>
+                <span class="permission-desc">{{ perm.description }}</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeRoleModal()">Cancel</button>
+      <button type="button" class="btn-primary" (click)="saveRole()">Save Role</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Role Modal -->
+<div class="modal" *ngIf="showViewModal" (click)="onBackdropClick($event)">
+  <div class="modal-content" *ngIf="viewRole">
+    <div class="modal-header">
+      <h3>Role Details</h3>
+      <span class="close" (click)="closeViewModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="role-view-section">
+        <h4>Role Information</h4>
+        <div class="info-grid">
+          <div class="info-item"><label>Role ID:</label><span>{{ viewRole.id }}</span></div>
+          <div class="info-item"><label>Name:</label><span>{{ viewRole.name }}</span></div>
+          <div class="info-item"><label>Description:</label><span>{{ viewRole.description }}</span></div>
+          <div class="info-item"><label>Status:</label><span [class]="'status-' + (viewRole.isActive ? 'active' : 'inactive')">{{ viewRole.isActive ? 'Active' : 'Inactive' }}</span></div>
+        </div>
+      </div>
+      <div class="role-view-section">
+        <h4>Permissions ({{ viewRole.permissions.length }})</h4>
+        <div class="permissions-display">
+          <div class="permission-item-view" *ngFor="let perm of getViewRolePermissions()">
+            <span class="permission-name">{{ perm.name }}</span>
+            <span class="permission-desc">{{ perm.description }}</span>
+          </div>
+          <p *ngIf="getViewRolePermissions().length === 0">No permissions assigned</p>
+        </div>
+      </div>
+      <div class="role-view-section">
+        <h4>Additional Information</h4>
+        <div class="info-grid">
+          <div class="info-item"><label>Created:</label><span>{{ formatDate(viewRole.createdAt) }}</span></div>
+          <div class="info-item"><label>Last Updated:</label><span>{{ viewRole.updatedAt ? formatDate(viewRole.updatedAt) : 'Never' }}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeViewModal()">Close</button>
+      <button type="button" class="btn-primary" (click)="editFromView()">Edit Role</button>
+    </div>
+  </div>
+</div>

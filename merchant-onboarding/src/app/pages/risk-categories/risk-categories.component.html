@@ -1,0 +1,100 @@
+<app-navbar></app-navbar>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a routerLink="/business-params">Business Parameters</a>
+    <span class="breadcrumb-separator">&gt;</span>
+    <span class="breadcrumb-current">Risk Categories</span>
+  </div>
+
+  <div class="page-header">
+    <h1>Risk Categories Management</h1>
+    <button class="btn-primary" (click)="openCreateModal()">Add New</button>
+  </div>
+
+  <!-- Search -->
+  <div class="search-filters">
+    <div class="search-bar">
+      <input type="text" placeholder="Search by level, name, or description..."
+             [(ngModel)]="searchTerm" (keyup)="filter()">
+    </div>
+  </div>
+
+  <div class="users-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Level</th>
+          <th>Name</th>
+          <th>Score Range</th>
+          <th>Description</th>
+          <th>Actions Required</th>
+          <th>Created Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cat of categories">
+          <td>{{ cat.level }}</td>
+          <td>{{ cat.name }}</td>
+          <td>{{ cat.scoreRange }}</td>
+          <td>{{ cat.description || '-' }}</td>
+          <td>{{ cat.actionsRequired || '-' }}</td>
+          <td>{{ formatDate(cat.createdAt) }}</td>
+          <td>
+            <button class="btn-small" (click)="editItem(cat.id)">Edit</button>
+            <button class="btn-small btn-danger" (click)="deleteItem(cat.id)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="categories.length === 0">
+          <td colspan="7" style="text-align: center; padding: 2rem;">No risk categories found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div *ngIf="showModal" class="modal" style="display: block;" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>{{ modalTitle }}</h3>
+      <span class="close" (click)="closeModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="rcLevel">Level *</label>
+            <input type="number" id="rcLevel" [(ngModel)]="form.level" name="level"
+                   required min="1" max="10" placeholder="1-10" [disabled]="levelDisabled">
+          </div>
+          <div class="form-group">
+            <label for="rcName">Name *</label>
+            <input type="text" id="rcName" [(ngModel)]="form.name" name="name"
+                   required placeholder="e.g., Low Risk, High Risk">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="rcScore">Score Range *</label>
+          <input type="text" id="rcScore" [(ngModel)]="form.scoreRange" name="scoreRange"
+                 required placeholder="e.g., 0-30, 70-100">
+        </div>
+        <div class="form-group">
+          <label for="rcDescription">Description</label>
+          <textarea id="rcDescription" [(ngModel)]="form.description" name="description"
+                    rows="3" placeholder="Describe this risk category..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="rcActions">Actions Required</label>
+          <textarea id="rcActions" [(ngModel)]="form.actionsRequired" name="actionsRequired"
+                    rows="3" placeholder="Describe required actions for this risk level"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="closeModal()" class="btn-secondary">Cancel</button>
+      <button type="button" (click)="save()" class="btn-primary">Save Risk Category</button>
+    </div>
+  </div>
+</div>

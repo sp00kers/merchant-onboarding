@@ -1,0 +1,239 @@
+<app-navbar></app-navbar>
+
+<div class="container" *ngIf="caseData">
+  <div class="case-header">
+    <div>
+      <h1>View Case Details</h1>
+      <button class="btn-secondary" (click)="goBackToCases()" style="margin-top: 1rem;">Back to Cases</button>
+    </div>
+    <div class="header-actions">
+      <div class="action-dropdown-container">
+        <div class="dropdown">
+          <button class="btn-primary dropdown-toggle" (click)="toggleActionDropdown()">
+            <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
+          </button>
+          <div class="dropdown-menu" [class.show]="showActionDropdown">
+            <button class="dropdown-item" (click)="exportCase()">
+              <span class="dropdown-icon">📄</span>Export Case
+            </button>
+            <button *ngIf="showReassign" class="dropdown-item" (click)="assignCase()">
+              <span class="dropdown-icon">👥</span>Reassign Case
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role Access Banner -->
+  <div *ngIf="roleBanner" class="access-info-banner" [ngClass]="roleBanner.bannerClass">
+    <div class="banner-icon">{{ roleBanner.icon }}</div>
+    <div class="banner-text">
+      <strong>{{ roleBanner.title }}</strong>
+      <p>{{ roleBanner.message }}</p>
+    </div>
+  </div>
+
+  <!-- Workflow Progress -->
+  <div class="workflow-progress-section">
+    <h3>Workflow Progress</h3>
+    <div class="progress-steps-horizontal">
+      <div class="step completed">
+        <div class="step-circle">✓</div>
+        <div class="step-label">Data Entry</div>
+        <div class="step-line completed"></div>
+      </div>
+      <div class="step active">
+        <div class="step-circle">2</div>
+        <div class="step-label">Compliance Review</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step">
+        <div class="step-circle">3</div>
+        <div class="step-label">Background Verification</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step">
+        <div class="step-circle">4</div>
+        <div class="step-label">Final Approval</div>
+        <div class="step-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="case-content">
+    <div class="case-main-content">
+      <div class="info-section">
+        <h3>Business Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Business Name:</label>
+            <span>{{ caseData.businessName }}</span>
+          </div>
+          <div class="info-item">
+            <label>Registration Number:</label>
+            <span>{{ caseData.registrationNumber }}</span>
+          </div>
+          <div class="info-item">
+            <label>Business Type:</label>
+            <span>{{ caseData.businessType }}</span>
+          </div>
+          <div class="info-item">
+            <label>Merchant Category:</label>
+            <span>{{ caseData.merchantCategory }}</span>
+          </div>
+          <div class="info-item full-width">
+            <label>Business Address:</label>
+            <span>{{ caseData.businessAddress }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>Director Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Director Name:</label>
+            <span>{{ caseData.directorName }}</span>
+          </div>
+          <div class="info-item">
+            <label>IC Number:</label>
+            <span>{{ caseData.directorIC }}</span>
+          </div>
+          <div class="info-item">
+            <label>Phone Number:</label>
+            <span>{{ caseData.directorPhone }}</span>
+          </div>
+          <div class="info-item">
+            <label>Email:</label>
+            <span>{{ caseData.directorEmail }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>Documents</h3>
+        <div class="documents-list">
+          <div class="document-item" *ngFor="let doc of caseData.documents">
+            <span class="doc-name">{{ doc.name }}</span>
+            <button class="btn-small">Download</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="case-sidebar">
+      <div class="case-info">
+        <h3>Case Information</h3>
+        <div class="case-meta">
+          <div class="meta-item">
+            <label>Case ID:</label>
+            <span>{{ caseData.caseId }}</span>
+          </div>
+          <div class="meta-item">
+            <label>Created:</label>
+            <span>{{ caseData.createdDate }}</span>
+          </div>
+          <div class="meta-item">
+            <label>Assigned To:</label>
+            <span>{{ caseData.assignedTo }}</span>
+          </div>
+          <div class="meta-item">
+            <label>Priority:</label>
+            <span>{{ caseData.priority }}</span>
+          </div>
+          <div class="meta-item">
+            <label>Last Updated:</label>
+            <span>{{ caseData.lastUpdated }}</span>
+          </div>
+          <div class="meta-item">
+            <label>Status:</label>
+            <span>{{ caseData.status }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-history">
+        <h3>Case History</h3>
+        <div class="history-list">
+          <div class="history-item" *ngFor="let item of caseData.history">
+            <div class="history-time">{{ item.time }}</div>
+            <div class="history-action">{{ item.action }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Comment Section -->
+      <div class="add-comment-section">
+        <h3>Add Comment</h3>
+        <div class="comment-form">
+          <textarea [(ngModel)]="commentText" placeholder="Enter your comment here..." rows="4"></textarea>
+          <div class="comment-actions">
+            <button class="btn-primary" (click)="submitComment()">Add Comment</button>
+            <button class="btn-secondary" (click)="clearComment()">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Available Actions Section at Bottom -->
+  <div class="available-actions-section">
+    <h3>Available Actions</h3>
+    <div class="actions-layout">
+
+      <!-- Compliance Reviewer / Admin actions -->
+      <ng-container *ngIf="isComplianceOrAdmin">
+        <button class="btn-success btn-large" (click)="approveStep()">
+          <span class="btn-icon">✅</span>Approve
+        </button>
+        <button class="btn-danger btn-large" (click)="rejectCase()">
+          <span class="btn-icon">❌</span>Reject
+        </button>
+      </ng-container>
+
+      <!-- Verifier actions -->
+      <ng-container *ngIf="isVerifier">
+        <button class="btn-success btn-large" (click)="completeVerification()">
+          <span class="btn-icon">🔍</span>Complete Verification
+        </button>
+        <div class="center-actions">
+          <div class="action-dropdown-container">
+            <div class="dropdown">
+              <button class="btn-secondary dropdown-toggle" (click)="toggleActionDropdown2()">
+                <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
+              </button>
+              <div class="dropdown-menu" [class.show]="showActionDropdown2">
+                <button class="dropdown-item" (click)="requestReview()">
+                  <span class="dropdown-icon">📞</span>Request Review
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-warning btn-large" (click)="flagForReview()">
+          <span class="btn-icon">🚩</span>Flag for Review
+        </button>
+      </ng-container>
+
+      <!-- Onboarding Officer actions -->
+      <ng-container *ngIf="isOnboardingOfficer">
+        <div class="center-actions full-width">
+          <div class="action-dropdown-container">
+            <div class="dropdown">
+              <button class="btn-secondary dropdown-toggle" (click)="toggleActionDropdown2()">
+                <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
+              </button>
+              <div class="dropdown-menu" [class.show]="showActionDropdown2">
+                <button class="dropdown-item" (click)="requestReview()">
+                  <span class="dropdown-icon">📞</span>Request Review
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+</div>

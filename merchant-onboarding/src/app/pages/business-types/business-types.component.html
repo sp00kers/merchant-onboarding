@@ -1,0 +1,103 @@
+<app-navbar></app-navbar>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a routerLink="/business-params">Business Parameters</a>
+    <span class="breadcrumb-separator">&gt;</span>
+    <span class="breadcrumb-current">Business Types</span>
+  </div>
+
+  <div class="page-header">
+    <h1>Business Types Management</h1>
+    <button class="btn-primary" (click)="openCreateModal()">Add New</button>
+  </div>
+
+  <!-- Search and Filter -->
+  <div class="search-filters">
+    <div class="search-bar">
+      <input type="text" id="businessTypeSearch" placeholder="Search by code, name, or description..."
+             [(ngModel)]="searchTerm" (keyup)="filter()">
+    </div>
+    <div class="filter-controls">
+      <select id="statusFilter" [(ngModel)]="statusFilter" (change)="filter()">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="users-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Created Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let type of businessTypes">
+          <td>{{ type.code }}</td>
+          <td>{{ type.name }}</td>
+          <td>{{ type.description || '-' }}</td>
+          <td><span [class]="'status-' + type.status">{{ type.status | titlecase }}</span></td>
+          <td>{{ formatDate(type.createdAt) }}</td>
+          <td>
+            <button class="btn-small" (click)="editItem(type.id)">Edit</button>
+            <button class="btn-small btn-danger" (click)="deleteItem(type.id)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="businessTypes.length === 0">
+          <td colspan="6" style="text-align: center; padding: 2rem;">No business types found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div *ngIf="showModal" class="modal" style="display: block;" (click)="onBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>{{ modalTitle }}</h3>
+      <span class="close" (click)="closeModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="businessTypeCode">Code *</label>
+            <input type="text" id="businessTypeCode" [(ngModel)]="form.code" name="code"
+                   required maxlength="10" style="text-transform: uppercase;" placeholder="e.g., SP, PT, SB"
+                   [disabled]="codeDisabled">
+          </div>
+          <div class="form-group">
+            <label for="businessTypeStatus">Status:</label>
+            <select id="businessTypeStatus" [(ngModel)]="form.status" name="status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="businessTypeName">Name *</label>
+          <input type="text" id="businessTypeName" [(ngModel)]="form.name" name="name"
+                 required placeholder="e.g., Sole Proprietorship">
+        </div>
+        <div class="form-group">
+          <label for="businessTypeDescription">Description</label>
+          <textarea id="businessTypeDescription" [(ngModel)]="form.description" name="description"
+                    rows="3" placeholder="Describe this business type..."></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="closeModal()" class="btn-secondary">Cancel</button>
+      <button type="button" (click)="save()" class="btn-primary">Save Business Type</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,135 @@
+/* Uses global styles */
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0 20px;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: #666;
+  font-size: 14px;
+}
+
+.tab-btn.active {
+  border-bottom-color: #1a73e8;
+  color: #1a73e8;
+  font-weight: 500;
+}
+
+.permissions-assignment h4 {
+  margin-bottom: 5px;
+}
+
+.permission-note {
+  color: #666;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
+.permissions-search {
+  margin-bottom: 10px;
+}
+
+.permissions-search input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.permissions-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.permission-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.permission-checkbox:last-child {
+  border-bottom: none;
+}
+
+.permission-checkbox input[type="checkbox"] {
+  margin-top: 3px;
+}
+
+.permission-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.permission-info .permission-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.permission-info .permission-desc {
+  color: #666;
+  font-size: 12px;
+}
+
+.user-view-section {
+  margin-bottom: 20px;
+}
+
+.user-view-section h4 {
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.info-item label {
+  font-weight: 500;
+  color: #555;
+  display: block;
+  font-size: 13px;
+}
+
+.info-item span, .info-item p {
+  color: #333;
+  font-size: 14px;
+}
+
+.permissions-display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.permission-item-view {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.permission-item-view .permission-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.permission-item-view .permission-desc {
+  color: #666;
+  font-size: 12px;
+}

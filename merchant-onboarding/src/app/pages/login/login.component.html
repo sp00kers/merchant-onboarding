@@ -1,0 +1,26 @@
+<div class="login-body">
+  <div class="login-container">
+    <div class="login-form">
+      <h2>Merchant Onboarding Platform</h2>
+      <p>Secure Login Portal</p>
+      <form (ngSubmit)="login()">
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" [(ngModel)]="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" [(ngModel)]="password" required>
+        </div>
+        <div class="form-group">
+          <label for="role">Role:</label>
+          <select id="role" name="role" [(ngModel)]="selectedRole" required>
+            <option value="">Select Role</option>
+            <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary">Login</button>
+      </form>
+    </div>
+  </div>
+</div>

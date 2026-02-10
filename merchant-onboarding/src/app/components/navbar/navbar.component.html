@@ -1,0 +1,10 @@
+<nav class="navbar">
+  <div class="nav-brand" routerLink="/dashboard" style="cursor: pointer;">Merchant Onboarding Platform</div>
+  <div class="nav-menu">
+    <a *ngIf="showCases" routerLink="/cases" routerLinkActive="active">Merchant Onboarding Cases</a>
+    <a *ngIf="showBusinessParams" routerLink="/business-params" routerLinkActive="active">Business Parameters Management</a>
+    <a *ngIf="showAccountManagement" routerLink="/account-management" routerLinkActive="active">Account Management</a>
+    <a href="javascript:void(0)" (click)="logout()">Logout</a>
+  </div>
+  <div class="user-info">Role: {{ roleName }}</div>
+</nav>

@@ -1,0 +1,58 @@
+/* Uses global styles */
+.permission-view-section {
+  margin-bottom: 20px;
+}
+
+.permission-view-section h4 {
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.info-item label {
+  font-weight: 500;
+  color: #555;
+  display: block;
+  font-size: 13px;
+}
+
+.info-item span {
+  color: #333;
+  font-size: 14px;
+}
+
+.roles-display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.role-item-view {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.role-item-view .role-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.role-item-view .role-desc {
+  color: #666;
+  font-size: 12px;
+  flex: 1;
+}
+
+.role-item-view .role-status {
+  font-size: 12px;
+}
