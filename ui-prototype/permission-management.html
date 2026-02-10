@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permission Management - Merchant Onboarding Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">Merchant Onboarding Platform</div>
+        <div class="nav-menu">
+            <a href="cases.html">Merchant Onboarding Cases</a>
+            <a href="business-params.html">Business Parameters Management</a>
+            <a href="account-management.html">Account Management</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+        <div class="user-info" id="userInfo"></div>
+    </nav>
+    
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="account-management.html">Account Management</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">Permission Management</span>
+        </div>
+        
+        <div class="page-header">
+            <h1>Permission Management</h1>
+            <button class="btn-primary" onclick="showCreatePermissionModal()">Add New</button>
+        </div>
+        
+        <!-- Search and Filter Section -->
+        <div class="search-filters">
+            <div class="search-bar">
+                <input type="text" id="permissionSearch" placeholder="Search by permission name or description..." onkeyup="filterPermissions()">
+            </div>
+            <div class="filter-controls">
+                <select id="categoryFilter" onchange="filterPermissions()">
+                    <option value="">All Categories</option>
+                    <option value="case">Case Management</option>
+                    <option value="user">User Management</option>
+                    <option value="role">Role Management</option>
+                    <option value="system">System Configuration</option>
+                    <option value="report">Reports</option>
+                </select>
+                <select id="statusFilter" onchange="filterPermissions()">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="users-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Permission ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Used In Roles</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="permissionsTableBody">
+                    <!-- Dynamic content will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create/Edit Permission Modal -->
+    <div id="permissionModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="permissionModalTitle">Add Permission</h3>
+                <span class="close" onclick="closePermissionModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="permissionForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="permissionId">Permission ID:</label>
+                            <input type="text" id="permissionId" name="permissionId" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="permissionName">Permission Name:</label>
+                            <input type="text" id="permissionName" name="permissionName" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="permissionCategory">Category:</label>
+                            <select id="permissionCategory" name="permissionCategory" required>
+                                <option value="">Select Category</option>
+                                <option value="case">Case Management</option>
+                                <option value="user">User Management</option>
+                                <option value="role">Role Management</option>
+                                <option value="system">System Configuration</option>
+                                <option value="report">Reports</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="permissionStatus">Status:</label>
+                            <select id="permissionStatus" name="permissionStatus" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="permissionDescription">Description:</label>
+                        <textarea id="permissionDescription" name="permissionDescription" rows="3" 
+                                placeholder="Describe what this permission allows..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closePermissionModal()" class="btn-secondary">Cancel</button>
+                <button type="button" onclick="savePermission()" class="btn-primary">Save Permission</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Permission Modal -->
+    <div id="viewPermissionModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Permission Details</h3>
+                <span class="close" onclick="closeViewPermissionModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="view-permission-content" id="viewPermissionContent">
+                    <!-- Permission details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeViewPermissionModal()" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        let currentEditingPermissionId = null;
+        let currentViewingPermissionId = null;
+        let allPermissions = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+            displayUserRole();
+            loadPermissions();
+        });
+
+        function displayUserRole() {
+            const roleId = localStorage.getItem('userRole');
+            const role = roleManager.getRoleById(roleId);
+            const roleName = role ? role.name : 'Unknown Role';
+            document.getElementById('userInfo').textContent = `Role: ${roleName}`;
+        }
+
+        function loadPermissions() {
+            allPermissions = roleManager.getAllPermissions();
+            displayPermissions(allPermissions);
+        }
+
+        function displayPermissions(permissions) {
+            const tbody = document.getElementById('permissionsTableBody');
+            tbody.innerHTML = '';
+
+            permissions.forEach(permission => {
+                const roles = roleManager.getAllRoles();
+                const usedInRoles = roles.filter(role => role.permissions.includes(permission.id));
+                
+                // Set default status if not exists
+                if (permission.isActive === undefined) {
+                    permission.isActive = true;
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${permission.id}</td>
+                    <td>${permission.name}</td>
+                    <td>${permission.description}</td>
+                    <td>${getCategoryLabel(permission.category)}</td>
+                    <td><span class="status-${permission.isActive ? 'active' : 'inactive'}">${permission.isActive ? 'Active' : 'Inactive'}</span></td>
+                    <td>${usedInRoles.length} roles</td>
+                    <td>
+                        <button class="btn-small" onclick="viewPermission('${permission.id}')">View</button>
+                        <button class="btn-small" onclick="editPermission('${permission.id}')">Edit</button>
+                        <button class="btn-small ${permission.isActive ? 'btn-warning' : 'btn-success'}" 
+                                onclick="togglePermissionStatus('${permission.id}')">${permission.isActive ? 'Deactivate' : 'Activate'}</button>
+                        <button class="btn-small btn-danger" onclick="deletePermission('${permission.id}')">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getCategoryLabel(category) {
+            const categories = {
+                'case': 'Case Management',
+                'user': 'User Management',
+                'role': 'Role Management',
+                'system': 'System Configuration',
+                'report': 'Reports'
+            };
+            return categories[category] || 'Unknown';
+        }
+
+        function viewPermission(permissionId) {
+            currentViewingPermissionId = permissionId;
+            const permission = allPermissions.find(p => p.id === permissionId);
+            
+            if (permission) {
+                const roles = roleManager.getAllRoles();
+                const usedInRoles = roles.filter(role => role.permissions.includes(permission.id));
+                
+                // Set default status if not exists
+                if (permission.isActive === undefined) {
+                    permission.isActive = true;
+                }
+                
+                let permissionDetailsHtml = `
+                    <div class="permission-view-section">
+                        <h4>Permission Information</h4>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Permission ID:</label>
+                                <span>${permission.id}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Name:</label>
+                                <span>${permission.name}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Description:</label>
+                                <span>${permission.description}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Category:</label>
+                                <span>${getCategoryLabel(permission.category)}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Status:</label>
+                                <span class="status-${permission.isActive ? 'active' : 'inactive'}">${permission.isActive ? 'Active' : 'Inactive'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="permission-view-section">
+                        <h4>Used in Roles (${usedInRoles.length})</h4>
+                        <div class="roles-display">
+                `;
+
+                if (usedInRoles.length > 0) {
+                    usedInRoles.forEach(role => {
+                        permissionDetailsHtml += `
+                            <div class="role-item-view">
+                                <span class="role-name">${role.name}</span>
+                                <span class="role-desc">${role.description}</span>
+                                <span class="role-status status-${role.isActive ? 'active' : 'inactive'}">${role.isActive ? 'Active' : 'Inactive'}</span>
+                            </div>
+                        `;
+                    });
+                } else {
+                    permissionDetailsHtml += '<p>This permission is not assigned to any roles</p>';
+                }
+
+                permissionDetailsHtml += `
+                        </div>
+                    </div>
+
+                    <div class="permission-view-section">
+                        <h4>Additional Information</h4>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Created:</label>
+                                <span>${formatDate(permission.createdAt || new Date().toISOString())}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Last Updated:</label>
+                                <span>${permission.updatedAt ? formatDate(permission.updatedAt) : 'Never'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('viewPermissionContent').innerHTML = permissionDetailsHtml;
+                document.getElementById('viewPermissionModal').style.display = 'block';
+            }
+        }
+
+        function closeViewPermissionModal() {
+            document.getElementById('viewPermissionModal').style.display = 'none';
+            currentViewingPermissionId = null;
+        }
+
+        function editPermissionFromView() {
+            closeViewPermissionModal();
+            editPermission(currentViewingPermissionId);
+        }
+
+        function filterPermissions() {
+            const searchTerm = document.getElementById('permissionSearch').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            let filteredPermissions = allPermissions.filter(permission => {
+                const matchesSearch = permission.name.toLowerCase().includes(searchTerm) || 
+                                    permission.description.toLowerCase().includes(searchTerm) ||
+                                    permission.id.toLowerCase().includes(searchTerm);
+                const matchesCategory = !categoryFilter || permission.category === categoryFilter;
+                const matchesStatus = !statusFilter || 
+                                    (statusFilter === 'active' && permission.isActive !== false) ||
+                                    (statusFilter === 'inactive' && permission.isActive === false);
+
+                return matchesSearch && matchesCategory && matchesStatus;
+            });
+
+            displayPermissions(filteredPermissions);
+        }
+
+        function showCreatePermissionModal() {
+            currentEditingPermissionId = null;
+            document.getElementById('permissionModalTitle').textContent = 'Add Permission';
+            document.getElementById('permissionForm').reset();
+            document.getElementById('permissionId').disabled = false;
+            document.getElementById('permissionModal').style.display = 'block';
+        }
+
+        function editPermission(permissionId) {
+            currentEditingPermissionId = permissionId;
+            const permission = allPermissions.find(p => p.id === permissionId);
+            
+            if (permission) {
+                document.getElementById('permissionModalTitle').textContent = 'Edit Permission';
+                document.getElementById('permissionId').value = permission.id;
+                document.getElementById('permissionId').disabled = true;
+                document.getElementById('permissionName').value = permission.name;
+                document.getElementById('permissionDescription').value = permission.description;
+                document.getElementById('permissionCategory').value = permission.category || '';
+                document.getElementById('permissionStatus').value = permission.isActive !== false ? 'active' : 'inactive';
+                document.getElementById('permissionModal').style.display = 'block';
+            }
+        }
+
+        function savePermission() {
+            const permissionId = document.getElementById('permissionId').value;
+            const permissionName = document.getElementById('permissionName').value;
+            const permissionDescription = document.getElementById('permissionDescription').value;
+            const permissionCategory = document.getElementById('permissionCategory').value;
+            const permissionStatus = document.getElementById('permissionStatus').value;
+
+            if (!permissionId.trim() || !permissionName.trim() || !permissionCategory) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+
+            const permissionData = {
+                id: permissionId,
+                name: permissionName,
+                description: permissionDescription,
+                category: permissionCategory,
+                isActive: permissionStatus === 'active'
+            };
+
+            try {
+                if (currentEditingPermissionId) {
+                    // Update existing permission
+                    const permissionIndex = allPermissions.findIndex(p => p.id === currentEditingPermissionId);
+                    if (permissionIndex !== -1) {
+                        allPermissions[permissionIndex] = { ...allPermissions[permissionIndex], ...permissionData, updatedAt: new Date().toISOString() };
+                        localStorage.setItem('permissions', JSON.stringify(allPermissions));
+                        showNotification('Permission updated successfully!', 'success');
+                    }
+                } else {
+                    // Check if permission ID already exists
+                    if (allPermissions.find(p => p.id === permissionId)) {
+                        showNotification('Permission ID already exists', 'error');
+                        return;
+                    }
+                    
+                    // Create new permission
+                    const newPermission = {
+                        ...permissionData,
+                        createdAt: new Date().toISOString()
+                    };
+                    allPermissions.push(newPermission);
+                    localStorage.setItem('permissions', JSON.stringify(allPermissions));
+                    showNotification('Permission created successfully!', 'success');
+                }
+                
+                closePermissionModal();
+                loadPermissions();
+            } catch (error) {
+                showNotification('Error saving permission: ' + error.message, 'error');
+            }
+        }
+
+        function deletePermission(permissionId) {
+            const permission = allPermissions.find(p => p.id === permissionId);
+            if (!permission) return;
+
+            const roles = roleManager.getAllRoles();
+            const usedInRoles = roles.filter(role => role.permissions.includes(permissionId));
+            
+            let confirmMessage = `Are you sure you want to delete the permission "${permission.name}"? This action cannot be undone.`;
+            
+            if (usedInRoles.length > 0) {
+                confirmMessage = `WARNING: This permission "${permission.name}" is currently used by ${usedInRoles.length} role(s). Deleting it will remove it from all roles. Are you sure you want to continue?`;
+            }
+
+            if (confirm(confirmMessage)) {
+                // Remove permission from all roles that use it
+                if (usedInRoles.length > 0) {
+                    usedInRoles.forEach(role => {
+                        role.permissions = role.permissions.filter(perm => perm !== permissionId);
+                        roleManager.updateRole(role.id, role);
+                    });
+                }
+
+                // Delete the permission
+                allPermissions = allPermissions.filter(p => p.id !== permissionId);
+                localStorage.setItem('permissions', JSON.stringify(allPermissions));
+                showNotification('Permission deleted successfully!', 'success');
+                loadPermissions();
+            }
+        }
+
+        function togglePermissionStatus(permissionId) {
+            const permission = allPermissions.find(p => p.id === permissionId);
+            if (!permission) return;
+
+            const newStatus = !permission.isActive;
+            const action = newStatus ? 'activate' : 'deactivate';
+            
+            if (confirm(`Are you sure you want to ${action} the permission "${permission.name}"?`)) {
+                permission.isActive = newStatus;
+                permission.updatedAt = new Date().toISOString();
+                localStorage.setItem('permissions', JSON.stringify(allPermissions));
+                showNotification(`Permission ${action}d successfully!`, 'success');
+                loadPermissions();
+            }
+        }
+
+        function closePermissionModal() {
+            document.getElementById('permissionModal').style.display = 'none';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const permissionModal = document.getElementById('permissionModal');
+            const viewPermissionModal = document.getElementById('viewPermissionModal');
+            
+            if (event.target === permissionModal) {
+                closePermissionModal();
+            }
+            if (event.target === viewPermissionModal) {
+                closeViewPermissionModal();
+            }
+        }
+    </script>
+</body>
+</html>

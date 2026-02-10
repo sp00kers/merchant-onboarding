@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Management - Merchant Onboarding Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">Merchant Onboarding Platform</div>
+        <div class="nav-menu">
+            <a href="cases.html">Merchant Onboarding Cases</a>
+            <a href="business-params.html">Business Parameters Management</a>
+            <a href="account-management.html">Account Management</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+        <div class="user-info" id="userInfo"></div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>Account Management</h1>
+            <p class="page-description">Manage users, roles, and permissions for the merchant onboarding platform</p>
+        </div>
+        
+        <!-- Replace the management-options section in account-management.html -->
+        <div class="management-options">
+            <div class="option-card" onclick="navigateToUserManagement()" id="userManagementCard">
+                <div class="option-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+                <div class="option-content">
+                    <h3>User Management</h3>
+                    <p>Create, edit, and manage user accounts. Assign roles and monitor user activity.</p>
+                </div>
+                <div class="option-arrow">→</div>
+            </div>
+
+            <div class="option-card" onclick="navigateToRoleManagement()" id="roleManagementCard">
+                <div class="option-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+                    </svg>
+                </div>
+                <div class="option-content">
+                    <h3>Role Management</h3>
+                    <p>Define roles and permissions. Create custom roles based on your organisation's needs.</p>
+                </div>
+                <div class="option-arrow">→</div>
+            </div>
+
+            <div class="option-card" onclick="navigateToPermissionManagement()" id="permissionManagementCard">
+                <div class="option-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3Z"/>
+                    </svg>
+                </div>
+                <div class="option-content">
+                    <h3>Permission Management</h3>
+                    <p>Create and manage system permissions. Define what actions users can perform.</p>
+                </div>
+                <div class="option-arrow">→</div>
+            </div>
+        </div>
+
+            
+        </div>
+    </div> 
+
+        
+
+    <script src="js/common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+            displayUserRole();
+            loadAccountStats();
+            loadRecentActivity();
+            loadQuickActionPermissions();
+            loadQuickUserRoles();
+        });
+
+        function displayUserRole() {
+            const roleId = localStorage.getItem('userRole');
+            const role = roleManager.getRoleById(roleId);
+            const roleName = role ? role.name : 'Unknown Role';
+            document.getElementById('userInfo').textContent = `Role: ${roleName}`;
+        }
+
+        function loadAccountStats() {
+            // Mock user data
+            const users = [
+                { id: 'USR001', status: 'active' },
+                { id: 'USR002', status: 'active' },
+                { id: 'USR003', status: 'active' },
+                { id: 'USR004', status: 'active' },
+                { id: 'USR005', status: 'inactive' }
+            ];
+
+            const roles = roleManager.getAllRoles();
+            const permissions = roleManager.getAllPermissions();
+            const activeUsers = users.filter(user => user.status === 'active');
+
+            document.getElementById('totalUsers').textContent = users.length;
+            document.getElementById('activeUsers').textContent = activeUsers.length;
+            document.getElementById('totalRoles').textContent = roles.length;
+            document.getElementById('totalPermissions').textContent = permissions.length;
+        }
+
+        function loadRecentActivity() {
+            const activities = [
+                {
+                    type: 'user_created',
+                    message: 'New user "Sarah Lee" was created',
+                    timestamp: '2024-01-15 10:30',
+                    user: 'Admin'
+                },
+                {
+                    type: 'role_updated',
+                    message: 'Role "Compliance Reviewer" was updated',
+                    timestamp: '2024-01-15 09:45',
+                    user: 'Admin'
+                },
+                {
+                    type: 'user_deactivated',
+                    message: 'User "David Chen" was deactivated',
+                    timestamp: '2024-01-15 09:15',
+                    user: 'Admin'
+                },
+                {
+                    type: 'permission_added',
+                    message: 'New permission "report.export" was added',
+                    timestamp: '2024-01-14 16:30',
+                    user: 'Admin'
+                }
+            ];
+
+            const activityFeed = document.getElementById('activityFeed');
+            activityFeed.innerHTML = '';
+
+            activities.slice(0, 5).forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                const activityIcon = getActivityIcon(activity.type);
+                
+                activityItem.innerHTML = `
+                    <div class="activity-icon">${activityIcon}</div>
+                    <div class="activity-details">
+                        <p class="activity-message">${activity.message}</p>
+                        <span class="activity-meta">by ${activity.user} • ${activity.timestamp}</span>
+                    </div>
+                `;
+                activityFeed.appendChild(activityItem);
+            });
+        }
+
+        function getActivityIcon(type) {
+            const icons = {
+                'user_created': '👤',
+                'user_updated': '✏️',
+                'user_deactivated': '🚫',
+                'role_created': '🔑',
+                'role_updated': '⚙️',
+                'role_deleted': '🗑️',
+                'permission_added': '➕',
+                'permission_removed': '➖'
+            };
+            return icons[type] || '📝';
+        }
+
+        function loadQuickActionPermissions() {
+            const roleId = localStorage.getItem('userRole');
+            
+            // Show/hide quick actions based on permissions
+            document.getElementById('quickAddUserBtn').style.display = 
+                roleManager.userHasPermission(roleId, 'user_management') ? 'flex' : 'none';
+            
+            document.getElementById('quickCreateRoleBtn').style.display = 
+                roleManager.userHasPermission(roleId, 'role_management') ? 'flex' : 'none';
+            
+            document.getElementById('exportDataBtn').style.display = 
+                roleManager.userHasPermission(roleId, 'system_configuration') ? 'flex' : 'none';
+            
+            document.getElementById('systemLogsBtn').style.display = 
+                roleManager.userHasPermission(roleId, 'system_configuration') ? 'flex' : 'none';
+        }
+
+        function loadQuickUserRoles() {
+            const roleSelect = document.getElementById('quickUserRole');
+            const roles = roleManager.getActiveRoles();
+            
+            roleSelect.innerHTML = '<option value="">Select Role</option>';
+            roles.forEach(role => {
+                const option = document.createElement('option');
+                option.value = role.id;
+                option.textContent = role.name;
+                roleSelect.appendChild(option);
+            });
+        }
+
+        function navigateToUserManagement() {
+            const roleId = localStorage.getItem('userRole');
+            if (roleManager.userHasPermission(roleId, 'user_management')) {
+                window.location.href = 'user-management.html';
+            } else {
+                showNotification('You do not have permission to access User Management', 'error');
+            }
+        }
+
+        function navigateToRoleManagement() {
+            const roleId = localStorage.getItem('userRole');
+            if (roleManager.userHasPermission(roleId, 'role_management')) {
+                window.location.href = 'role-management.html';
+            } else {
+                showNotification('You do not have permission to access Role Management', 'error');
+            }
+        }
+
+        function navigateToPermissionManagement() {
+            const roleId = localStorage.getItem('userRole');
+            if (roleManager.userHasPermission(roleId, 'permission_management')) {
+                window.location.href = 'permission-management.html';
+            } else {
+                showNotification('You do not have permission to access Permission Management', 'error');
+            }
+        }
+
+        function showQuickAddUser() {
+            document.getElementById('quickUserModal').style.display = 'block';
+        }
+
+        function closeQuickUserModal() {
+            document.getElementById('quickUserModal').style.display = 'none';
+            document.getElementById('quickUserForm').reset();
+        }
+
+        function createQuickUser() {
+            const name = document.getElementById('quickUserName').value;
+            const email = document.getElementById('quickUserEmail').value;
+            const role = document.getElementById('quickUserRole').value;
+
+            if (!name || !email || !role) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+
+            // In a real implementation, this would call an API
+            showNotification('User created successfully! Redirecting to User Management...', 'success');
+            closeQuickUserModal();
+            
+            setTimeout(() => {
+                window.location.href = 'user-management.html';
+            }, 1500);
+        }
+
+        function showQuickCreateRole() {
+            window.location.href = 'role-management.html';
+        }
+
+        function exportUserData() {
+            // Mock export functionality
+            showNotification('Exporting user data...', 'info');
+            setTimeout(() => {
+                showNotification('User data exported successfully!', 'success');
+            }, 2000);
+        }
+
+        function showSystemLogs() {
+            showNotification('System logs feature coming soon!', 'info');
+        }
+
+        function viewAllActivity() {
+            showNotification('Full activity log feature coming soon!', 'info');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('quickUserModal');
+            if (event.target === modal) {
+                closeQuickUserModal();
+            }
+        }
+    </script>
+</body>
+</html>

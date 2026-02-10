@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Parameters - Merchant Onboarding Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">Merchant Onboarding Platform</div>
+        <div class="nav-menu">
+            <a href="cases.html">Merchant Onboarding Cases</a>
+            <a href="business-params.html">Business Parameters Management</a>
+            <a href="account-management.html">Account Management</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+        <div class="user-info" id="userInfo"></div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>Business Parameters Management</h1>
+            <p class="page-description">Configure business types, merchant categories, and risk categories for the onboarding system</p>
+        </div>
+
+        <!-- Management Options -->
+        <div class="management-options">
+            <div class="option-card" onclick="navigateToBusinessTypes()" id="businessTypesCard">
+                <div class="option-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12,7V3H2V21H22V7H12M6,19H4V17H6V19M6,15H4V13H6V15M6,11H4V9H6V11M6,7H4V5H6V7M10,19H8V17H10V19M10,15H8V13H10V15M10,11H8V9H10V11M10,7H8V5H10V7M20,19H12V17H20V19M20,15H12V13H20V15M20,11H12V9H20V11Z"/>
+                    </svg>
+                </div>
+                <div class="option-content">
+                    <h3>Business Types</h3>
+                    <p>Manage business entity types such as Sole Proprietorship, Partnership, Sdn Bhd, and Public Companies.</p>
+                </div>
+                <div class="option-arrow">→</div>
+            </div>
+
+            <div class="option-card" onclick="navigateToMerchantCategories()" id="merchantCategoriesCard">
+                <div class="option-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19,7H22V9H19V7M19,11H22V13H19V11M19,15H22V17H19V15M11,7H15V9H11V7M11,11H15V13H11V11M11,15H15V17H11V15M3,7H7V9H3V7M3,11H7V13H3V11M3,15H7V17H3V15Z"/>
+                    </svg>
+                </div>
+                <div class="option-content">
+                    <h3>Merchant Categories</h3>
+                    <p>Configure merchant business categories with associated risk levels for onboarding assessment.</p>
+                </div>
+                <div class="option-arrow">→</div>
+            </div>
+
+            <div class="option-card" onclick="navigateToRiskCategories()" id="riskCategoriesCard">
+                <div class="option-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12,2L13.09,8.26L22,9L13.09,9.74L12,16L10.91,9.74L2,9L10.91,8.26L12,2M12,2L13.09,8.26L22,9L13.09,9.74L12,16L10.91,9.74L2,9L10.91,8.26L12,2Z"/>
+                    </svg>
+                </div>
+                <div class="option-content">
+                    <h3>Risk Categories</h3>
+                    <p>Define risk assessment levels and scoring ranges for merchant evaluation and approval workflow.</p>
+                </div>
+                <div class="option-arrow">→</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+            displayUserRole();
+            loadParameterStats();
+            loadParameterActivity();
+        });
+
+        function displayUserRole() {
+            const roleId = localStorage.getItem('userRole');
+            const role = roleManager.getRoleById(roleId);
+            const roleName = role ? role.name : 'Unknown Role';
+            document.getElementById('userInfo').textContent = `Role: ${roleName}`;
+        }
+
+        function loadParameterStats() {
+            const businessTypes = JSON.parse(localStorage.getItem('businessTypes') || '[]');
+            const merchantCategories = JSON.parse(localStorage.getItem('merchantCategories') || '[]');
+            const riskCategories = JSON.parse(localStorage.getItem('riskCategories') || '[]');
+
+            document.getElementById('businessTypesCount').textContent = businessTypes.length;
+            document.getElementById('merchantCategoriesCount').textContent = merchantCategories.length;
+            document.getElementById('riskCategoriesCount').textContent = riskCategories.length;
+        }
+
+        function loadParameterActivity() {
+            const activities = [
+                {
+                    type: 'business_type_added',
+                    message: 'New business type "Limited Liability Partnership" was added',
+                    timestamp: '2024-01-15 11:30',
+                    user: 'Admin'
+                },
+                {
+                    type: 'merchant_category_updated',
+                    message: 'Merchant category "E-commerce" risk level updated to Medium',
+                    timestamp: '2024-01-15 10:15',
+                    user: 'Admin'
+                },
+                {
+                    type: 'risk_category_modified',
+                    message: 'Risk category "High Risk" score range updated',
+                    timestamp: '2024-01-14 16:45',
+                    user: 'Admin'
+                }
+            ];
+
+            const activityFeed = document.getElementById('parameterActivityFeed');
+            activityFeed.innerHTML = '';
+
+            activities.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                const activityIcon = getParameterActivityIcon(activity.type);
+                
+                activityItem.innerHTML = `
+                    <div class="activity-icon">${activityIcon}</div>
+                    <div class="activity-details">
+                        <p class="activity-message">${activity.message}</p>
+                        <span class="activity-meta">by ${activity.user} • ${activity.timestamp}</span>
+                    </div>
+                `;
+                activityFeed.appendChild(activityItem);
+            });
+        }
+
+        function getParameterActivityIcon(type) {
+            const icons = {
+                'business_type_added': '🏢',
+                'business_type_updated': '✏️',
+                'merchant_category_updated': '🏪',
+                'merchant_category_added': '➕',
+                'risk_category_modified': '⚠️',
+                'risk_category_added': '📊'
+            };
+            return icons[type] || '📝';
+        }
+
+        function navigateToBusinessTypes() {
+            const roleId = localStorage.getItem('userRole');
+            if (roleManager.userHasPermission(roleId, 'business_parameters')) {
+                window.location.href = 'business-types.html';
+            } else {
+                showNotification('You do not have permission to access Business Types management', 'error');
+            }
+        }
+
+        function navigateToMerchantCategories() {
+            const roleId = localStorage.getItem('userRole');
+            if (roleManager.userHasPermission(roleId, 'business_parameters')) {
+                window.location.href = 'merchant-categories.html';
+            } else {
+                showNotification('You do not have permission to access Merchant Categories management', 'error');
+            }
+        }
+
+        function navigateToRiskCategories() {
+            const roleId = localStorage.getItem('userRole');
+            if (roleManager.userHasPermission(roleId, 'business_parameters')) {
+                window.location.href = 'risk-categories.html';
+            } else {
+                showNotification('You do not have permission to access Risk Categories management', 'error');
+            }
+        }
+
+        function viewAllParameterActivity() {
+            showNotification('Full parameter activity log feature coming soon!', 'info');
+        }
+    </script>
+</body>
+</html>

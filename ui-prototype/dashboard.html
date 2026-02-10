@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Merchant Onboarding Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">Merchant Onboarding Platform</div>
+        <div class="nav-menu">
+            <a href="cases.html">Merchant Onboarding Cases</a>
+            <a href="business-params.html">Business Parameters Management</a>
+            <a href="account-management.html">Account Management</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+        <div class="user-info" id="userInfo"></div>
+    </nav>
+
+    <div class="container">
+        <h1>Dashboard</h1>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>Pending Cases</h3>
+                <div class="stat-number">24</div>
+            </div>
+            <div class="stat-card">
+                <h3>Under Review</h3>
+                <div class="stat-number">12</div>
+            </div>
+            <div class="stat-card">
+                <h3>Approved Today</h3>
+                <div class="stat-number">8</div>
+            </div>
+            <div class="stat-card">
+                <h3>Rejected</h3>
+                <div class="stat-number">3</div>
+            </div>
+        </div>
+
+        <div class="dashboard-content">
+            <div class="recent-activities">
+                <h3>Recent Activities</h3>
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <span class="activity-time">10:30 AM</span>
+                        <span class="activity-desc">New merchant case created - ABC Electronics</span>
+                    </div>
+                    <div class="activity-item">
+                        <span class="activity-time">09:45 AM</span>
+                        <span class="activity-desc">Background verification completed - XYZ Trading</span>
+                    </div>
+                    <div class="activity-item">
+                        <span class="activity-time">09:15 AM</span>
+                        <span class="activity-desc">Case approved - Tech Solutions Ltd</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+            displayUserRole();
+            loadQuickActions();
+            
+            // Debug information
+            const roleId = localStorage.getItem('userRole');
+            console.log('Dashboard loaded for role:', roleId);
+            console.log('Role object:', roleManager.getRoleById(roleId));
+        });
+
+        function displayUserRole() {
+            const roleId = localStorage.getItem('userRole');
+            const role = roleManager.getRoleById(roleId);
+            const roleName = role ? role.name : 'Unknown Role';
+            document.getElementById('userInfo').textContent = `Role: ${roleName}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Details - Merchant Onboarding Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">Merchant Onboarding Platform</div>
+        <div class="nav-menu">
+            <a href="cases.html">Merchant Onboarding Cases</a>
+            <a href="business-params.html">Business Parameters Management</a>
+            <a href="account-management.html">Account Management</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+        <div class="user-info" id="userInfo"></div>
+    </nav>
+
+    <div class="container">
+        <div class="case-header">
+            <div>
+                <h1>View Case Details</h1>
+                <button class="btn-secondary" onclick="goBackToCases()" style="margin-top: 1rem;">Back to Cases</button>
+            </div>
+            <div class="header-actions">
+                <!-- Actions dropdown in header -->
+                <div class="action-dropdown-container">
+                    <div class="dropdown">
+                        <button class="btn-primary dropdown-toggle" onclick="toggleActionDropdown()">
+                            <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-menu" id="actionDropdownMenu">
+                            <button class="dropdown-item" onclick="exportCase()">
+                                <span class="dropdown-icon">📄</span>Export Case
+                            </button>
+                            <button class="dropdown-item" onclick="assignCase()" id="reassignMenuItem">
+                                <span class="dropdown-icon">👥</span>Reassign Case
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Access Banner -->
+        <div class="access-info-banner" id="accessInfoBanner" style="display: none;">
+            <!-- Dynamic access information will be displayed here -->
+        </div>
+
+        <!-- Workflow Progress -->
+        <div class="workflow-progress-section">
+            <h3>Workflow Progress</h3>
+            <div class="progress-steps-horizontal">
+                <div class="step completed">
+                    <div class="step-circle">✓</div>
+                    <div class="step-label">Data Entry</div>
+                    <div class="step-line completed"></div>
+                </div>
+                <div class="step active">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Compliance Review</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Background Verification</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Final Approval</div>
+                    <div class="step-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="case-content">
+            <div class="case-main-content">
+                <div class="info-section">
+                    <h3>Business Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Business Name:</label>
+                            <span id="businessName">ABC Electronics Sdn Bhd</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Registration Number:</label>
+                            <span id="registrationNumber">201801012345</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Business Type:</label>
+                            <span id="businessType">Sdn Bhd</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Merchant Category:</label>
+                            <span id="merchantCategory">Retail</span>
+                        </div>
+                        <div class="info-item full-width">
+                            <label>Business Address:</label>
+                            <span id="businessAddress">123 Technology Park, Cyberjaya, Selangor, Malaysia</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>Director Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Director Name:</label>
+                            <span id="directorName">Ahmad bin Abdullah</span>
+                        </div>
+                        <div class="info-item">
+                            <label>IC Number:</label>
+                            <span id="directorIC">850123-14-5678</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Phone Number:</label>
+                            <span id="directorPhone">+60123456789</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Email:</label>
+                            <span id="directorEmail">ahmad@abcelectronics.com</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>Documents</h3>
+                    <div class="documents-list">
+                        <div class="document-item">
+                            <span class="doc-name">Business Registration Certificate</span>
+                            <button class="btn-small">Download</button>
+                        </div>
+                        <div class="document-item">
+                            <span class="doc-name">Director ID Copy</span>
+                            <button class="btn-small">Download</button>
+                        </div>
+                        <div class="document-item">
+                            <span class="doc-name">Financial Statement</span>
+                            <button class="btn-small">Download</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="case-sidebar">
+                <div class="case-info">
+                    <h3>Case Information</h3>
+                    <div class="case-meta">
+                        <div class="meta-item">
+                            <label>Case ID:</label>
+                            <span>MOP-2024-001</span>
+                        </div>
+                        <div class="meta-item">
+                            <label>Created:</label>
+                            <span>2024-01-15 10:30</span>
+                        </div>
+                        <div class="meta-item">
+                            <label>Assigned To:</label>
+                            <span>John Doe</span>
+                        </div>
+                        <div class="meta-item">
+                            <label>Priority:</label>
+                            <span>Normal</span>
+                        </div>
+                        <div class="meta-item">
+                            <label>Last Updated:</label>
+                            <span>2024-01-15 14:20</span>
+                        </div>
+                        <div class="meta-item">
+                            <label>Status: </label>
+                            <span>Pending Review</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="case-history">
+                    <h3>Case History</h3>
+                    <div class="history-list">
+                        <div class="history-item">
+                            <div class="history-time">2024-01-15 10:30</div>
+                            <div class="history-action">Case created by John Doe</div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-time">2024-01-15 10:35</div>
+                            <div class="history-action">Assigned to Compliance Team</div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-time">2024-01-15 14:20</div>
+                            <div class="history-action">Documents uploaded</div>
+                        </div>
+                        <div class="history-item">
+                            <div class="history-time">2024-01-15 15:45</div>
+                            <div class="history-action">Initial review completed</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Comment Section in Sidebar -->
+                <div class="add-comment-section">
+                    <h3>Add Comment</h3>
+                    <div class="comment-form">
+                        <textarea id="commentText" placeholder="Enter your comment here..." rows="4"></textarea>
+                        <div class="comment-actions">
+                            <button class="btn-primary" onclick="submitComment()">Add Comment</button>
+                            <button class="btn-secondary" onclick="clearComment()">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Actions Section at Bottom -->
+        <div class="available-actions-section">
+            <h3>Available Actions</h3>
+            <div class="actions-layout" id="actionButtonsContainer">
+                <!-- Dynamic buttons based on role will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+            displayUserRole();
+            checkCaseAccess();
+            displayAccessBanner();
+            loadActionButtons();
+        });
+
+        function displayUserRole() {
+            const roleId = localStorage.getItem('userRole');
+            const role = roleManager.getRoleById(roleId);
+            const roleName = role ? role.name : 'Unknown Role';
+            document.getElementById('userInfo').textContent = `Role: ${roleName}`;
+        }
+
+        function checkCaseAccess() {
+            const roleId = localStorage.getItem('userRole');
+            
+            if (!roleManager.canViewCases(roleId)) {
+                showNotification('You do not have permission to view this case', 'error');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+                return false;
+            }
+            return true;
+        }
+
+        function displayAccessBanner() {
+            const roleId = localStorage.getItem('userRole');
+            const banner = document.getElementById('accessInfoBanner');
+            
+            let bannerContent = '';
+            let bannerClass = '';
+
+            if (roleId === 'onboarding_officer') {
+                bannerContent = `
+                    <div class="banner-icon">ℹ️</div>
+                    <div class="banner-text">
+                        <strong>Onboarding Officer Access</strong>
+                        <p>You can view case details and add comments. For approvals or rejections, please contact a Compliance Reviewer.</p>
+                    </div>
+                `;
+                bannerClass = 'info-banner';
+            } else if (roleId === 'compliance_reviewer') {
+                bannerContent = `
+                    <div class="banner-icon">✏️</div>
+                    <div class="banner-text">
+                        <strong>Compliance Reviewer Access</strong>
+                        <p>You can view, approve, reject, or request more information for this case. You have full control over the compliance review process.</p>
+                    </div>
+                `;
+                bannerClass = 'success-banner';
+            } else if (roleId === 'verifier') {
+                bannerContent = `
+                    <div class="banner-icon">🔍</div>
+                    <div class="banner-text">
+                        <strong>Verifier Access</strong>
+                        <p>You can view case details and perform background verification tasks. Contact Compliance Reviewers for case status changes.</p>
+                    </div>
+                `;
+                bannerClass = 'warning-banner';
+            } else if (roleId === 'admin') {
+                bannerContent = `
+                    <div class="banner-icon">⚙️</div>
+                    <div class="banner-text">
+                        <strong>Administrator Access</strong>
+                        <p>You have full access to all case functions including approval, rejection, and case management.</p>
+                    </div>
+                `;
+                bannerClass = 'admin-banner';
+            }
+
+            if (bannerContent) {
+                banner.innerHTML = bannerContent;
+                banner.className = `access-info-banner ${bannerClass}`;
+                banner.style.display = 'flex';
+            }
+        }
+
+        function loadActionButtons() {
+            const roleId = localStorage.getItem('userRole');
+            const buttonsContainer = document.getElementById('actionButtonsContainer');
+            
+            // Clear existing buttons
+            buttonsContainer.innerHTML = '';
+            
+            // Hide/show dropdown menu items based on role
+            const reassignMenuItem = document.getElementById('reassignMenuItem');
+            
+            if (roleId === 'compliance_reviewer' || roleId === 'admin') {
+                // Show all dropdown items
+                reassignMenuItem.style.display = 'flex';
+                
+                // Create the three-button layout: Approve | Actions | Reject
+                buttonsContainer.innerHTML = `
+                    <button class="btn-success btn-large" onclick="approveStep()">
+                        <span class="btn-icon">✅</span>Approve
+                    </button>
+                    
+                    
+                    
+                    <button class="btn-danger btn-large" onclick="rejectCase()">
+                        <span class="btn-icon">❌</span>Reject
+                    </button>
+                `;
+            } else if (roleId === 'verifier') {
+                // Hide some dropdown items
+                reassignMenuItem.style.display = 'none';
+                
+                // Verifier layout
+                buttonsContainer.innerHTML = `
+                    <button class="btn-success btn-large" onclick="completeVerification()">
+                        <span class="btn-icon">🔍</span>Complete Verification
+                    </button>
+                    
+                    <div class="center-actions">
+                        <div class="action-dropdown-container">
+                            <div class="dropdown">
+                                <button class="btn-secondary dropdown-toggle" onclick="toggleActionDropdown2()">
+                                    <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
+                                </button>
+                                <div class="dropdown-menu" id="actionDropdownMenu2">
+                                    <button class="dropdown-item" onclick="requestReview()">
+                                        <span class="dropdown-icon">📞</span>Request Review
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-warning btn-large" onclick="flagForReview()">
+                        <span class="btn-icon">🚩</span>Flag for Review
+                    </button>
+                `;
+            } else if (roleId === 'onboarding_officer') {
+                // Hide most dropdown items
+                reassignMenuItem.style.display = 'none';
+                
+                // Limited layout for onboarding officers
+                buttonsContainer.innerHTML = `
+                    <div class="center-actions full-width">
+                        <div class="action-dropdown-container">
+                            <div class="dropdown">
+                                <button class="btn-secondary dropdown-toggle" onclick="toggleActionDropdown2()">
+                                    <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
+                                </button>
+                                <div class="dropdown-menu" id="actionDropdownMenu2">
+                                    <button class="dropdown-item" onclick="requestReview()">
+                                        <span class="dropdown-icon">📞</span>Request Review
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Comment functions
+        function submitComment() {
+            const commentText = document.getElementById('commentText').value.trim();
+            if (!commentText) {
+                showNotification('Please enter a comment', 'error');
+                return;
+            }
+            
+            showNotification('Comment added successfully!', 'success');
+            
+            // Add to case history
+            const historyList = document.querySelector('.history-list');
+            const newHistoryItem = document.createElement('div');
+            newHistoryItem.className = 'history-item';
+            newHistoryItem.innerHTML = `
+                <div class="history-time">${new Date().toLocaleString()}</div>
+                <div class="history-action">Comment added: "${commentText}"</div>
+            `;
+            historyList.insertBefore(newHistoryItem, historyList.firstChild);
+            
+            document.getElementById('commentText').value = '';
+        }
+
+        function clearComment() {
+            document.getElementById('commentText').value = '';
+        }
+
+        // Dropdown functions
+        function toggleActionDropdown() {
+            const dropdown = document.getElementById('actionDropdownMenu');
+            dropdown.classList.toggle('show');
+        }
+
+        function toggleActionDropdown2() {
+            const dropdown = document.getElementById('actionDropdownMenu2');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown1 = document.getElementById('actionDropdownMenu');
+            const dropdown2 = document.getElementById('actionDropdownMenu2');
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+            
+            let clickedOnToggle = false;
+            dropdownToggles.forEach(toggle => {
+                if (toggle.contains(event.target)) {
+                    clickedOnToggle = true;
+                }
+            });
+            
+            if (!clickedOnToggle) {
+                if (dropdown1) dropdown1.classList.remove('show');
+                if (dropdown2) dropdown2.classList.remove('show');
+            }
+        });
+
+        function goBackToCases() {
+            window.location.href = 'cases.html';
+        }
+
+        function approveStep() {
+            if (confirm('Are you sure you want to approve this case?')) {
+                showNotification('Case approved successfully! Moving to next stage...', 'success');
+            }
+        }
+
+        function rejectCase() {
+            if (confirm('Are you sure you want to reject this case?')) {
+                showNotification('Case rejected successfully.', 'success');
+            }
+        }
+
+        function requestMoreInfo() {
+            showNotification('More information requested from merchant.', 'info');
+            document.getElementById('actionDropdownMenu2').classList.remove('show');
+        }
+
+        function assignCase() {
+            showNotification('Case reassignment feature coming soon!', 'info');
+            document.getElementById('actionDropdownMenu').classList.remove('show');
+        }
+
+        function exportCase() {
+            showNotification('Exporting case details...', 'info');
+            setTimeout(() => {
+                showNotification('Case exported successfully!', 'success');
+            }, 1500);
+            document.getElementById('actionDropdownMenu').classList.remove('show');
+        }
+
+        function completeVerification() {
+            if (confirm('Are you sure you want to mark verification as complete?')) {
+                showNotification('Verification completed successfully!', 'success');
+            }
+        }
+
+        function flagForReview() {
+            const reason = prompt('Enter reason for flagging:');
+            if (reason) {
+                showNotification('Case flagged for review successfully!', 'warning');
+            }
+        }
+
+        function requestReview() {
+            showNotification('Review request sent to Compliance Team!', 'info');
+        }
+    </script>
+</body>
+</html>

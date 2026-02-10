@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Merchant Onboarding Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand" onclick="window.location.href='dashboard.html'" style="cursor: pointer;">Merchant Onboarding Platform</div>
+        <div class="nav-menu">
+            <a href="cases.html">Merchant Onboarding Cases</a>
+            <a href="business-params.html">Business Parameters Management</a>
+            <a href="account-management.html">Account Management</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+        <div class="user-info" id="userInfo"></div>
+    </nav>
+    
+    <div class="container">
+        <!-- Add breadcrumb navigation -->
+        <div class="breadcrumb">
+            <a href="account-management.html">Account Management</a>
+            <span class="breadcrumb-separator">></span>
+            <span class="breadcrumb-current">User Management</span>
+        </div>
+        
+        <div class="page-header">
+            <h1>User Management</h1>
+            <button class="btn-primary" onclick="showCreateUserModal()">Add New</button>
+        </div>
+        
+        <!-- Search and Filter Section -->
+        <div class="search-filters">
+            <div class="search-bar">
+                <input type="text" id="userSearch" placeholder="Search by name, email, or department..." onkeyup="filterUsers()">
+            </div>
+            <div class="filter-controls">
+                <select id="roleFilter" onchange="filterUsers()">
+                    <option value="">All Roles</option>
+                </select>
+                <select id="statusFilter" onchange="filterUsers()">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+                <select id="departmentFilter" onchange="filterUsers()">
+                    <option value="">All Departments</option>
+                    <option value="Merchant Services">Merchant Services</option>
+                    <option value="Compliance">Compliance</option>
+                    <option value="Risk Management">Risk Management</option>
+                    <option value="IT">IT</option>
+                    <option value="Operations">Operations</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="users-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Department</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- Dynamic content will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create/Edit User Modal -->
+    <div id="userModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="userModalTitle">Add User</h3>
+                <span class="close" onclick="closeUserModal()">&times;</span>
+            </div>
+            
+            <!-- Modal Tabs (only show for edit mode) -->
+            <div class="modal-tabs" id="modalTabs" style="display: none;">
+                <button class="tab-btn active" onclick="showModalTab('details')">User Details</button>
+                <button class="tab-btn" onclick="showModalTab('permissions')" id="permissionsTab">Permissions</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- User Details Tab -->
+                <div id="userDetailsTab" class="tab-content active">
+                    <form id="userForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="userName">Full Name:</label>
+                                <input type="text" id="userName" name="userName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="userEmail">Email:</label>
+                                <input type="email" id="userEmail" name="userEmail" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="userRole">Role:</label>
+                                <select id="userRole" name="userRole" required>
+                                    <option value="">Select Role</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="userDepartment">Department:</label>
+                                <select id="userDepartment" name="userDepartment" required>
+                                    <option value="">Select Department</option>
+                                    <option value="Merchant Services">Merchant Services</option>
+                                    <option value="Compliance">Compliance</option>
+                                    <option value="Risk Management">Risk Management</option>
+                                    <option value="IT">IT</option>
+                                    <option value="Operations">Operations</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="userPhone">Phone Number:</label>
+                                <input type="tel" id="userPhone" name="userPhone">
+                            </div>
+                            <div class="form-group">
+                                <label for="userStatus">Status:</label>
+                                <select id="userStatus" name="userStatus" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="userNotes">Notes (Optional):</label>
+                            <textarea id="userNotes" name="userNotes" rows="3" placeholder="Additional notes about the user..."></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Permissions Tab (for admin users only) -->
+                <div id="userPermissionsTab" class="tab-content" style="display: none;">
+                    <div class="permissions-assignment">
+                        <h4>Assign Custom Permissions</h4>
+                        <p class="permission-note">Note: These permissions will override the default role permissions.</p>
+                        
+                        <div class="permissions-search">
+                            <input type="text" id="modalPermissionSearch" placeholder="Search permissions..." onkeyup="filterModalPermissions()">
+                        </div>
+                        
+                        <div id="modalPermissionsContainer" class="permissions-container">
+                            <!-- Dynamic permissions will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" onclick="closeUserModal()" class="btn-secondary">Cancel</button>
+                <button type="button" onclick="saveUser()" class="btn-primary" id="saveUserBtn">Save User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View User Modal -->
+    <div id="viewUserModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>User Details</h3>
+                <span class="close" onclick="closeViewUserModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="view-user-content" id="viewUserContent">
+                    <!-- User details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeViewUserModal()" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Permissions Modal -->
+    <div id="permissionsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="permissionsModalTitle">User Permissions</h3>
+                <span class="close" onclick="closePermissionsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="user-permissions-info" id="userPermissionsInfo">
+                    <!-- User info and permissions will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closePermissionsModal()" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        let currentEditingUserId = null;
+        let allUsers = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+            displayUserRole();
+            loadUsers();
+            loadRoleFilters();
+        });
+
+        function displayUserRole() {
+            const roleId = localStorage.getItem('userRole');
+            const role = roleManager.getRoleById(roleId);
+            const roleName = role ? role.name : 'Unknown Role';
+            document.getElementById('userInfo').textContent = `Role: ${roleName}`;
+        }
+
+        function loadUsers() {
+            // Mock user data - in real implementation, this would come from a database
+            allUsers = [
+                {
+                    id: 'USR001',
+                    name: 'John Doe',
+                    email: 'john.doe@bank.com',
+                    roleId: 'onboarding_officer',
+                    department: 'Merchant Services',
+                    phone: '+60123456789',
+                    status: 'active',
+                    lastLogin: '2024-01-15 09:30',
+                    createdAt: '2024-01-01',
+                    notes: 'Senior officer with 5 years experience'
+                },
+                {
+                    id: 'USR002',
+                    name: 'Jane Smith',
+                    email: 'jane.smith@bank.com',
+                    roleId: 'compliance_reviewer',
+                    department: 'Compliance',
+                    phone: '+60123456788',
+                    status: 'active',
+                    lastLogin: '2024-01-15 08:45',
+                    createdAt: '2024-01-02',
+                    notes: 'Compliance specialist'
+                },
+                {
+                    id: 'USR003',
+                    name: 'Mike Johnson',
+                    email: 'mike.johnson@bank.com',
+                    roleId: 'verifier',
+                    department: 'Risk Management',
+                    phone: '+60123456787',
+                    status: 'active',
+                    lastLogin: '2024-01-14 16:20',
+                    createdAt: '2024-01-03',
+                    notes: 'Background verification expert'
+                },
+                {
+                    id: 'USR004',
+                    name: 'Sarah Lee',
+                    email: 'sarah.lee@bank.com',
+                    roleId: 'admin',
+                    department: 'IT',
+                    phone: '+60123456786',
+                    status: 'active',
+                    lastLogin: '2024-01-15 10:00',
+                    createdAt: '2024-01-04',
+                    notes: 'System administrator'
+                },
+                {
+                    id: 'USR005',
+                    name: 'David Chen',
+                    email: 'david.chen@bank.com',
+                    roleId: 'onboarding_officer',
+                    department: 'Operations',
+                    phone: '+60123456785',
+                    status: 'inactive',
+                    lastLogin: '2024-01-10 14:30',
+                    createdAt: '2024-01-05',
+                    notes: 'On leave'
+                }
+            ];
+
+            displayUsers(allUsers);
+        }
+
+        function displayUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
+
+            users.forEach(user => {
+            const role = roleManager.getRoleById(user.roleId);
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.email}</td>
+                <td>${role ? role.name : 'Unknown'}</td>
+                <td>${user.department}</td>
+                <td><span class="status-${user.status}">${user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span></td>
+                <td>${user.lastLogin}</td>
+                <td>
+                    <button class="btn-small" onclick="viewUser('${user.id}')">View</button>
+                    <button class="btn-small" onclick="editUser('${user.id}')">Edit</button>
+                    <button class="btn-small ${user.status === 'active' ? 'btn-warning' : 'btn-success'}" 
+                            onclick="toggleUserStatus('${user.id}')">${user.status === 'active' ? 'Deactivate' : 'Activate'}</button>
+                    <button class="btn-small btn-danger" onclick="deleteUser('${user.id}')">Delete</button>
+                </td>
+            `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function loadRoleFilters() {
+            const roleFilter = document.getElementById('roleFilter');
+            const userRoleSelect = document.getElementById('userRole');
+            const roles = roleManager.getActiveRoles();
+            
+            // Clear existing options
+            roleFilter.innerHTML = '<option value="">All Roles</option>';
+            userRoleSelect.innerHTML = '<option value="">Select Role</option>';
+            
+            roles.forEach(role => {
+                // Filter dropdown
+                const filterOption = document.createElement('option');
+                filterOption.value = role.id;
+                filterOption.textContent = role.name;
+                roleFilter.appendChild(filterOption);
+
+                // User form dropdown
+                const formOption = document.createElement('option');
+                formOption.value = role.id;
+                formOption.textContent = role.name;
+                userRoleSelect.appendChild(formOption);
+            });
+        }
+
+        function filterUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const roleFilter = document.getElementById('roleFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const departmentFilter = document.getElementById('departmentFilter').value;
+
+            let filteredUsers = allUsers.filter(user => {
+                const matchesSearch = user.name.toLowerCase().includes(searchTerm) || 
+                                    user.email.toLowerCase().includes(searchTerm) || 
+                                    user.department.toLowerCase().includes(searchTerm);
+                const matchesRole = !roleFilter || user.roleId === roleFilter;
+                const matchesStatus = !statusFilter || user.status === statusFilter;
+                const matchesDepartment = !departmentFilter || user.department === departmentFilter;
+
+                return matchesSearch && matchesRole && matchesStatus && matchesDepartment;
+            });
+
+            displayUsers(filteredUsers);
+        }
+
+        function showCreateUserModal() {
+            currentEditingUserId = null;
+            document.getElementById('userModalTitle').textContent = 'Add User';
+            document.getElementById('userForm').reset();
+            document.getElementById('userModal').style.display = 'block';
+        }
+
+        function editUser(userId) {
+            currentEditingUserId = userId;
+            const user = allUsers.find(u => u.id === userId);
+            
+            if (user) {
+                document.getElementById('userModalTitle').textContent = 'Edit User';
+                document.getElementById('userName').value = user.name;
+                document.getElementById('userEmail').value = user.email;
+                document.getElementById('userRole').value = user.roleId;
+                document.getElementById('userDepartment').value = user.department;
+                document.getElementById('userPhone').value = user.phone || '';
+                document.getElementById('userStatus').value = user.status;
+                document.getElementById('userNotes').value = user.notes || '';
+                document.getElementById('userModal').style.display = 'block';
+            }
+        }
+
+        function saveUser() {
+            const userName = document.getElementById('userName').value;
+            const userEmail = document.getElementById('userEmail').value;
+            const userRole = document.getElementById('userRole').value;
+            const userDepartment = document.getElementById('userDepartment').value;
+            const userPhone = document.getElementById('userPhone').value;
+            const userStatus = document.getElementById('userStatus').value;
+            const userNotes = document.getElementById('userNotes').value;
+
+            if (!userName.trim() || !userEmail.trim() || !userRole || !userDepartment) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+
+            const userData = {
+                name: userName,
+                email: userEmail,
+                roleId: userRole,
+                department: userDepartment,
+                phone: userPhone,
+                status: userStatus,
+                notes: userNotes
+            };
+
+            try {
+                if (currentEditingUserId) {
+                    // Update existing user
+                    const userIndex = allUsers.findIndex(u => u.id === currentEditingUserId);
+                    if (userIndex !== -1) {
+                        allUsers[userIndex] = { ...allUsers[userIndex], ...userData, updatedAt: new Date().toISOString() };
+                        showNotification('User updated successfully!', 'success');
+                    }
+                } else {
+                    // Create new user
+                    const newUser = {
+                        id: 'USR' + String(Date.now()).slice(-3).padStart(3, '0'),
+                        ...userData,
+                        lastLogin: 'Never',
+                        createdAt: new Date().toISOString()
+                    };
+                    allUsers.push(newUser);
+                    showNotification('User created successfully!', 'success');
+                }
+                
+                closeUserModal();
+                displayUsers(allUsers);
+            } catch (error) {
+                showNotification('Error saving user: ' + error.message, 'error');
+            }
+        }
+
+        function viewPermissions(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            const role = roleManager.getRoleById(user.roleId);
+            const permissions = roleManager.getAllPermissions();
+            
+            let permissionsHtml = `
+                <div class="user-info-section">
+                    <h4>User Information</h4>
+                    <p><strong>Name:</strong> ${user.name}</p>
+                    <p><strong>Email:</strong> ${user.email}</p>
+                    <p><strong>Role:</strong> ${role ? role.name : 'Unknown'}</p>
+                    <p><strong>Department:</strong> ${user.department}</p>
+                </div>
+                <div class="permissions-section">
+                    <h4>Role Permissions</h4>
+                    <div class="permissions-grid">
+            `;
+
+            if (role && role.permissions) {
+                role.permissions.forEach(permId => {
+                    const permission = permissions.find(p => p.id === permId);
+                    if (permission) {
+                        permissionsHtml += `<div class="permission-item">
+                            <span class="permission-name">${permission.name}</span>
+                            <span class="permission-desc">${permission.description}</span>
+                        </div>`;
+                    }
+                });
+            } else {
+                permissionsHtml += '<p>No permissions assigned</p>';
+            }
+
+            permissionsHtml += '</div></div>';
+            
+            document.getElementById('userPermissionsInfo').innerHTML = permissionsHtml;
+            document.getElementById('permissionsModal').style.display = 'block';
+        }
+
+        function toggleUserStatus(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            const newStatus = user.status === 'active' ? 'inactive' : 'active';
+            const action = newStatus === 'active' ? 'activate' : 'deactivate';
+            
+            if (confirm(`Are you sure you want to ${action} user ${user.name}?`)) {
+                user.status = newStatus;
+                user.updatedAt = new Date().toISOString();
+                showNotification(`User ${action}d successfully!`, 'success');
+                displayUsers(allUsers);
+            }
+        }
+
+        function deleteUser(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            if (confirm(`Are you sure you want to delete user ${user.name}? This action cannot be undone.`)) {
+                allUsers = allUsers.filter(u => u.id !== userId);
+                showNotification('User deleted successfully!', 'success');
+                displayUsers(allUsers);
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').style.display = 'none';
+        }
+
+        function closePermissionsModal() {
+            document.getElementById('permissionsModal').style.display = 'none';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const userModal = document.getElementById('userModal');
+            const permissionsModal = document.getElementById('permissionsModal');
+            
+            if (event.target === userModal) {
+                closeUserModal();
+            }
+            if (event.target === permissionsModal) {
+                closePermissionsModal();
+            }
+        }
+
+        let currentViewingUserId = null;
+
+        // View User Function
+        function viewUser(userId) {
+            currentViewingUserId = userId;
+            const user = allUsers.find(u => u.id === userId);
+            
+            if (user) {
+                const role = roleManager.getRoleById(user.roleId);
+                const permissions = roleManager.getAllPermissions();
+                
+                let userDetailsHtml = `
+                    <div class="user-view-section">
+                        <h4>Personal Information</h4>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>User ID:</label>
+                                <span>${user.id}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Full Name:</label>
+                                <span>${user.name}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Email:</label>
+                                <span>${user.email}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Phone:</label>
+                                <span>${user.phone || 'Not provided'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="user-view-section">
+                        <h4>Role & Department</h4>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Role:</label>
+                                <span>${role ? role.name : 'Unknown'}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Department:</label>
+                                <span>${user.department}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Status:</label>
+                                <span class="status-${user.status}">${user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Last Login:</label>
+                                <span>${user.lastLogin}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="user-view-section">
+                        <h4>Role Permissions</h4>
+                        <div class="permissions-display">
+                `;
+
+                if (role && role.permissions) {
+                    role.permissions.forEach(permId => {
+                        const permission = permissions.find(p => p.id === permId);
+                        if (permission) {
+                            userDetailsHtml += `
+                                <div class="permission-item-view">
+                                    <span class="permission-name">${permission.name}</span>
+                                    <span class="permission-desc">${permission.description}</span>
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                    userDetailsHtml += '<p>No permissions assigned</p>';
+                }
+
+                userDetailsHtml += `
+                        </div>
+                    </div>
+
+                    <div class="user-view-section">
+                        <h4>Additional Information</h4>
+                        <div class="info-item">
+                            <label>Notes:</label>
+                            <p>${user.notes || 'No notes available'}</p>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Created:</label>
+                                <span>${formatDate(user.createdAt)}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Last Updated:</label>
+                                <span>${user.updatedAt ? formatDate(user.updatedAt) : 'Never'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('viewUserContent').innerHTML = userDetailsHtml;
+                document.getElementById('viewUserModal').style.display = 'block';
+            }
+        }
+
+        function closeViewUserModal() {
+            document.getElementById('viewUserModal').style.display = 'none';
+            currentViewingUserId = null;
+        }
+
+        function editUserFromView() {
+            closeViewUserModal();
+            editUser(currentViewingUserId);
+        }
+
+        // Modified Edit User Function
+        function editUser(userId) {
+            currentEditingUserId = userId;
+            const user = allUsers.find(u => u.id === userId);
+            const currentUserRole = localStorage.getItem('userRole');
+            
+            if (user) {
+                document.getElementById('userModalTitle').textContent = 'Edit User';
+                document.getElementById('userName').value = user.name;
+                document.getElementById('userEmail').value = user.email;
+                document.getElementById('userRole').value = user.roleId;
+                document.getElementById('userDepartment').value = user.department;
+                document.getElementById('userPhone').value = user.phone || '';
+                document.getElementById('userStatus').value = user.status;
+                document.getElementById('userNotes').value = user.notes || '';
+                
+                // Show tabs and permissions tab for admin users
+                if (currentUserRole === 'admin') {
+                    document.getElementById('modalTabs').style.display = 'flex';
+                    document.getElementById('permissionsTab').style.display = 'block';
+                    loadUserCustomPermissions(user);
+                } else {
+                    document.getElementById('modalTabs').style.display = 'none';
+                }
+                
+                // Show user details tab by default
+                showModalTab('details');
+                
+                document.getElementById('userModal').style.display = 'block';
+            }
+        }
+
+        // Modified Create User Modal Function
+        function showCreateUserModal() {
+            currentEditingUserId = null;
+            document.getElementById('userModalTitle').textContent = 'Add User';
+            document.getElementById('userForm').reset();
+            
+            // Hide tabs for create mode
+            document.getElementById('modalTabs').style.display = 'none';
+            showModalTab('details');
+            
+            document.getElementById('userModal').style.display = 'block';
+        }
+
+        // Tab Management Functions
+        function showModalTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('#userModal .tab-content').forEach(tab => {
+                tab.style.display = 'none';
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('#userModal .tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            if (tabName === 'details') {
+                document.getElementById('userDetailsTab').style.display = 'block';
+                document.getElementById('userDetailsTab').classList.add('active');
+                document.querySelector('[onclick="showModalTab(\'details\')"]').classList.add('active');
+            } else if (tabName === 'permissions') {
+                document.getElementById('userPermissionsTab').style.display = 'block';
+                document.getElementById('userPermissionsTab').classList.add('active');
+                document.querySelector('[onclick="showModalTab(\'permissions\')"]').classList.add('active');
+            }
+        }
+
+        // Load Custom Permissions for User
+        function loadUserCustomPermissions(user) {
+            const container = document.getElementById('modalPermissionsContainer');
+            const permissions = roleManager.getAllPermissions();
+            const userCustomPermissions = user.customPermissions || [];
+            
+            container.innerHTML = '';
+            
+            permissions.forEach(permission => {
+                const label = document.createElement('label');
+                label.className = 'permission-checkbox';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = permission.id;
+                checkbox.checked = userCustomPermissions.includes(permission.id);
+                
+                const permissionInfo = document.createElement('div');
+                permissionInfo.className = 'permission-info';
+                permissionInfo.innerHTML = `
+                    <span class="permission-name">${permission.name}</span>
+                    <span class="permission-desc">${permission.description}</span>
+                `;
+                
+                label.appendChild(checkbox);
+                label.appendChild(permissionInfo);
+                container.appendChild(label);
+            });
+        }
+
+        function filterModalPermissions() {
+            const searchTerm = document.getElementById('modalPermissionSearch').value.toLowerCase();
+            const permissionLabels = document.querySelectorAll('#modalPermissionsContainer .permission-checkbox');
+            
+            permissionLabels.forEach(label => {
+                const permissionName = label.querySelector('.permission-name').textContent.toLowerCase();
+                const permissionDesc = label.querySelector('.permission-desc').textContent.toLowerCase();
+                
+                if (permissionName.includes(searchTerm) || permissionDesc.includes(searchTerm)) {
+                    label.style.display = 'flex';
+                } else {
+                    label.style.display = 'none';
+                }
+            });
+        }
+
+        // Update Save User Function to Handle Custom Permissions
+        function saveUser() {
+            const userName = document.getElementById('userName').value;
+            const userEmail = document.getElementById('userEmail').value;
+            const userRole = document.getElementById('userRole').value;
+            const userDepartment = document.getElementById('userDepartment').value;
+            const userPhone = document.getElementById('userPhone').value;
+            const userStatus = document.getElementById('userStatus').value;
+            const userNotes = document.getElementById('userNotes').value;
+
+            if (!userName.trim() || !userEmail.trim() || !userRole || !userDepartment) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+
+            const userData = {
+                name: userName,
+                email: userEmail,
+                roleId: userRole,
+                department: userDepartment,
+                phone: userPhone,
+                status: userStatus,
+                notes: userNotes
+            };
+
+            // Handle custom permissions for admin users
+            const currentUserRole = localStorage.getItem('userRole');
+            if (currentUserRole === 'admin' && currentEditingUserId) {
+                const selectedCustomPermissions = Array.from(document.querySelectorAll('#modalPermissionsContainer input:checked'))
+                    .map(checkbox => checkbox.value);
+                userData.customPermissions = selectedCustomPermissions;
+            }
+
+            try {
+                if (currentEditingUserId) {
+                    // Update existing user
+                    const userIndex = allUsers.findIndex(u => u.id === currentEditingUserId);
+                    if (userIndex !== -1) {
+                        allUsers[userIndex] = { ...allUsers[userIndex], ...userData, updatedAt: new Date().toISOString() };
+                        showNotification('User updated successfully!', 'success');
+                    }
+                } else {
+                    // Create new user
+                    const newUser = {
+                        id: 'USR' + String(Date.now()).slice(-3).padStart(3, '0'),
+                        ...userData,
+                        lastLogin: 'Never',
+                        createdAt: new Date().toISOString()
+                    };
+                    allUsers.push(newUser);
+                    showNotification('User created successfully!', 'success');
+                }
+                
+                closeUserModal();
+                displayUsers(allUsers);
+            } catch (error) {
+                showNotification('Error saving user: ' + error.message, 'error');
+            }
+        }
+
+        // Update window click handler
+        window.onclick = function(event) {
+            const userModal = document.getElementById('userModal');
+            const viewUserModal = document.getElementById('viewUserModal');
+            
+            if (event.target === userModal) {
+                closeUserModal();
+            }
+            if (event.target === viewUserModal) {
+                closeViewUserModal();
+            }
+        }
+    </script>
+</body>
+</html>
