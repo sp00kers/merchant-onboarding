@@ -18,6 +18,8 @@ export class LoginComponent implements OnInit {
   selectedRole = '';
   username = '';
   password = '';
+  errorMessage = '';
+  isLoading = false;
 
   constructor(
     private roleService: RoleService,
@@ -31,14 +33,25 @@ export class LoginComponent implements OnInit {
       this.router.navigate(['/dashboard']);
       return;
     }
-    this.roles = this.roleService.getActiveRoles();
+    // Load roles from backend
+    this.roleService.getActiveRoles().subscribe({
+      next: (roles) => {
+        this.roles = roles;
+      },
+      error: (error) => {
+        console.error('Error loading roles:', error);
+        this.errorMessage = 'Failed to load roles. Please try again.';
+      }
+    });
   }
 
   login(): void {
     if (this.selectedRole) {
-      this.authService.login(this.selectedRole);
+      // For now, use role-based login (legacy mode)
+      // TODO: Implement full authentication with email/password
+      this.authService.loginWithRole(this.selectedRole);
     } else {
-      alert('Please select a role');
+      this.errorMessage = 'Please select a role';
     }
   }
 }

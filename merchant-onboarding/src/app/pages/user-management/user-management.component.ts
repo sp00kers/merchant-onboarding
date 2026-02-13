@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { Permission, Role, User } from '../../models/role.model';
 import { AccountService } from '../../services/account.service';
@@ -21,6 +22,7 @@ export class UserManagementComponent implements OnInit {
   filteredUsers: User[] = [];
   roles: Role[] = [];
   allPermissions: Permission[] = [];
+  isLoading = false;
 
   // Filters
   searchTerm = '';
@@ -71,18 +73,33 @@ export class UserManagementComponent implements OnInit {
   }
 
   loadData(): void {
-    this.allUsers = this.accountService.getAllUsers();
-    this.roles = this.roleService.getActiveRoles();
-    this.allPermissions = this.roleService.getAllPermissions();
-    this.applyFilters();
+    this.isLoading = true;
+    forkJoin({
+      users: this.accountService.getAllUsers(),
+      roles: this.roleService.getActiveRoles(),
+      permissions: this.roleService.getAllPermissions()
+    }).subscribe({
+      next: ({ users, roles, permissions }) => {
+        this.allUsers = users;
+        this.roles = roles;
+        this.allPermissions = permissions;
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.notificationService.error('Failed to load user data');
+        this.isLoading = false;
+      }
+    });
   }
 
   get isAdmin(): boolean {
-    return this.authService.getCurrentRole()?.id === 'admin';
+    return this.authService.getCurrentRoleId() === 'admin';
   }
 
   getRoleName(roleId: string): string {
-    const role = this.roleService.getRoleById(roleId);
+    const role = this.roles.find(r => r.id === roleId);
     return role ? role.name : 'Unknown';
   }
 
@@ -152,15 +169,30 @@ export class UserManagementComponent implements OnInit {
     }
 
     if (this.currentEditingId) {
-      this.accountService.updateUser(this.currentEditingId, userData);
-      this.notificationService.success('User updated successfully!');
+      this.accountService.updateUser(this.currentEditingId, userData).subscribe({
+        next: () => {
+          this.notificationService.success('User updated successfully!');
+          this.closeUserModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error updating user:', error);
+          this.notificationService.error('Failed to update user');
+        }
+      });
     } else {
-      this.accountService.createUser(userData);
-      this.notificationService.success('User created successfully!');
+      this.accountService.createUser(userData).subscribe({
+        next: () => {
+          this.notificationService.success('User created successfully!');
+          this.closeUserModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error creating user:', error);
+          this.notificationService.error('Failed to create user');
+        }
+      });
     }
-
-    this.closeUserModal();
-    this.loadData();
   }
 
   closeUserModal(): void {
@@ -184,7 +216,7 @@ export class UserManagementComponent implements OnInit {
   openViewUser(userId: string): void {
     this.viewUser = this.allUsers.find(u => u.id === userId) || null;
     if (this.viewUser) {
-      this.viewUserRole = this.roleService.getRoleById(this.viewUser.roleId);
+      this.viewUserRole = this.roles.find(r => r.id === this.viewUser?.roleId);
       this.showViewModal = true;
     }
   }
@@ -212,7 +244,7 @@ export class UserManagementComponent implements OnInit {
   openPermissionsModal(userId: string): void {
     this.permissionsUser = this.allUsers.find(u => u.id === userId) || null;
     if (this.permissionsUser) {
-      this.permissionsUserRole = this.roleService.getRoleById(this.permissionsUser.roleId);
+      this.permissionsUserRole = this.roles.find(r => r.id === this.permissionsUser?.roleId);
       this.showPermissionsModal = true;
     }
   }
@@ -244,9 +276,16 @@ export class UserManagementComponent implements OnInit {
     if (!user) return;
     const action = user.status === 'active' ? 'deactivate' : 'activate';
     if (confirm(`Are you sure you want to ${action} user ${user.name}?`)) {
-      this.accountService.toggleUserStatus(userId);
-      this.notificationService.success(`User ${action}d successfully!`);
-      this.loadData();
+      this.accountService.toggleUserStatus(userId).subscribe({
+        next: () => {
+          this.notificationService.success(`User ${action}d successfully!`);
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error toggling user status:', error);
+          this.notificationService.error(`Failed to ${action} user`);
+        }
+      });
     }
   }
 
@@ -254,9 +293,16 @@ export class UserManagementComponent implements OnInit {
     const user = this.allUsers.find(u => u.id === userId);
     if (!user) return;
     if (confirm(`Are you sure you want to delete user ${user.name}? This action cannot be undone.`)) {
-      this.accountService.deleteUser(userId);
-      this.notificationService.success('User deleted successfully!');
-      this.loadData();
+      this.accountService.deleteUser(userId).subscribe({
+        next: () => {
+          this.notificationService.success('User deleted successfully!');
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error deleting user:', error);
+          this.notificationService.error('Failed to delete user');
+        }
+      });
     }
   }
 

@@ -22,6 +22,7 @@ export class MerchantCategoriesComponent implements OnInit {
   showModal = false;
   modalTitle = 'Add Merchant Category';
   currentEditingId: string | null = null;
+  isLoading = false;
 
   form = {
     code: '', name: '', description: '',
@@ -40,7 +41,18 @@ export class MerchantCategoriesComponent implements OnInit {
   }
 
   loadData(): void {
-    this.categories = this.paramsService.filterMerchantCategories(this.searchTerm, this.statusFilter, this.riskFilter);
+    this.isLoading = true;
+    this.paramsService.filterMerchantCategories(this.searchTerm, this.statusFilter, this.riskFilter).subscribe({
+      next: (categories) => {
+        this.categories = categories;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading merchant categories:', error);
+        this.notificationService.show('Failed to load merchant categories', 'error');
+        this.isLoading = false;
+      }
+    });
   }
 
   filter(): void {
@@ -56,17 +68,24 @@ export class MerchantCategoriesComponent implements OnInit {
   }
 
   editItem(id: string): void {
-    const item = this.paramsService.getMerchantCategoryById(id);
-    if (item) {
-      this.currentEditingId = id;
-      this.modalTitle = 'Edit Merchant Category';
-      this.form = {
-        code: item.code, name: item.name, description: item.description,
-        riskLevel: item.riskLevel, status: item.status
-      };
-      this.codeDisabled = true;
-      this.showModal = true;
-    }
+    this.paramsService.getMerchantCategoryById(id).subscribe({
+      next: (item) => {
+        if (item) {
+          this.currentEditingId = id;
+          this.modalTitle = 'Edit Merchant Category';
+          this.form = {
+            code: item.code, name: item.name, description: item.description || '',
+            riskLevel: item.riskLevel, status: item.status
+          };
+          this.codeDisabled = true;
+          this.showModal = true;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading merchant category:', error);
+        this.notificationService.show('Failed to load merchant category', 'error');
+      }
+    });
   }
 
   save(): void {
@@ -77,23 +96,49 @@ export class MerchantCategoriesComponent implements OnInit {
       this.notificationService.show('Please fill in all required fields', 'error');
       return;
     }
-    const result = this.paramsService.saveMerchantCategory(
-      { code, name, description: this.form.description.trim(), riskLevel: riskLevel as 'low' | 'medium' | 'high', status: this.form.status },
-      this.currentEditingId
-    );
-    this.notificationService.show(result.message, result.success ? 'success' : 'error');
-    if (result.success) {
-      this.closeModal();
-      this.loadData();
+
+    const data = { code, name, description: this.form.description.trim(), riskLevel: riskLevel as 'low' | 'medium' | 'high', status: this.form.status };
+
+    if (this.currentEditingId) {
+      this.paramsService.updateMerchantCategory(this.currentEditingId, data).subscribe({
+        next: () => {
+          this.notificationService.show('Merchant category updated successfully!', 'success');
+          this.closeModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error updating merchant category:', error);
+          this.notificationService.show('Failed to update merchant category', 'error');
+        }
+      });
+    } else {
+      this.paramsService.createMerchantCategory(data).subscribe({
+        next: () => {
+          this.notificationService.show('Merchant category created successfully!', 'success');
+          this.closeModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error creating merchant category:', error);
+          this.notificationService.show('Failed to create merchant category', 'error');
+        }
+      });
     }
   }
 
   deleteItem(id: string): void {
-    const item = this.paramsService.getMerchantCategoryById(id);
+    const item = this.categories.find(c => c.id === id);
     if (item && confirm(`Are you sure you want to delete merchant category "${item.name}"? This action cannot be undone.`)) {
-      this.paramsService.deleteMerchantCategory(id);
-      this.notificationService.show('Merchant category deleted successfully!', 'success');
-      this.loadData();
+      this.paramsService.deleteMerchantCategory(id).subscribe({
+        next: () => {
+          this.notificationService.show('Merchant category deleted successfully!', 'success');
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error deleting merchant category:', error);
+          this.notificationService.show('Failed to delete merchant category', 'error');
+        }
+      });
     }
   }
 

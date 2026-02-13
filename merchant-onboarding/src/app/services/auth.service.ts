@@ -1,26 +1,69 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
+import { tap, map, catchError, switchMap } from 'rxjs/operators';
 import { Role } from '../models/role.model';
-import { RoleService } from './role.service';
+import { environment } from '../../environments/environment';
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  userId: string;
+  email: string;
+  roleId: string;
+  roleName: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private readonly TOKEN_KEY = 'authToken';
+  private readonly USER_KEY = 'currentUser';
   private readonly USER_ROLE_KEY = 'userRole';
 
-  constructor(
-    private roleService: RoleService,
-    private router: Router
-  ) {}
+  private currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
+  public currentUser$ = this.currentUserSubject.asObservable();
 
-  login(roleId: string): void {
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {
+    // Load user from localStorage on service init
+    const storedUser = localStorage.getItem(this.USER_KEY);
+    if (storedUser) {
+      this.currentUserSubject.next(JSON.parse(storedUser));
+    }
+  }
+
+  login(email: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })
+      .pipe(
+        tap(response => {
+          localStorage.setItem(this.TOKEN_KEY, response.token);
+          localStorage.setItem(this.USER_KEY, JSON.stringify(response));
+          localStorage.setItem(this.USER_ROLE_KEY, response.roleId);
+          this.currentUserSubject.next(response);
+        })
+      );
+  }
+
+  // Legacy method for backwards compatibility with existing login component
+  loginWithRole(roleId: string): void {
     localStorage.setItem(this.USER_ROLE_KEY, roleId);
     this.router.navigate(['/dashboard']);
   }
 
   logout(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
     localStorage.removeItem(this.USER_ROLE_KEY);
+    this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
@@ -28,36 +71,48 @@ export class AuthService {
     return !!localStorage.getItem(this.USER_ROLE_KEY);
   }
 
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
+
   getCurrentRoleId(): string | null {
     return localStorage.getItem(this.USER_ROLE_KEY);
   }
 
-  getCurrentRole(): Role | undefined {
-    const roleId = this.getCurrentRoleId();
-    if (!roleId) return undefined;
-    return this.roleService.getRoleById(roleId);
+  getCurrentUser(): AuthResponse | null {
+    return this.currentUserSubject.value;
   }
 
   getCurrentRoleName(): string {
-    const role = this.getCurrentRole();
-    return role ? role.name : 'Unknown Role';
+    const user = this.getCurrentUser();
+    return user ? user.roleName : 'Unknown Role';
   }
 
-  hasPermission(permission: string): boolean {
+  hasPermission(permission: string): Observable<boolean> {
+    const roleId = this.getCurrentRoleId();
+    if (!roleId) return of(false);
+    return this.http.get<boolean>(`${environment.apiUrl}/roles/${roleId}/has-permission/${permission}`)
+      .pipe(catchError(() => of(false)));
+  }
+
+  // Synchronous permission check for guards (uses cached role)
+  hasPermissionSync(permission: string): boolean {
     const roleId = this.getCurrentRoleId();
     if (!roleId) return false;
-    return this.roleService.userHasPermission(roleId, permission);
+    // For admin role, allow all permissions
+    if (roleId === 'admin') return true;
+    return false; // Default to false, actual check should use async method
   }
 
   canViewCases(): boolean {
     const roleId = this.getCurrentRoleId();
     if (!roleId) return false;
-    return this.roleService.canViewCases(roleId);
+    return ['admin', 'onboarding_officer', 'compliance_reviewer', 'verifier'].includes(roleId);
   }
 
   canEditCases(): boolean {
     const roleId = this.getCurrentRoleId();
     if (!roleId) return false;
-    return this.roleService.canEditCases(roleId);
+    return ['admin', 'onboarding_officer', 'compliance_reviewer'].includes(roleId);
   }
 }

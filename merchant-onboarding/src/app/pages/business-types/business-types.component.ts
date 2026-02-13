@@ -21,6 +21,7 @@ export class BusinessTypesComponent implements OnInit {
   showModal = false;
   modalTitle = 'Add Business Type';
   currentEditingId: string | null = null;
+  isLoading = false;
 
   form = { code: '', name: '', description: '', status: 'active' as 'active' | 'inactive' };
   codeDisabled = false;
@@ -35,7 +36,18 @@ export class BusinessTypesComponent implements OnInit {
   }
 
   loadData(): void {
-    this.businessTypes = this.paramsService.filterBusinessTypes(this.searchTerm, this.statusFilter);
+    this.isLoading = true;
+    this.paramsService.filterBusinessTypes(this.searchTerm, this.statusFilter).subscribe({
+      next: (types) => {
+        this.businessTypes = types;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading business types:', error);
+        this.notificationService.show('Failed to load business types', 'error');
+        this.isLoading = false;
+      }
+    });
   }
 
   filter(): void {
@@ -51,14 +63,21 @@ export class BusinessTypesComponent implements OnInit {
   }
 
   editItem(id: string): void {
-    const item = this.paramsService.getBusinessTypeById(id);
-    if (item) {
-      this.currentEditingId = id;
-      this.modalTitle = 'Edit Business Type';
-      this.form = { code: item.code, name: item.name, description: item.description, status: item.status };
-      this.codeDisabled = true;
-      this.showModal = true;
-    }
+    this.paramsService.getBusinessTypeById(id).subscribe({
+      next: (item) => {
+        if (item) {
+          this.currentEditingId = id;
+          this.modalTitle = 'Edit Business Type';
+          this.form = { code: item.code, name: item.name, description: item.description || '', status: item.status };
+          this.codeDisabled = true;
+          this.showModal = true;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading business type:', error);
+        this.notificationService.show('Failed to load business type', 'error');
+      }
+    });
   }
 
   save(): void {
@@ -68,23 +87,49 @@ export class BusinessTypesComponent implements OnInit {
       this.notificationService.show('Please fill in all required fields', 'error');
       return;
     }
-    const result = this.paramsService.saveBusinessType(
-      { code, name, description: this.form.description.trim(), status: this.form.status },
-      this.currentEditingId
-    );
-    this.notificationService.show(result.message, result.success ? 'success' : 'error');
-    if (result.success) {
-      this.closeModal();
-      this.loadData();
+
+    const data = { code, name, description: this.form.description.trim(), status: this.form.status };
+
+    if (this.currentEditingId) {
+      this.paramsService.updateBusinessType(this.currentEditingId, data).subscribe({
+        next: () => {
+          this.notificationService.show('Business type updated successfully!', 'success');
+          this.closeModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error updating business type:', error);
+          this.notificationService.show('Failed to update business type', 'error');
+        }
+      });
+    } else {
+      this.paramsService.createBusinessType(data).subscribe({
+        next: () => {
+          this.notificationService.show('Business type created successfully!', 'success');
+          this.closeModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error creating business type:', error);
+          this.notificationService.show('Failed to create business type', 'error');
+        }
+      });
     }
   }
 
   deleteItem(id: string): void {
-    const item = this.paramsService.getBusinessTypeById(id);
+    const item = this.businessTypes.find(t => t.id === id);
     if (item && confirm(`Are you sure you want to delete business type "${item.name}"? This action cannot be undone.`)) {
-      this.paramsService.deleteBusinessType(id);
-      this.notificationService.show('Business type deleted successfully!', 'success');
-      this.loadData();
+      this.paramsService.deleteBusinessType(id).subscribe({
+        next: () => {
+          this.notificationService.show('Business type deleted successfully!', 'success');
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error deleting business type:', error);
+          this.notificationService.show('Failed to delete business type', 'error');
+        }
+      });
     }
   }
 

@@ -20,6 +20,7 @@ export class RiskCategoriesComponent implements OnInit {
   showModal = false;
   modalTitle = 'Add Risk Category';
   currentEditingId: string | null = null;
+  isLoading = false;
 
   form = { level: null as number | null, name: '', scoreRange: '', description: '', actionsRequired: '' };
   levelDisabled = false;
@@ -34,7 +35,18 @@ export class RiskCategoriesComponent implements OnInit {
   }
 
   loadData(): void {
-    this.categories = this.paramsService.filterRiskCategories(this.searchTerm);
+    this.isLoading = true;
+    this.paramsService.filterRiskCategories(this.searchTerm).subscribe({
+      next: (categories) => {
+        this.categories = categories;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading risk categories:', error);
+        this.notificationService.show('Failed to load risk categories', 'error');
+        this.isLoading = false;
+      }
+    });
   }
 
   filter(): void {
@@ -50,17 +62,24 @@ export class RiskCategoriesComponent implements OnInit {
   }
 
   editItem(id: string): void {
-    const item = this.paramsService.getRiskCategoryById(id);
-    if (item) {
-      this.currentEditingId = id;
-      this.modalTitle = 'Edit Risk Category';
-      this.form = {
-        level: item.level, name: item.name, scoreRange: item.scoreRange,
-        description: item.description, actionsRequired: item.actionsRequired
-      };
-      this.levelDisabled = true;
-      this.showModal = true;
-    }
+    this.paramsService.getRiskCategoryById(id).subscribe({
+      next: (item) => {
+        if (item) {
+          this.currentEditingId = id;
+          this.modalTitle = 'Edit Risk Category';
+          this.form = {
+            level: item.level, name: item.name, scoreRange: item.scoreRange,
+            description: item.description || '', actionsRequired: item.actionsRequired || ''
+          };
+          this.levelDisabled = true;
+          this.showModal = true;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading risk category:', error);
+        this.notificationService.show('Failed to load risk category', 'error');
+      }
+    });
   }
 
   save(): void {
@@ -71,23 +90,49 @@ export class RiskCategoriesComponent implements OnInit {
       this.notificationService.show('Please fill in all required fields', 'error');
       return;
     }
-    const result = this.paramsService.saveRiskCategory(
-      { level, name, scoreRange, description: this.form.description.trim(), actionsRequired: this.form.actionsRequired.trim() },
-      this.currentEditingId
-    );
-    this.notificationService.show(result.message, result.success ? 'success' : 'error');
-    if (result.success) {
-      this.closeModal();
-      this.loadData();
+
+    const data = { level, name, scoreRange, description: this.form.description.trim(), actionsRequired: this.form.actionsRequired.trim() };
+
+    if (this.currentEditingId) {
+      this.paramsService.updateRiskCategory(this.currentEditingId, data).subscribe({
+        next: () => {
+          this.notificationService.show('Risk category updated successfully!', 'success');
+          this.closeModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error updating risk category:', error);
+          this.notificationService.show('Failed to update risk category', 'error');
+        }
+      });
+    } else {
+      this.paramsService.createRiskCategory(data).subscribe({
+        next: () => {
+          this.notificationService.show('Risk category created successfully!', 'success');
+          this.closeModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error creating risk category:', error);
+          this.notificationService.show('Failed to create risk category', 'error');
+        }
+      });
     }
   }
 
   deleteItem(id: string): void {
-    const item = this.paramsService.getRiskCategoryById(id);
+    const item = this.categories.find(c => c.id === id);
     if (item && confirm(`Are you sure you want to delete risk category "${item.name}"? This action cannot be undone.`)) {
-      this.paramsService.deleteRiskCategory(id);
-      this.notificationService.show('Risk category deleted successfully!', 'success');
-      this.loadData();
+      this.paramsService.deleteRiskCategory(id).subscribe({
+        next: () => {
+          this.notificationService.show('Risk category deleted successfully!', 'success');
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error deleting risk category:', error);
+          this.notificationService.show('Failed to delete risk category', 'error');
+        }
+      });
     }
   }
 

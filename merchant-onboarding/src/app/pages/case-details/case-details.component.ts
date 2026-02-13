@@ -23,6 +23,7 @@ export class CaseDetailsComponent implements OnInit {
   showActionDropdown = false;
   showActionDropdown2 = false;
   showReassign = false;
+  isLoading = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -43,17 +44,33 @@ export class CaseDetailsComponent implements OnInit {
 
     const caseId = this.route.snapshot.paramMap.get('id');
     if (caseId) {
-      this.caseData = this.caseService.getCaseById(caseId);
-    }
-
-    if (!this.caseData) {
+      this.loadCase(caseId);
+    } else {
       this.notificationService.show('Case not found', 'error');
       setTimeout(() => this.router.navigate(['/cases']), 2000);
-      return;
     }
 
     this.roleBanner = this.caseService.getRoleBanner(this.roleId, 'detail');
     this.showReassign = this.roleId === 'compliance_reviewer' || this.roleId === 'admin';
+  }
+
+  loadCase(caseId: string): void {
+    this.isLoading = true;
+    this.caseService.getCaseById(caseId).subscribe({
+      next: (caseData) => {
+        this.caseData = caseData;
+        this.isLoading = false;
+        if (!caseData) {
+          this.notificationService.show('Case not found', 'error');
+          setTimeout(() => this.router.navigate(['/cases']), 2000);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading case:', error);
+        this.notificationService.show('Failed to load case', 'error');
+        this.isLoading = false;
+      }
+    });
   }
 
   // Permission helpers
@@ -97,32 +114,46 @@ export class CaseDetailsComponent implements OnInit {
   approveStep(): void {
     if (confirm('Are you sure you want to approve this case?')) {
       if (this.caseData) {
-        this.caseService.updateCaseStatus(this.caseData.caseId, 'Approved');
-        this.caseService.addHistoryItem(this.caseData.caseId, 'Case approved');
-        this.caseData = this.caseService.getCaseById(this.caseData.caseId);
+        this.caseService.updateCaseStatus(this.caseData.caseId, 'Approved').subscribe({
+          next: () => {
+            this.caseService.addHistoryItem(this.caseData!.caseId, 'Case approved').subscribe({
+              next: () => this.loadCase(this.caseData!.caseId)
+            });
+            this.notificationService.show('Case approved successfully! Moving to next stage...', 'success');
+          },
+          error: () => this.notificationService.show('Failed to approve case', 'error')
+        });
       }
-      this.notificationService.show('Case approved successfully! Moving to next stage...', 'success');
     }
   }
 
   rejectCase(): void {
     if (confirm('Are you sure you want to reject this case?')) {
       if (this.caseData) {
-        this.caseService.updateCaseStatus(this.caseData.caseId, 'Rejected');
-        this.caseService.addHistoryItem(this.caseData.caseId, 'Case rejected');
-        this.caseData = this.caseService.getCaseById(this.caseData.caseId);
+        this.caseService.updateCaseStatus(this.caseData.caseId, 'Rejected').subscribe({
+          next: () => {
+            this.caseService.addHistoryItem(this.caseData!.caseId, 'Case rejected').subscribe({
+              next: () => this.loadCase(this.caseData!.caseId)
+            });
+            this.notificationService.show('Case rejected successfully.', 'success');
+          },
+          error: () => this.notificationService.show('Failed to reject case', 'error')
+        });
       }
-      this.notificationService.show('Case rejected successfully.', 'success');
     }
   }
 
   completeVerification(): void {
     if (confirm('Are you sure you want to mark verification as complete?')) {
       if (this.caseData) {
-        this.caseService.addHistoryItem(this.caseData.caseId, 'Background verification completed');
-        this.caseData = this.caseService.getCaseById(this.caseData.caseId);
+        this.caseService.addHistoryItem(this.caseData.caseId, 'Background verification completed').subscribe({
+          next: () => {
+            this.loadCase(this.caseData!.caseId);
+            this.notificationService.show('Verification completed successfully!', 'success');
+          },
+          error: () => this.notificationService.show('Failed to complete verification', 'error')
+        });
       }
-      this.notificationService.show('Verification completed successfully!', 'success');
     }
   }
 
@@ -130,19 +161,27 @@ export class CaseDetailsComponent implements OnInit {
     const reason = prompt('Enter reason for flagging:');
     if (reason) {
       if (this.caseData) {
-        this.caseService.addHistoryItem(this.caseData.caseId, `Flagged for review: ${reason}`);
-        this.caseData = this.caseService.getCaseById(this.caseData.caseId);
+        this.caseService.addHistoryItem(this.caseData.caseId, `Flagged for review: ${reason}`).subscribe({
+          next: () => {
+            this.loadCase(this.caseData!.caseId);
+            this.notificationService.show('Case flagged for review successfully!', 'warning');
+          },
+          error: () => this.notificationService.show('Failed to flag case', 'error')
+        });
       }
-      this.notificationService.show('Case flagged for review successfully!', 'warning');
     }
   }
 
   requestReview(): void {
     if (this.caseData) {
-      this.caseService.addHistoryItem(this.caseData.caseId, 'Review request sent to Compliance Team');
-      this.caseData = this.caseService.getCaseById(this.caseData.caseId);
+      this.caseService.addHistoryItem(this.caseData.caseId, 'Review request sent to Compliance Team').subscribe({
+        next: () => {
+          this.loadCase(this.caseData!.caseId);
+          this.notificationService.show('Review request sent to Compliance Team!', 'info');
+        },
+        error: () => this.notificationService.show('Failed to send review request', 'error')
+      });
     }
-    this.notificationService.show('Review request sent to Compliance Team!', 'info');
     this.showActionDropdown2 = false;
   }
 
@@ -168,11 +207,15 @@ export class CaseDetailsComponent implements OnInit {
     }
 
     if (this.caseData) {
-      this.caseService.addHistoryItem(this.caseData.caseId, `Comment added: "${text}"`);
-      this.caseData = this.caseService.getCaseById(this.caseData.caseId);
+      this.caseService.addHistoryItem(this.caseData.caseId, `Comment added: "${text}"`).subscribe({
+        next: () => {
+          this.loadCase(this.caseData!.caseId);
+          this.notificationService.show('Comment added successfully!', 'success');
+          this.commentText = '';
+        },
+        error: () => this.notificationService.show('Failed to add comment', 'error')
+      });
     }
-    this.notificationService.show('Comment added successfully!', 'success');
-    this.commentText = '';
   }
 
   clearComment(): void {

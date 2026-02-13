@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { Permission, Role } from '../../models/role.model';
 import { NotificationService } from '../../services/notification.service';
@@ -18,6 +19,7 @@ export class PermissionManagementComponent implements OnInit {
   allPermissions: Permission[] = [];
   filteredPermissions: Permission[] = [];
   allRoles: Role[] = [];
+  isLoading = false;
 
   // Filters
   searchTerm = '';
@@ -59,9 +61,23 @@ export class PermissionManagementComponent implements OnInit {
   }
 
   loadData(): void {
-    this.allPermissions = this.roleService.getAllPermissions();
-    this.allRoles = this.roleService.getAllRoles();
-    this.applyFilters();
+    this.isLoading = true;
+    forkJoin({
+      permissions: this.roleService.getAllPermissions(),
+      roles: this.roleService.getAllRoles()
+    }).subscribe({
+      next: ({ permissions, roles }) => {
+        this.allPermissions = permissions;
+        this.allRoles = roles;
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.notificationService.error('Failed to load permissions data');
+        this.isLoading = false;
+      }
+    });
   }
 
   applyFilters(): void {
@@ -129,19 +145,34 @@ export class PermissionManagementComponent implements OnInit {
     };
 
     if (this.currentEditingId) {
-      this.roleService.updatePermission(this.currentEditingId, permData);
-      this.notificationService.success('Permission updated successfully!');
+      this.roleService.updatePermission(this.currentEditingId, permData).subscribe({
+        next: () => {
+          this.notificationService.success('Permission updated successfully!');
+          this.closePermissionModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error updating permission:', error);
+          this.notificationService.error('Failed to update permission');
+        }
+      });
     } else {
       if (this.allPermissions.find(p => p.id === this.permissionId)) {
         this.notificationService.error('Permission ID already exists');
         return;
       }
-      this.roleService.addPermission(permData);
-      this.notificationService.success('Permission created successfully!');
+      this.roleService.addPermission(permData).subscribe({
+        next: () => {
+          this.notificationService.success('Permission created successfully!');
+          this.closePermissionModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error creating permission:', error);
+          this.notificationService.error('Failed to create permission');
+        }
+      });
     }
-
-    this.closePermissionModal();
-    this.loadData();
   }
 
   closePermissionModal(): void {
@@ -190,9 +221,16 @@ export class PermissionManagementComponent implements OnInit {
     const newStatus = perm.isActive === false;
     const action = newStatus ? 'activate' : 'deactivate';
     if (confirm(`Are you sure you want to ${action} the permission "${perm.name}"?`)) {
-      this.roleService.updatePermission(permissionId, { isActive: newStatus });
-      this.notificationService.success(`Permission ${action}d successfully!`);
-      this.loadData();
+      this.roleService.updatePermission(permissionId, { isActive: newStatus }).subscribe({
+        next: () => {
+          this.notificationService.success(`Permission ${action}d successfully!`);
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error toggling permission status:', error);
+          this.notificationService.error(`Failed to ${action} permission`);
+        }
+      });
     }
   }
 
@@ -205,9 +243,16 @@ export class PermissionManagementComponent implements OnInit {
       msg = `WARNING: This permission "${perm.name}" is currently used by ${usedCount} role(s). Deleting it will remove it from all roles. Are you sure you want to continue?`;
     }
     if (confirm(msg)) {
-      this.roleService.deletePermission(permissionId);
-      this.notificationService.success('Permission deleted successfully!');
-      this.loadData();
+      this.roleService.deletePermission(permissionId).subscribe({
+        next: () => {
+          this.notificationService.success('Permission deleted successfully!');
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error deleting permission:', error);
+          this.notificationService.error('Failed to delete permission');
+        }
+      });
     }
   }
 

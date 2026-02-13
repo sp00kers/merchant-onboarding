@@ -24,6 +24,7 @@ export class CasesComponent implements OnInit {
   showCreateModal = false;
   canCreateCase = false;
   roleBanner: RoleBanner | null = null;
+  isLoading = false;
 
   // Create case form fields
   newCase = {
@@ -53,13 +54,25 @@ export class CasesComponent implements OnInit {
       return;
     }
 
-    this.canCreateCase = this.authService.hasPermission('case_creation');
+    // Check permission async - for now use sync check
+    this.canCreateCase = ['admin', 'onboarding_officer'].includes(roleId);
     this.roleBanner = this.caseService.getRoleBanner(roleId, 'list');
     this.loadCases();
   }
 
   loadCases(): void {
-    this.cases = this.caseService.filterCases(this.statusFilter, this.searchTerm);
+    this.isLoading = true;
+    this.caseService.filterCases(this.statusFilter, this.searchTerm).subscribe({
+      next: (cases) => {
+        this.cases = cases;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading cases:', error);
+        this.notificationService.show('Failed to load cases', 'error');
+        this.isLoading = false;
+      }
+    });
   }
 
   filterCases(): void {
@@ -75,7 +88,8 @@ export class CasesComponent implements OnInit {
   }
 
   openCreateModal(): void {
-    if (this.authService.hasPermission('case_creation')) {
+    const roleId = this.authService.getCurrentRoleId();
+    if (roleId && ['admin', 'onboarding_officer'].includes(roleId)) {
       this.showCreateModal = true;
     } else {
       this.notificationService.show('You do not have permission to create cases', 'error');
@@ -88,10 +102,17 @@ export class CasesComponent implements OnInit {
   }
 
   saveDraft(): void {
-    this.caseService.createCase(this.newCase);
-    this.notificationService.show('Case saved as draft successfully!', 'success');
-    this.closeCreateModal();
-    this.loadCases();
+    this.caseService.createCase(this.newCase).subscribe({
+      next: () => {
+        this.notificationService.show('Case saved as draft successfully!', 'success');
+        this.closeCreateModal();
+        this.loadCases();
+      },
+      error: (error) => {
+        console.error('Error saving draft:', error);
+        this.notificationService.show('Failed to save draft', 'error');
+      }
+    });
   }
 
   submitCase(): void {
@@ -109,10 +130,17 @@ export class CasesComponent implements OnInit {
       }
     }
 
-    const created = this.caseService.createCase(this.newCase);
-    this.notificationService.show(`Case submitted successfully! Case ID: ${created.caseId}`, 'success');
-    this.closeCreateModal();
-    this.loadCases();
+    this.caseService.createCase(this.newCase).subscribe({
+      next: (created) => {
+        this.notificationService.show(`Case submitted successfully! Case ID: ${created.caseId}`, 'success');
+        this.closeCreateModal();
+        this.loadCases();
+      },
+      error: (error) => {
+        console.error('Error submitting case:', error);
+        this.notificationService.show('Failed to submit case', 'error');
+      }
+    });
   }
 
   private resetForm(): void {

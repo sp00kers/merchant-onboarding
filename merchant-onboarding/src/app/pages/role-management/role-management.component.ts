@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { Permission, Role } from '../../models/role.model';
 import { NotificationService } from '../../services/notification.service';
@@ -18,6 +19,7 @@ export class RoleManagementComponent implements OnInit {
   allRoles: Role[] = [];
   filteredRoles: Role[] = [];
   allPermissions: Permission[] = [];
+  isLoading = false;
 
   // Filters
   searchTerm = '';
@@ -49,9 +51,23 @@ export class RoleManagementComponent implements OnInit {
   }
 
   loadData(): void {
-    this.allRoles = this.roleService.getAllRoles();
-    this.allPermissions = this.roleService.getAllPermissions();
-    this.applyFilters();
+    this.isLoading = true;
+    forkJoin({
+      roles: this.roleService.getAllRoles(),
+      permissions: this.roleService.getAllPermissions()
+    }).subscribe({
+      next: ({ roles, permissions }) => {
+        this.allRoles = roles;
+        this.allPermissions = permissions;
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.notificationService.error('Failed to load roles data');
+        this.isLoading = false;
+      }
+    });
   }
 
   applyFilters(): void {
@@ -92,20 +108,27 @@ export class RoleManagementComponent implements OnInit {
   }
 
   editRole(roleId: string): void {
-    const role = this.roleService.getRoleById(roleId);
-    if (!role) return;
-    this.currentEditingId = roleId;
-    this.modalTitle = 'Edit Role';
-    this.roleName = role.name;
-    this.roleDescription = role.description;
-    this.roleStatus = role.isActive ? 'active' : 'inactive';
+    this.roleService.getRoleById(roleId).subscribe({
+      next: (role) => {
+        if (!role) return;
+        this.currentEditingId = roleId;
+        this.modalTitle = 'Edit Role';
+        this.roleName = role.name;
+        this.roleDescription = role.description;
+        this.roleStatus = role.isActive ? 'active' : 'inactive';
 
-    this.selectedPermissions = {};
-    this.allPermissions.forEach(p => {
-      this.selectedPermissions[p.id] = role.permissions.includes(p.id);
+        this.selectedPermissions = {};
+        this.allPermissions.forEach(p => {
+          this.selectedPermissions[p.id] = role.permissions.includes(p.id);
+        });
+
+        this.showRoleModal = true;
+      },
+      error: (error) => {
+        console.error('Error loading role:', error);
+        this.notificationService.error('Failed to load role');
+      }
     });
-
-    this.showRoleModal = true;
   }
 
   saveRole(): void {
@@ -124,15 +147,30 @@ export class RoleManagementComponent implements OnInit {
     };
 
     if (this.currentEditingId) {
-      this.roleService.updateRole(this.currentEditingId, roleData);
-      this.notificationService.success('Role updated successfully!');
+      this.roleService.updateRole(this.currentEditingId, roleData).subscribe({
+        next: () => {
+          this.notificationService.success('Role updated successfully!');
+          this.closeRoleModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error updating role:', error);
+          this.notificationService.error('Failed to update role');
+        }
+      });
     } else {
-      this.roleService.createRole(roleData);
-      this.notificationService.success('Role created successfully!');
+      this.roleService.createRole(roleData).subscribe({
+        next: () => {
+          this.notificationService.success('Role created successfully!');
+          this.closeRoleModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error creating role:', error);
+          this.notificationService.error('Failed to create role');
+        }
+      });
     }
-
-    this.closeRoleModal();
-    this.loadData();
   }
 
   closeRoleModal(): void {
@@ -150,10 +188,18 @@ export class RoleManagementComponent implements OnInit {
 
   // View modal
   openViewRole(roleId: string): void {
-    this.viewRole = this.roleService.getRoleById(roleId) || null;
-    if (this.viewRole) {
-      this.showViewModal = true;
-    }
+    this.roleService.getRoleById(roleId).subscribe({
+      next: (role) => {
+        this.viewRole = role || null;
+        if (this.viewRole) {
+          this.showViewModal = true;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading role:', error);
+        this.notificationService.error('Failed to load role');
+      }
+    });
   }
 
   closeViewModal(): void {
@@ -186,19 +232,26 @@ export class RoleManagementComponent implements OnInit {
 
   // Actions
   toggleRoleStatus(roleId: string): void {
-    const role = this.roleService.getRoleById(roleId);
+    const role = this.allRoles.find(r => r.id === roleId);
     if (!role) return;
     const newStatus = !role.isActive;
     const action = newStatus ? 'activate' : 'deactivate';
     if (confirm(`Are you sure you want to ${action} the role "${role.name}"?`)) {
-      this.roleService.updateRole(roleId, { isActive: newStatus });
-      this.notificationService.success(`Role ${action}d successfully!`);
-      this.loadData();
+      this.roleService.updateRole(roleId, { isActive: newStatus }).subscribe({
+        next: () => {
+          this.notificationService.success(`Role ${action}d successfully!`);
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error toggling role status:', error);
+          this.notificationService.error(`Failed to ${action} role`);
+        }
+      });
     }
   }
 
   deleteRole(roleId: string): void {
-    const role = this.roleService.getRoleById(roleId);
+    const role = this.allRoles.find(r => r.id === roleId);
     if (!role) return;
     const isSystemRole = ['admin', 'onboarding_officer', 'compliance_reviewer', 'verifier'].includes(roleId);
     let msg = `Are you sure you want to delete the role "${role.name}"? This action cannot be undone.`;
@@ -206,9 +259,16 @@ export class RoleManagementComponent implements OnInit {
       msg = `WARNING: You are about to delete a system role "${role.name}". This may affect system functionality. Are you sure?`;
     }
     if (confirm(msg)) {
-      this.roleService.deleteRole(roleId);
-      this.notificationService.success('Role deleted successfully!');
-      this.loadData();
+      this.roleService.deleteRole(roleId).subscribe({
+        next: () => {
+          this.notificationService.success('Role deleted successfully!');
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error deleting role:', error);
+          this.notificationService.error('Failed to delete role');
+        }
+      });
     }
   }
 

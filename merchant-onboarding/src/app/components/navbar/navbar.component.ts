@@ -22,12 +22,13 @@ export class NavbarComponent {
   }
 
   get showBusinessParams(): boolean {
-    return this.authService.hasPermission('system_configuration');
+    const roleId = this.authService.getCurrentRoleId();
+    return roleId === 'admin';
   }
 
   get showAccountManagement(): boolean {
-    return this.authService.hasPermission('user_management') ||
-           this.authService.hasPermission('role_management');
+    const roleId = this.authService.getCurrentRoleId();
+    return roleId === 'admin';
   }
 
   logout(): void {

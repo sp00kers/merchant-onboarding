@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { AccountService } from '../../services/account.service';
 import { AuthService } from '../../services/auth.service';
@@ -33,25 +34,28 @@ export class AccountManagementComponent implements OnInit {
   }
 
   loadStats(): void {
-    const users = this.accountService.getAllUsers();
-    this.totalUsers = users.length;
-    this.activeUsers = users.filter(u => u.status === 'active').length;
-    this.totalRoles = this.roleService.getAllRoles().length;
-    this.totalPermissions = this.roleService.getAllPermissions().length;
+    forkJoin({
+      users: this.accountService.getAllUsers(),
+      roles: this.roleService.getAllRoles(),
+      permissions: this.roleService.getAllPermissions()
+    }).subscribe({
+      next: ({ users, roles, permissions }) => {
+        this.totalUsers = users.length;
+        this.activeUsers = users.filter(u => u.status === 'active').length;
+        this.totalRoles = roles.length;
+        this.totalPermissions = permissions.length;
+      },
+      error: (error) => {
+        console.error('Error loading stats:', error);
+      }
+    });
   }
 
   navigateTo(path: string): void {
-    const roleId = this.authService.getCurrentRole()?.id || '';
-    if (path.includes('user-management') && !this.roleService.userHasPermission(roleId, 'user_management')) {
-      this.notificationService.error('You do not have permission to access User Management');
-      return;
-    }
-    if (path.includes('role-management') && !this.roleService.userHasPermission(roleId, 'role_management')) {
-      this.notificationService.error('You do not have permission to access Role Management');
-      return;
-    }
-    if (path.includes('permission-management') && !this.roleService.userHasPermission(roleId, 'permission_management')) {
-      this.notificationService.error('You do not have permission to access Permission Management');
+    const roleId = this.authService.getCurrentRoleId() || '';
+    // Only admin can access these pages
+    if (roleId !== 'admin') {
+      this.notificationService.error('You do not have permission to access this page');
       return;
     }
     this.router.navigate([path]);
