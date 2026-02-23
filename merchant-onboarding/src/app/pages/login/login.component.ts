@@ -2,9 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Role } from '../../models/role.model';
 import { AuthService } from '../../services/auth.service';
-import { RoleService } from '../../services/role.service';
 
 @Component({
   selector: 'app-login',
@@ -14,15 +12,12 @@ import { RoleService } from '../../services/role.service';
   styleUrl: './login.component.css'
 })
 export class LoginComponent implements OnInit {
-  roles: Role[] = [];
-  selectedRole = '';
-  username = '';
+  email = '';
   password = '';
   errorMessage = '';
   isLoading = false;
 
   constructor(
-    private roleService: RoleService,
     private authService: AuthService,
     private router: Router
   ) {}
@@ -31,27 +26,28 @@ export class LoginComponent implements OnInit {
     // If already logged in, redirect to dashboard
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/dashboard']);
-      return;
     }
-    // Load roles from backend
-    this.roleService.getActiveRoles().subscribe({
-      next: (roles) => {
-        this.roles = roles;
-      },
-      error: (error) => {
-        console.error('Error loading roles:', error);
-        this.errorMessage = 'Failed to load roles. Please try again.';
-      }
-    });
   }
 
   login(): void {
-    if (this.selectedRole) {
-      // For now, use role-based login (legacy mode)
-      // TODO: Implement full authentication with email/password
-      this.authService.loginWithRole(this.selectedRole);
-    } else {
-      this.errorMessage = 'Please select a role';
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Please enter both email and password';
+      return;
     }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.login(this.email, this.password).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['/dashboard']);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Login failed:', error);
+        this.errorMessage = 'Invalid email or password. Please try again.';
+      }
+    });
   }
 }

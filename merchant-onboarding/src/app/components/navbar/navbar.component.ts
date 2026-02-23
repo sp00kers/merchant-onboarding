@@ -13,10 +13,6 @@ import { AuthService } from '../../services/auth.service';
 export class NavbarComponent {
   constructor(public authService: AuthService) {}
 
-  get roleName(): string {
-    return this.authService.getCurrentRoleName();
-  }
-
   get showCases(): boolean {
     return this.authService.canViewCases();
   }

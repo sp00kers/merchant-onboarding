@@ -11,3 +11,18 @@
   align-items: center;
   justify-content: center;
 }
+
+.error-message {
+  background-color: #fee2e2;
+  color: #dc2626;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  border: 1px solid #fca5a5;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

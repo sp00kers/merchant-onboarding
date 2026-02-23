@@ -7,16 +7,32 @@ import { Role } from '../models/role.model';
 import { environment } from '../../environments/environment';
 
 export interface LoginRequest {
-  email: string;
+  username: string;
   password: string;
+}
+
+export interface UserInfo {
+  id: string;
+  name: string;
+  email: string;
+  roleId: string;
+  department: string;
+  phone: string;
+  status: string;
+  lastLogin: string;
+  role: {
+    id: string;
+    name: string;
+    description: string;
+    permissions: string[];
+  };
+  permissions: string[];
 }
 
 export interface AuthResponse {
   token: string;
-  userId: string;
-  email: string;
-  roleId: string;
-  roleName: string;
+  type: string;
+  user: UserInfo;
 }
 
 @Injectable({
@@ -42,12 +58,12 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { username: email, password })
       .pipe(
         tap(response => {
           localStorage.setItem(this.TOKEN_KEY, response.token);
           localStorage.setItem(this.USER_KEY, JSON.stringify(response));
-          localStorage.setItem(this.USER_ROLE_KEY, response.roleId);
+          localStorage.setItem(this.USER_ROLE_KEY, response.user.roleId);
           this.currentUserSubject.next(response);
         })
       );
@@ -85,7 +101,7 @@ export class AuthService {
 
   getCurrentRoleName(): string {
     const user = this.getCurrentUser();
-    return user ? user.roleName : 'Unknown Role';
+    return user?.user?.role ? user.user.role.name : 'Unknown Role';
   }
 
   hasPermission(permission: string): Observable<boolean> {
