@@ -283,7 +283,8 @@ export class UserManagementComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error toggling user status:', error);
-          this.notificationService.error(`Failed to ${action} user`);
+          const errorMsg = error.error?.message || `Failed to ${action} user`;
+          this.notificationService.error(errorMsg);
         }
       });
     }

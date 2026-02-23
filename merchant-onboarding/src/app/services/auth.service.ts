@@ -50,8 +50,8 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    // Load user from localStorage on service init
-    const storedUser = localStorage.getItem(this.USER_KEY);
+    // Load user from sessionStorage on service init
+    const storedUser = sessionStorage.getItem(this.USER_KEY);
     if (storedUser) {
       this.currentUserSubject.next(JSON.parse(storedUser));
     }
@@ -61,9 +61,9 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { username: email, password })
       .pipe(
         tap(response => {
-          localStorage.setItem(this.TOKEN_KEY, response.token);
-          localStorage.setItem(this.USER_KEY, JSON.stringify(response));
-          localStorage.setItem(this.USER_ROLE_KEY, response.user.roleId);
+          sessionStorage.setItem(this.TOKEN_KEY, response.token);
+          sessionStorage.setItem(this.USER_KEY, JSON.stringify(response));
+          sessionStorage.setItem(this.USER_ROLE_KEY, response.user.roleId);
           this.currentUserSubject.next(response);
         })
       );
@@ -71,28 +71,28 @@ export class AuthService {
 
   // Legacy method for backwards compatibility with existing login component
   loginWithRole(roleId: string): void {
-    localStorage.setItem(this.USER_ROLE_KEY, roleId);
+    sessionStorage.setItem(this.USER_ROLE_KEY, roleId);
     this.router.navigate(['/dashboard']);
   }
 
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
-    localStorage.removeItem(this.USER_ROLE_KEY);
+    sessionStorage.removeItem(this.TOKEN_KEY);
+    sessionStorage.removeItem(this.USER_KEY);
+    sessionStorage.removeItem(this.USER_ROLE_KEY);
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem(this.USER_ROLE_KEY);
+    return !!sessionStorage.getItem(this.USER_ROLE_KEY);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return sessionStorage.getItem(this.TOKEN_KEY);
   }
 
   getCurrentRoleId(): string | null {
-    return localStorage.getItem(this.USER_ROLE_KEY);
+    return sessionStorage.getItem(this.USER_ROLE_KEY);
   }
 
   getCurrentUser(): AuthResponse | null {
@@ -111,13 +111,28 @@ export class AuthService {
       .pipe(catchError(() => of(false)));
   }
 
-  // Synchronous permission check for guards (uses cached role)
+  // Synchronous permission check using cached user permissions
   hasPermissionSync(permission: string): boolean {
-    const roleId = this.getCurrentRoleId();
-    if (!roleId) return false;
-    // For admin role, allow all permissions
-    if (roleId === 'admin') return true;
-    return false; // Default to false, actual check should use async method
+    const user = this.getCurrentUser();
+    if (!user?.user) return false;
+
+    // Check for ALL_MODULES permission (super admin access)
+    if (user.user.permissions?.includes('all_modules')) return true;
+
+    // Check specific permission (case-insensitive)
+    const permissionLower = permission.toLowerCase();
+    return user.user.permissions?.some(p => p.toLowerCase() === permissionLower) || false;
+  }
+
+  // Check if user has any of the specified permissions
+  hasAnyPermission(permissions: string[]): boolean {
+    return permissions.some(p => this.hasPermissionSync(p));
+  }
+
+  // Get all user permissions
+  getUserPermissions(): string[] {
+    const user = this.getCurrentUser();
+    return user?.user?.permissions || [];
   }
 
   canViewCases(): boolean {

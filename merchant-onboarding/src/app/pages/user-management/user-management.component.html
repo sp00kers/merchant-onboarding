@@ -60,8 +60,6 @@
           <td>
             <button class="btn-small" (click)="openViewUser(user.id)">View</button>
             <button class="btn-small" (click)="editUser(user.id)">Edit</button>
-            <button class="btn-small" [ngClass]="user.status === 'active' ? 'btn-warning' : 'btn-success'"
-                    (click)="toggleUserStatus(user.id)">{{ user.status === 'active' ? 'Deactivate' : 'Activate' }}</button>
             <button class="btn-small btn-danger" (click)="deleteUser(user.id)">Delete</button>
           </td>
         </tr>
@@ -212,7 +210,6 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="btn-secondary" (click)="closeViewModal()">Close</button>
-      <button type="button" class="btn-primary" (click)="editFromView()">Edit User</button>
     </div>
   </div>
 </div>
