@@ -56,8 +56,6 @@
           <td>
             <button class="btn-small" (click)="openViewRole(role.id)">View</button>
             <button class="btn-small" (click)="editRole(role.id)">Edit</button>
-            <button class="btn-small" [ngClass]="role.isActive ? 'btn-warning' : 'btn-success'"
-                    (click)="toggleRoleStatus(role.id)">{{ role.isActive ? 'Deactivate' : 'Activate' }}</button>
             <button class="btn-small btn-danger" (click)="deleteRole(role.id)">Delete</button>
           </td>
         </tr>
@@ -155,7 +153,6 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="btn-secondary" (click)="closeViewModal()">Close</button>
-      <button type="button" class="btn-primary" (click)="editFromView()">Edit Role</button>
     </div>
   </div>
 </div>

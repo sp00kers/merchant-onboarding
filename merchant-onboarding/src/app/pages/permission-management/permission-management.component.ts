@@ -202,13 +202,6 @@ export class PermissionManagementComponent implements OnInit {
     this.viewPermission = null;
   }
 
-  editFromView(): void {
-    if (this.viewPermission) {
-      this.closeViewModal();
-      this.editPermission(this.viewPermission.id);
-    }
-  }
-
   getViewPermissionRoles(): Role[] {
     if (!this.viewPermission) return [];
     return this.getUsedInRoles(this.viewPermission.id);

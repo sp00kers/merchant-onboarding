@@ -43,6 +43,7 @@ export class UserManagementComponent implements OnInit {
   // Form fields
   userName = '';
   userEmail = '';
+  emailError = '';
   userRole = '';
   userDepartment = '';
   userPhone = '';
@@ -148,9 +149,29 @@ export class UserManagementComponent implements OnInit {
     this.showUserModal = true;
   }
 
+  validateEmail(): void {
+    const email = this.userEmail.trim();
+    if (!email) {
+      this.emailError = 'Email is required';
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+      this.emailError = 'Please enter a valid email address';
+    } else if (!/^[a-zA-Z0-9._%+-]+@bank\.com$/i.test(email)) {
+      this.emailError = 'Email must use @bank.com domain';
+    } else {
+      this.emailError = '';
+    }
+  }
+
   saveUser(): void {
     if (!this.userName.trim() || !this.userEmail.trim() || !this.userRole || !this.userDepartment) {
       this.notificationService.error('Please fill in all required fields');
+      return;
+    }
+
+    // Validate email domain - only @bank.com allowed
+    this.validateEmail();
+    if (this.emailError) {
+      this.notificationService.error(this.emailError);
       return;
     }
 
@@ -177,7 +198,8 @@ export class UserManagementComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error updating user:', error);
-          this.notificationService.error('Failed to update user');
+          const errorMsg = error.error?.message || error.error?.errors?.email || 'Failed to update user';
+          this.notificationService.error(errorMsg);
         }
       });
     } else {
@@ -189,7 +211,8 @@ export class UserManagementComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error creating user:', error);
-          this.notificationService.error('Failed to create user');
+          const errorMsg = error.error?.message || error.error?.errors?.email || 'Failed to create user';
+          this.notificationService.error(errorMsg);
         }
       });
     }
@@ -203,6 +226,7 @@ export class UserManagementComponent implements OnInit {
   resetForm(): void {
     this.userName = '';
     this.userEmail = '';
+    this.emailError = '';
     this.userRole = '';
     this.userDepartment = '';
     this.userPhone = '';
@@ -224,13 +248,6 @@ export class UserManagementComponent implements OnInit {
   closeViewModal(): void {
     this.showViewModal = false;
     this.viewUser = null;
-  }
-
-  editFromView(): void {
-    if (this.viewUser) {
-      this.closeViewModal();
-      this.editUser(this.viewUser.id);
-    }
   }
 
   getViewUserPermissions(): Permission[] {

@@ -207,13 +207,6 @@ export class RoleManagementComponent implements OnInit {
     this.viewRole = null;
   }
 
-  editFromView(): void {
-    if (this.viewRole) {
-      this.closeViewModal();
-      this.editRole(this.viewRole.id);
-    }
-  }
-
   getViewRolePermissions(): Permission[] {
     if (!this.viewRole) return [];
     return this.viewRole.permissions

@@ -54,8 +54,6 @@
           <td>
             <button class="btn-small" (click)="openViewPermission(perm.id)">View</button>
             <button class="btn-small" (click)="editPermission(perm.id)">Edit</button>
-            <button class="btn-small" [ngClass]="perm.isActive !== false ? 'btn-warning' : 'btn-success'"
-                    (click)="togglePermissionStatus(perm.id)">{{ perm.isActive !== false ? 'Deactivate' : 'Activate' }}</button>
             <button class="btn-small btn-danger" (click)="deletePermission(perm.id)">Delete</button>
           </td>
         </tr>
@@ -155,7 +153,6 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="btn-secondary" (click)="closeViewModal()">Close</button>
-      <button type="button" class="btn-primary" (click)="editFromView()">Edit Permission</button>
     </div>
   </div>
 </div>

@@ -96,7 +96,14 @@
             </div>
             <div class="form-group">
               <label>Email:</label>
-              <input type="email" [(ngModel)]="userEmail" name="userEmail" required>
+              <input type="email" [(ngModel)]="userEmail" name="userEmail" required
+                     placeholder="username&#64;bank.com"
+                     pattern="^[a-zA-Z0-9._%+-]+@bank\.com$"
+                     title="Email must use &#64;bank.com domain"
+                     (ngModelChange)="validateEmail()"
+                     [class.input-error]="emailError">
+              <small class="hint" *ngIf="!emailError">Only &#64;bank.com email addresses are allowed</small>
+              <small class="error-text" *ngIf="emailError">{{ emailError }}</small>
             </div>
           </div>
           <div class="form-row">
