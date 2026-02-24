@@ -18,11 +18,9 @@
         <h3>User Management</h3>
         <p>Create, edit, and manage user accounts. Assign roles and monitor user activity.</p>
         <div class="option-stats">
-          <span>{{ totalUsers }} Total Users</span>
-          <span>{{ activeUsers }} Active</span>
+          <span>{{ totalUsers }} Total Users, {{ activeUsers }} Active</span>
         </div>
       </div>
-      <div class="option-arrow">→</div>
     </div>
 
     <div class="option-card" (click)="navigateTo('/account-management/role-management')">
@@ -38,7 +36,6 @@
           <span>{{ totalRoles }} Roles Defined</span>
         </div>
       </div>
-      <div class="option-arrow">→</div>
     </div>
 
     <div class="option-card" (click)="navigateTo('/account-management/permission-management')">
@@ -54,7 +51,6 @@
           <span>{{ totalPermissions }} Permissions</span>
         </div>
       </div>
-      <div class="option-arrow">→</div>
     </div>
   </div>
 </div>
