@@ -92,40 +92,60 @@
           <div class="form-row">
             <div class="form-group">
               <label for="businessName">Business Name *</label>
-              <input type="text" id="businessName" [(ngModel)]="newCase.businessName" name="businessName" required>
+              <input type="text" id="businessName" [(ngModel)]="newCase.businessName" name="businessName" required
+                     (focus)="businessNameTouched = true"
+                     (ngModelChange)="validateBusinessName()"
+                     [class.input-error]="businessNameError">
+              <small class="error-text" *ngIf="businessNameError">{{ businessNameError }}</small>
             </div>
             <div class="form-group">
               <label for="registrationNumber">Registration Number *</label>
-              <input type="text" id="registrationNumber" [(ngModel)]="newCase.registrationNumber" name="registrationNumber" required>
+              <input type="text" id="registrationNumber" [(ngModel)]="newCase.registrationNumber" name="registrationNumber" required
+                     (focus)="registrationNumberTouched = true"
+                     (ngModelChange)="validateRegistrationNumber()"
+                     [class.input-error]="registrationNumberError">
+              <small class="error-text" *ngIf="registrationNumberError">{{ registrationNumberError }}</small>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="businessType">Business Type *</label>
-              <select id="businessType" [(ngModel)]="newCase.businessType" name="businessType" required>
+              <select id="businessType" [(ngModel)]="newCase.businessType" name="businessType" required
+                      (focus)="businessTypeTouched = true"
+                      (ngModelChange)="validateBusinessType()"
+                      [class.input-error]="businessTypeError">
                 <option value="">Select Business Type</option>
                 <option value="sole_proprietorship">Sole Proprietorship</option>
                 <option value="partnership">Partnership</option>
                 <option value="sdn_bhd">Sdn Bhd</option>
                 <option value="bhd">Bhd</option>
               </select>
+              <small class="error-text" *ngIf="businessTypeError">{{ businessTypeError }}</small>
             </div>
             <div class="form-group">
               <label for="merchantCategory">Merchant Category *</label>
-              <select id="merchantCategory" [(ngModel)]="newCase.merchantCategory" name="merchantCategory" required>
+              <select id="merchantCategory" [(ngModel)]="newCase.merchantCategory" name="merchantCategory" required
+                      (focus)="merchantCategoryTouched = true"
+                      (ngModelChange)="validateMerchantCategory()"
+                      [class.input-error]="merchantCategoryError">
                 <option value="">Select Category</option>
                 <option value="retail">Retail</option>
                 <option value="restaurant">Restaurant</option>
                 <option value="ecommerce">E-commerce</option>
                 <option value="services">Services</option>
               </select>
+              <small class="error-text" *ngIf="merchantCategoryError">{{ merchantCategoryError }}</small>
             </div>
           </div>
 
           <div class="form-group">
             <label for="businessAddress">Business Address *</label>
-            <textarea id="businessAddress" [(ngModel)]="newCase.businessAddress" name="businessAddress" rows="3" required></textarea>
+            <textarea id="businessAddress" [(ngModel)]="newCase.businessAddress" name="businessAddress" rows="3" required
+                      (focus)="businessAddressTouched = true"
+                      (ngModelChange)="validateBusinessAddress()"
+                      [class.input-error]="businessAddressError"></textarea>
+            <small class="error-text" *ngIf="businessAddressError">{{ businessAddressError }}</small>
           </div>
         </div>
 
@@ -134,22 +154,38 @@
           <div class="form-row">
             <div class="form-group">
               <label for="directorName">Director Name *</label>
-              <input type="text" id="directorName" [(ngModel)]="newCase.directorName" name="directorName" required>
+              <input type="text" id="directorName" [(ngModel)]="newCase.directorName" name="directorName" required
+                     (focus)="directorNameTouched = true"
+                     (ngModelChange)="validateDirectorName()"
+                     [class.input-error]="directorNameError">
+              <small class="error-text" *ngIf="directorNameError">{{ directorNameError }}</small>
             </div>
             <div class="form-group">
               <label for="directorIC">Director IC Number *</label>
-              <input type="text" id="directorIC" [(ngModel)]="newCase.directorIC" name="directorIC" required>
+              <input type="text" id="directorIC" [(ngModel)]="newCase.directorIC" name="directorIC" required
+                     (focus)="directorICTouched = true"
+                     (ngModelChange)="validateDirectorIC()"
+                     [class.input-error]="directorICError">
+              <small class="error-text" *ngIf="directorICError">{{ directorICError }}</small>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="directorPhone">Phone Number *</label>
-              <input type="tel" id="directorPhone" [(ngModel)]="newCase.directorPhone" name="directorPhone" required>
+              <input type="tel" id="directorPhone" [(ngModel)]="newCase.directorPhone" name="directorPhone" required
+                     (focus)="directorPhoneTouched = true"
+                     (ngModelChange)="validateDirectorPhone()"
+                     [class.input-error]="directorPhoneError">
+              <small class="error-text" *ngIf="directorPhoneError">{{ directorPhoneError }}</small>
             </div>
             <div class="form-group">
               <label for="directorEmail">Email Address *</label>
-              <input type="email" id="directorEmail" [(ngModel)]="newCase.directorEmail" name="directorEmail" required>
+              <input type="email" id="directorEmail" [(ngModel)]="newCase.directorEmail" name="directorEmail" required
+                     (focus)="directorEmailTouched = true"
+                     (ngModelChange)="validateDirectorEmail()"
+                     [class.input-error]="directorEmailError">
+              <small class="error-text" *ngIf="directorEmailError">{{ directorEmailError }}</small>
             </div>
           </div>
         </div>
@@ -180,7 +216,7 @@
     <div class="modal-footer">
       <button type="button" (click)="closeCreateModal()" class="btn-secondary">Cancel</button>
       <button type="button" (click)="saveDraft()" class="btn-secondary">Save as Draft</button>
-      <button type="button" (click)="submitCase()" class="btn-primary">Submit Case</button>
+      <button type="button" (click)="submitCase()" class="btn-primary" [disabled]="hasFormErrors">Submit Case</button>
     </div>
   </div>
 </div>

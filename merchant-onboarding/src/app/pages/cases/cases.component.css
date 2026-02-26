@@ -1,1 +1,20 @@
 /* Cases component styles inherited from global styles.css */
+
+/* Validation error styles */
+.error-text {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+.input-error {
+  border-color: #dc3545 !important;
+}
+
+.btn-primary:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
