@@ -89,17 +89,22 @@
       <!-- User Details Tab -->
       <div *ngIf="activeTab === 'details'">
         <form>
-          <div class="form-row">
+           <div class="form-row">
             <div class="form-group">
               <label>Full Name:</label>
-              <input type="text" [(ngModel)]="userName" name="userName" required>
+              <input type="text" [(ngModel)]="userName" name="userName" required
+                     (focus)="nameTouched = true"
+                     (ngModelChange)="validateName()"
+                     [class.input-error]="nameError">
+              <small class="error-text" *ngIf="nameError">{{ nameError }}</small>
             </div>
             <div class="form-group">
               <label>Email:</label>
               <input type="email" [(ngModel)]="userEmail" name="userEmail" required
                      placeholder="username&#64;bank.com"
-                     pattern="^[a-zA-Z0-9._%+-]+@bank\.com$"
+                     [pattern]="emailPattern"
                      title="Email must use &#64;bank.com domain"
+                     (focus)="emailTouched = true"
                      (ngModelChange)="validateEmail()"
                      [class.input-error]="emailError">
               <small class="hint" *ngIf="!emailError">Only &#64;bank.com email addresses are allowed</small>
@@ -109,23 +114,35 @@
           <div class="form-row">
             <div class="form-group">
               <label>Role:</label>
-              <select [(ngModel)]="userRole" name="userRole" required>
+              <select [(ngModel)]="userRole" name="userRole" required
+                      (focus)="roleTouched = true"
+                      (ngModelChange)="validateRole()"
+                      [class.input-error]="roleError">
                 <option value="">Select Role</option>
                 <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
               </select>
+              <small class="error-text" *ngIf="roleError">{{ roleError }}</small>
             </div>
             <div class="form-group">
               <label>Department:</label>
-              <select [(ngModel)]="userDepartment" name="userDepartment" required>
+              <select [(ngModel)]="userDepartment" name="userDepartment" required
+                      (focus)="departmentTouched = true"
+                      (ngModelChange)="validateDepartment()"
+                      [class.input-error]="departmentError">
                 <option value="">Select Department</option>
                 <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
               </select>
+              <small class="error-text" *ngIf="departmentError">{{ departmentError }}</small>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Phone Number:</label>
-              <input type="tel" [(ngModel)]="userPhone" name="userPhone">
+              <input type="tel" [(ngModel)]="userPhone" name="userPhone"
+                     (focus)="phoneTouched = true"
+                     (ngModelChange)="validatePhone()"
+                     [class.input-error]="phoneError">
+              <small class="error-text" *ngIf="phoneError">{{ phoneError }}</small>
             </div>
             <div class="form-group">
               <label>Status:</label>
@@ -165,7 +182,7 @@
 
     <div class="modal-footer">
       <button type="button" class="btn-secondary" (click)="closeUserModal()">Cancel</button>
-      <button type="button" class="btn-primary" (click)="saveUser()">Save User</button>
+      <button type="button" class="btn-primary" (click)="saveUser()" [disabled]="hasFormErrors">Save User</button>
     </div>
   </div>
 </div>

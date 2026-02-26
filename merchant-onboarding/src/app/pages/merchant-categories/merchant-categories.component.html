@@ -68,7 +68,7 @@
 </div>
 
 <!-- Create/Edit Modal -->
-<div *ngIf="showModal" class="modal" style="display: block;" (click)="onBackdropClick($event)">
+<div *ngIf="showModal" class="modal" (click)="onBackdropClick($event)">
   <div class="modal-content">
     <div class="modal-header">
       <h3>{{ modalTitle }}</h3>
@@ -81,7 +81,11 @@
             <label for="mcCode">Code *</label>
             <input type="text" id="mcCode" [(ngModel)]="form.code" name="code"
                    required maxlength="10" style="text-transform: uppercase;" placeholder="e.g., RET, ECM, SRV"
-                   [disabled]="codeDisabled">
+                   [disabled]="codeDisabled"
+                   (focus)="codeTouched = true"
+                   (ngModelChange)="validateCode()"
+                   [class.input-error]="codeError">
+            <small class="error-text" *ngIf="codeError">{{ codeError }}</small>
           </div>
           <div class="form-group">
             <label for="mcStatus">Status:</label>
@@ -95,28 +99,40 @@
           <div class="form-group">
             <label for="mcName">Name *</label>
             <input type="text" id="mcName" [(ngModel)]="form.name" name="name"
-                   required placeholder="e.g., Retail, E-commerce">
+                   required placeholder="e.g., Retail, E-commerce"
+                   (focus)="nameTouched = true"
+                   (ngModelChange)="validateName()"
+                   [class.input-error]="nameError">
+            <small class="error-text" *ngIf="nameError">{{ nameError }}</small>
           </div>
           <div class="form-group">
             <label for="mcRisk">Risk Level *</label>
-            <select id="mcRisk" [(ngModel)]="form.riskLevel" name="riskLevel" required>
+            <select id="mcRisk" [(ngModel)]="form.riskLevel" name="riskLevel" required
+                    (focus)="riskLevelTouched = true"
+                    (ngModelChange)="validateRiskLevel()"
+                    [class.input-error]="riskLevelError">
               <option value="">Select Risk Level</option>
               <option value="low">Low Risk</option>
               <option value="medium">Medium Risk</option>
               <option value="high">High Risk</option>
             </select>
+            <small class="error-text" *ngIf="riskLevelError">{{ riskLevelError }}</small>
           </div>
         </div>
         <div class="form-group">
-          <label for="mcDescription">Description</label>
+          <label for="mcDescription">Description *</label>
           <textarea id="mcDescription" [(ngModel)]="form.description" name="description"
-                    rows="3" placeholder="Describe this merchant category..."></textarea>
+                    rows="3" placeholder="Describe this merchant category..."
+                    (focus)="descriptionTouched = true"
+                    (ngModelChange)="validateDescription()"
+                    [class.input-error]="descriptionError"></textarea>
+          <small class="error-text" *ngIf="descriptionError">{{ descriptionError }}</small>
         </div>
       </form>
     </div>
     <div class="modal-footer">
       <button type="button" (click)="closeModal()" class="btn-secondary">Cancel</button>
-      <button type="button" (click)="save()" class="btn-primary">Save Category</button>
+      <button type="button" (click)="save()" class="btn-primary" [disabled]="hasFormErrors">Save Category</button>
     </div>
   </div>
 </div>

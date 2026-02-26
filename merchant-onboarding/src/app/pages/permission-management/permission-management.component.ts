@@ -48,6 +48,18 @@ export class PermissionManagementComponent implements OnInit {
   permissionStatus = 'active';
   isIdDisabled = false;
 
+  // Validation errors
+  idError = '';
+  nameError = '';
+  descriptionError = '';
+  categoryError = '';
+
+  // Track whether user has interacted with each field
+  idTouched = false;
+  nameTouched = false;
+  descriptionTouched = false;
+  categoryTouched = false;
+
   // View modal
   viewPermission: Permission | null = null;
 
@@ -130,9 +142,53 @@ export class PermissionManagementComponent implements OnInit {
     this.showPermissionModal = true;
   }
 
+  validateId(): void {
+    if (!this.idTouched) return;
+    this.idError = this.permissionId.trim() ? '' : 'Permission ID is required';
+  }
+
+  validateName(): void {
+    if (!this.nameTouched) return;
+    this.nameError = this.permissionName.trim() ? '' : 'Permission name is required';
+  }
+
+  validateDescription(): void {
+    if (!this.descriptionTouched) return;
+    this.descriptionError = this.permissionDescription.trim() ? '' : 'Description is required';
+  }
+
+  validateCategory(): void {
+    if (!this.categoryTouched) return;
+    this.categoryError = this.permissionCategory ? '' : 'Please select a category';
+  }
+
+  markAllTouched(): void {
+    this.idTouched = true;
+    this.nameTouched = true;
+    this.descriptionTouched = true;
+    this.categoryTouched = true;
+  }
+
+  get hasFormErrors(): boolean {
+    return !this.permissionId.trim()
+      || !this.permissionName.trim()
+      || !this.permissionDescription.trim()
+      || !this.permissionCategory
+      || !!this.idError
+      || !!this.nameError
+      || !!this.descriptionError
+      || !!this.categoryError;
+  }
+
   savePermission(): void {
-    if (!this.permissionId.trim() || !this.permissionName.trim() || !this.permissionCategory) {
-      this.notificationService.error('Please fill in all required fields');
+    this.markAllTouched();
+    this.validateId();
+    this.validateName();
+    this.validateDescription();
+    this.validateCategory();
+
+    if (this.idError || this.nameError || this.descriptionError || this.categoryError) {
+      this.notificationService.error('Please fix the errors before saving');
       return;
     }
 
@@ -187,6 +243,14 @@ export class PermissionManagementComponent implements OnInit {
     this.permissionCategory = '';
     this.permissionStatus = 'active';
     this.isIdDisabled = false;
+    this.idError = '';
+    this.nameError = '';
+    this.descriptionError = '';
+    this.categoryError = '';
+    this.idTouched = false;
+    this.nameTouched = false;
+    this.descriptionTouched = false;
+    this.categoryTouched = false;
   }
 
   // View modal

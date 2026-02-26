@@ -60,7 +60,7 @@
 </div>
 
 <!-- Create/Edit Modal -->
-<div *ngIf="showModal" class="modal" style="display: block;" (click)="onBackdropClick($event)">
+<div *ngIf="showModal" class="modal" (click)="onBackdropClick($event)">
   <div class="modal-content">
     <div class="modal-header">
       <h3>{{ modalTitle }}</h3>
@@ -73,7 +73,11 @@
             <label for="businessTypeCode">Code *</label>
             <input type="text" id="businessTypeCode" [(ngModel)]="form.code" name="code"
                    required maxlength="10" style="text-transform: uppercase;" placeholder="e.g., SP, PT, SB"
-                   [disabled]="codeDisabled">
+                   [disabled]="codeDisabled"
+                   (focus)="codeTouched = true"
+                   (ngModelChange)="validateCode()"
+                   [class.input-error]="codeError">
+            <small class="error-text" *ngIf="codeError">{{ codeError }}</small>
           </div>
           <div class="form-group">
             <label for="businessTypeStatus">Status:</label>
@@ -86,18 +90,26 @@
         <div class="form-group">
           <label for="businessTypeName">Name *</label>
           <input type="text" id="businessTypeName" [(ngModel)]="form.name" name="name"
-                 required placeholder="e.g., Sole Proprietorship">
+                 required placeholder="e.g., Sole Proprietorship"
+                 (focus)="nameTouched = true"
+                 (ngModelChange)="validateName()"
+                 [class.input-error]="nameError">
+          <small class="error-text" *ngIf="nameError">{{ nameError }}</small>
         </div>
         <div class="form-group">
-          <label for="businessTypeDescription">Description</label>
+          <label for="businessTypeDescription">Description *</label>
           <textarea id="businessTypeDescription" [(ngModel)]="form.description" name="description"
-                    rows="3" placeholder="Describe this business type..."></textarea>
+                    rows="3" placeholder="Describe this business type..."
+                    (focus)="descriptionTouched = true"
+                    (ngModelChange)="validateDescription()"
+                    [class.input-error]="descriptionError"></textarea>
+          <small class="error-text" *ngIf="descriptionError">{{ descriptionError }}</small>
         </div>
       </form>
     </div>
     <div class="modal-footer">
       <button type="button" (click)="closeModal()" class="btn-secondary">Cancel</button>
-      <button type="button" (click)="save()" class="btn-primary">Save Business Type</button>
+      <button type="button" (click)="save()" class="btn-primary" [disabled]="hasFormErrors">Save Business Type</button>
     </div>
   </div>
 </div>

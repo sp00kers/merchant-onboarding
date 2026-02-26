@@ -55,7 +55,7 @@
 </div>
 
 <!-- Create/Edit Modal -->
-<div *ngIf="showModal" class="modal" style="display: block;" (click)="onBackdropClick($event)">
+<div *ngIf="showModal" class="modal" (click)="onBackdropClick($event)">
   <div class="modal-content">
     <div class="modal-header">
       <h3>{{ modalTitle }}</h3>
@@ -67,34 +67,62 @@
           <div class="form-group">
             <label for="rcLevel">Level *</label>
             <input type="number" id="rcLevel" [(ngModel)]="form.level" name="level"
-                   required min="1" max="10" placeholder="1-10" [disabled]="levelDisabled">
+                   required min="1" max="10" placeholder="1-10" [disabled]="levelDisabled"
+                   (focus)="levelTouched = true"
+                   (ngModelChange)="validateLevel()"
+                   [class.input-error]="levelError">
+            <small class="error-text" *ngIf="levelError">{{ levelError }}</small>
           </div>
           <div class="form-group">
             <label for="rcName">Name *</label>
             <input type="text" id="rcName" [(ngModel)]="form.name" name="name"
-                   required placeholder="e.g., Low Risk, High Risk">
+                   required placeholder="e.g., Low Risk, High Risk"
+                   (focus)="nameTouched = true"
+                   (ngModelChange)="validateName()"
+                   [class.input-error]="nameError">
+            <small class="error-text" *ngIf="nameError">{{ nameError }}</small>
           </div>
         </div>
         <div class="form-group">
-          <label for="rcScore">Score Range *</label>
-          <input type="text" id="rcScore" [(ngModel)]="form.scoreRange" name="scoreRange"
-                 required placeholder="e.g., 0-30, 70-100">
+          <label>Score Range *</label>
+          <div class="score-range-row">
+            <input type="number" id="rcScoreMin" [(ngModel)]="form.scoreMin" name="scoreMin"
+                   required placeholder="Min" min="0"
+                   (focus)="scoreRangeTouched = true"
+                   (ngModelChange)="validateScoreRange()"
+                   [class.input-error]="scoreRangeError">
+            <span class="score-range-separator">to</span>
+            <input type="number" id="rcScoreMax" [(ngModel)]="form.scoreMax" name="scoreMax"
+                   required placeholder="Max" min="0"
+                   (focus)="scoreRangeTouched = true"
+                   (ngModelChange)="validateScoreRange()"
+                   [class.input-error]="scoreRangeError">
+          </div>
+          <small class="error-text" *ngIf="scoreRangeError">{{ scoreRangeError }}</small>
         </div>
         <div class="form-group">
-          <label for="rcDescription">Description</label>
+          <label for="rcDescription">Description *</label>
           <textarea id="rcDescription" [(ngModel)]="form.description" name="description"
-                    rows="3" placeholder="Describe this risk category..."></textarea>
+                    rows="3" placeholder="Describe this risk category..."
+                    (focus)="descriptionTouched = true"
+                    (ngModelChange)="validateDescription()"
+                    [class.input-error]="descriptionError"></textarea>
+          <small class="error-text" *ngIf="descriptionError">{{ descriptionError }}</small>
         </div>
         <div class="form-group">
-          <label for="rcActions">Actions Required</label>
+          <label for="rcActions">Actions Required *</label>
           <textarea id="rcActions" [(ngModel)]="form.actionsRequired" name="actionsRequired"
-                    rows="3" placeholder="Describe required actions for this risk level"></textarea>
+                    rows="3" placeholder="Describe required actions for this risk level"
+                    (focus)="actionsRequiredTouched = true"
+                    (ngModelChange)="validateActionsRequired()"
+                    [class.input-error]="actionsRequiredError"></textarea>
+          <small class="error-text" *ngIf="actionsRequiredError">{{ actionsRequiredError }}</small>
         </div>
       </form>
     </div>
     <div class="modal-footer">
       <button type="button" (click)="closeModal()" class="btn-secondary">Cancel</button>
-      <button type="button" (click)="save()" class="btn-primary">Save Risk Category</button>
+      <button type="button" (click)="save()" class="btn-primary" [disabled]="hasFormErrors">Save Risk Category</button>
     </div>
   </div>
 </div>

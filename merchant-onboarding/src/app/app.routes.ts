@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { roleGuard } from './guards/role.guard';
 import { AccountManagementComponent } from './pages/account-management/account-management.component';
 import { BusinessParamsComponent } from './pages/business-params/business-params.component';
 import { BusinessTypesComponent } from './pages/business-types/business-types.component';
@@ -16,16 +17,25 @@ import { UserManagementComponent } from './pages/user-management/user-management
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+
+  // Dashboard — any authenticated user
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
-  { path: 'cases', component: CasesComponent, canActivate: [authGuard] },
-  { path: 'cases/:id', component: CaseDetailsComponent, canActivate: [authGuard] },
-  { path: 'business-params', component: BusinessParamsComponent, canActivate: [authGuard] },
-  { path: 'business-params/business-types', component: BusinessTypesComponent, canActivate: [authGuard] },
-  { path: 'business-params/merchant-categories', component: MerchantCategoriesComponent, canActivate: [authGuard] },
-  { path: 'business-params/risk-categories', component: RiskCategoriesComponent, canActivate: [authGuard] },
-  { path: 'account-management', component: AccountManagementComponent, canActivate: [authGuard] },
-  { path: 'account-management/user-management', component: UserManagementComponent, canActivate: [authGuard] },
-  { path: 'account-management/role-management', component: RoleManagementComponent, canActivate: [authGuard] },
-  { path: 'account-management/permission-management', component: PermissionManagementComponent, canActivate: [authGuard] },
+
+  // Cases — require case-related permissions
+  { path: 'cases', component: CasesComponent, canActivate: [authGuard, roleGuard(['case_view', 'case_management', 'case_creation', 'all_modules'])] },
+  { path: 'cases/:id', component: CaseDetailsComponent, canActivate: [authGuard, roleGuard(['case_view', 'case_management', 'case_creation', 'all_modules'])] },
+
+  // Business Parameters — require system_configuration or all_modules
+  { path: 'business-params', component: BusinessParamsComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
+  { path: 'business-params/business-types', component: BusinessTypesComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
+  { path: 'business-params/merchant-categories', component: MerchantCategoriesComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
+  { path: 'business-params/risk-categories', component: RiskCategoriesComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
+
+  // Account Management — require user_management, role_management, permission_management, or all_modules
+  { path: 'account-management', component: AccountManagementComponent, canActivate: [authGuard, roleGuard(['user_management', 'role_management', 'permission_management', 'all_modules'])] },
+  { path: 'account-management/user-management', component: UserManagementComponent, canActivate: [authGuard, roleGuard(['user_management', 'all_modules'])] },
+  { path: 'account-management/role-management', component: RoleManagementComponent, canActivate: [authGuard, roleGuard(['role_management', 'all_modules'])] },
+  { path: 'account-management/permission-management', component: PermissionManagementComponent, canActivate: [authGuard, roleGuard(['permission_management', 'all_modules'])] },
+
   { path: '**', redirectTo: 'login' }
 ];

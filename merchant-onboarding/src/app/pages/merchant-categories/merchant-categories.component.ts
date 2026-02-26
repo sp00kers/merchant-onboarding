@@ -31,6 +31,18 @@ export class MerchantCategoriesComponent implements OnInit {
   };
   codeDisabled = false;
 
+  // Validation errors
+  codeError = '';
+  nameError = '';
+  descriptionError = '';
+  riskLevelError = '';
+
+  // Touched flags
+  codeTouched = false;
+  nameTouched = false;
+  descriptionTouched = false;
+  riskLevelTouched = false;
+
   constructor(
     private paramsService: BusinessParamsService,
     private notificationService: NotificationService
@@ -64,6 +76,7 @@ export class MerchantCategoriesComponent implements OnInit {
     this.modalTitle = 'Add Merchant Category';
     this.form = { code: '', name: '', description: '', riskLevel: '', status: 'active' };
     this.codeDisabled = false;
+    this.resetValidation();
     this.showModal = true;
   }
 
@@ -78,6 +91,7 @@ export class MerchantCategoriesComponent implements OnInit {
             riskLevel: item.riskLevel, status: item.status
           };
           this.codeDisabled = true;
+          this.resetValidation();
           this.showModal = true;
         }
       },
@@ -89,13 +103,20 @@ export class MerchantCategoriesComponent implements OnInit {
   }
 
   save(): void {
+    this.markAllTouched();
+    this.validateCode();
+    this.validateName();
+    this.validateDescription();
+    this.validateRiskLevel();
+
+    if (this.codeError || this.nameError || this.descriptionError || this.riskLevelError) {
+      this.notificationService.show('Please fix the errors before saving', 'error');
+      return;
+    }
+
     const code = this.form.code.trim().toUpperCase();
     const name = this.form.name.trim();
     const riskLevel = this.form.riskLevel;
-    if (!code || !name || !riskLevel) {
-      this.notificationService.show('Please fill in all required fields', 'error');
-      return;
-    }
 
     const data = { code, name, description: this.form.description.trim(), riskLevel: riskLevel as 'low' | 'medium' | 'high', status: this.form.status };
 
@@ -140,6 +161,55 @@ export class MerchantCategoriesComponent implements OnInit {
         }
       });
     }
+  }
+
+  validateCode(): void {
+    if (!this.codeTouched) return;
+    this.codeError = this.form.code.trim() ? '' : 'Code is required';
+  }
+
+  validateName(): void {
+    if (!this.nameTouched) return;
+    this.nameError = this.form.name.trim() ? '' : 'Name is required';
+  }
+
+  validateDescription(): void {
+    if (!this.descriptionTouched) return;
+    this.descriptionError = this.form.description.trim() ? '' : 'Description is required';
+  }
+
+  validateRiskLevel(): void {
+    if (!this.riskLevelTouched) return;
+    this.riskLevelError = this.form.riskLevel ? '' : 'Please select a risk level';
+  }
+
+  markAllTouched(): void {
+    this.codeTouched = true;
+    this.nameTouched = true;
+    this.descriptionTouched = true;
+    this.riskLevelTouched = true;
+  }
+
+  get hasFormErrors(): boolean {
+    return !this.form.code.trim()
+      || !this.form.name.trim()
+      || !this.form.description.trim()
+      || !this.form.riskLevel
+      || !!this.codeError
+      || !!this.nameError
+      || !!this.descriptionError
+      || !!this.riskLevelError;
+  }
+
+  resetValidation(): void {
+    this.codeError = '';
+    this.nameError = '';
+    this.descriptionError = '';
+    this.riskLevelError = '';
+    this.codeTouched = false;
+    this.nameTouched = false;
+    this.descriptionTouched = false;
+    this.riskLevelTouched = false;
   }
 
   closeModal(): void {

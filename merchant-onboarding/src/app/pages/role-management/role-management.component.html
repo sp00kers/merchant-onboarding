@@ -78,12 +78,20 @@
       <form>
         <div class="form-group">
           <label>Role Name:</label>
-          <input type="text" [(ngModel)]="roleName" name="roleName" required>
+          <input type="text" [(ngModel)]="roleName" name="roleName" required
+                 (focus)="nameTouched = true"
+                 (ngModelChange)="validateName()"
+                 [class.input-error]="nameError">
+          <small class="error-text" *ngIf="nameError">{{ nameError }}</small>
         </div>
         <div class="form-group">
           <label>Description:</label>
           <textarea [(ngModel)]="roleDescription" name="roleDescription" rows="3"
-                    placeholder="Describe the purpose and responsibilities of this role..."></textarea>
+                    placeholder="Describe the purpose and responsibilities of this role..."
+                    (focus)="descriptionTouched = true"
+                    (ngModelChange)="validateDescription()"
+                    [class.input-error]="descriptionError"></textarea>
+          <small class="error-text" *ngIf="descriptionError">{{ descriptionError }}</small>
         </div>
         <div class="form-group">
           <label>Status:</label>
@@ -97,21 +105,23 @@
           <div class="permissions-search">
             <input type="text" [(ngModel)]="permissionSearch" name="permissionSearch" placeholder="Search permissions...">
           </div>
-          <div class="permissions-container">
+          <div class="permissions-container" [class.input-error]="permissionsError">
             <label class="permission-checkbox" *ngFor="let perm of getFilteredPermissions()">
-              <input type="checkbox" [(ngModel)]="selectedPermissions[perm.id]" [name]="'perm_' + perm.id">
+              <input type="checkbox" [(ngModel)]="selectedPermissions[perm.id]" [name]="'perm_' + perm.id"
+                     (ngModelChange)="permissionsTouched = true; validatePermissions()">
               <div class="permission-info">
                 <span class="permission-name">{{ perm.name }}</span>
                 <span class="permission-desc">{{ perm.description }}</span>
               </div>
             </label>
           </div>
+          <small class="error-text" *ngIf="permissionsError">{{ permissionsError }}</small>
         </div>
       </form>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn-secondary" (click)="closeRoleModal()">Cancel</button>
-      <button type="button" class="btn-primary" (click)="saveRole()">Save Role</button>
+      <button type="button" class="btn-primary" (click)="saveRole()" [disabled]="hasFormErrors">Save Role</button>
     </div>
   </div>
 </div>

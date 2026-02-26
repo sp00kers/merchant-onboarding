@@ -26,6 +26,16 @@ export class BusinessTypesComponent implements OnInit {
   form = { code: '', name: '', description: '', status: 'active' as 'active' | 'inactive' };
   codeDisabled = false;
 
+  // Validation errors
+  codeError = '';
+  nameError = '';
+  descriptionError = '';
+
+  // Touched flags
+  codeTouched = false;
+  nameTouched = false;
+  descriptionTouched = false;
+
   constructor(
     private paramsService: BusinessParamsService,
     private notificationService: NotificationService
@@ -59,6 +69,7 @@ export class BusinessTypesComponent implements OnInit {
     this.modalTitle = 'Add Business Type';
     this.form = { code: '', name: '', description: '', status: 'active' };
     this.codeDisabled = false;
+    this.resetValidation();
     this.showModal = true;
   }
 
@@ -70,6 +81,7 @@ export class BusinessTypesComponent implements OnInit {
           this.modalTitle = 'Edit Business Type';
           this.form = { code: item.code, name: item.name, description: item.description || '', status: item.status };
           this.codeDisabled = true;
+          this.resetValidation();
           this.showModal = true;
         }
       },
@@ -81,12 +93,18 @@ export class BusinessTypesComponent implements OnInit {
   }
 
   save(): void {
-    const code = this.form.code.trim().toUpperCase();
-    const name = this.form.name.trim();
-    if (!code || !name) {
-      this.notificationService.show('Please fill in all required fields', 'error');
+    this.markAllTouched();
+    this.validateCode();
+    this.validateName();
+    this.validateDescription();
+
+    if (this.codeError || this.nameError || this.descriptionError) {
+      this.notificationService.show('Please fix the errors before saving', 'error');
       return;
     }
+
+    const code = this.form.code.trim().toUpperCase();
+    const name = this.form.name.trim();
 
     const data = { code, name, description: this.form.description.trim(), status: this.form.status };
 
@@ -131,6 +149,45 @@ export class BusinessTypesComponent implements OnInit {
         }
       });
     }
+  }
+
+  validateCode(): void {
+    if (!this.codeTouched) return;
+    this.codeError = this.form.code.trim() ? '' : 'Code is required';
+  }
+
+  validateName(): void {
+    if (!this.nameTouched) return;
+    this.nameError = this.form.name.trim() ? '' : 'Name is required';
+  }
+
+  validateDescription(): void {
+    if (!this.descriptionTouched) return;
+    this.descriptionError = this.form.description.trim() ? '' : 'Description is required';
+  }
+
+  markAllTouched(): void {
+    this.codeTouched = true;
+    this.nameTouched = true;
+    this.descriptionTouched = true;
+  }
+
+  get hasFormErrors(): boolean {
+    return !this.form.code.trim()
+      || !this.form.name.trim()
+      || !this.form.description.trim()
+      || !!this.codeError
+      || !!this.nameError
+      || !!this.descriptionError;
+  }
+
+  resetValidation(): void {
+    this.codeError = '';
+    this.nameError = '';
+    this.descriptionError = '';
+    this.codeTouched = false;
+    this.nameTouched = false;
+    this.descriptionTouched = false;
   }
 
   closeModal(): void {

@@ -161,6 +161,13 @@
   border-color: #dc3545 !important;
 }
 
+/* Disabled button state */
+.btn-primary:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 /* Invalid email styling */
 input[type="email"]:invalid {
   border-color: #dc3545;

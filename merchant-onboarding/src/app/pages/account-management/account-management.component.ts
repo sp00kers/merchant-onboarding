@@ -52,9 +52,15 @@ export class AccountManagementComponent implements OnInit {
   }
 
   navigateTo(path: string): void {
-    const roleId = this.authService.getCurrentRoleId() || '';
-    // Only admin can access these pages
-    if (roleId !== 'admin') {
+    // Check specific permission for the target page
+    const permissionMap: { [key: string]: string[] } = {
+      '/account-management/user-management': ['user_management', 'all_modules'],
+      '/account-management/role-management': ['role_management', 'all_modules'],
+      '/account-management/permission-management': ['permission_management', 'all_modules']
+    };
+
+    const requiredPermissions = permissionMap[path] || ['all_modules'];
+    if (!this.authService.hasAnyPermission(requiredPermissions)) {
       this.notificationService.error('You do not have permission to access this page');
       return;
     }

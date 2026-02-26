@@ -14,17 +14,15 @@ export class NavbarComponent {
   constructor(public authService: AuthService) {}
 
   get showCases(): boolean {
-    return this.authService.canViewCases();
+    return this.authService.hasAnyPermission(['case_view', 'case_management', 'case_creation', 'all_modules']);
   }
 
   get showBusinessParams(): boolean {
-    const roleId = this.authService.getCurrentRoleId();
-    return roleId === 'admin';
+    return this.authService.hasAnyPermission(['system_configuration', 'all_modules']);
   }
 
   get showAccountManagement(): boolean {
-    const roleId = this.authService.getCurrentRoleId();
-    return roleId === 'admin';
+    return this.authService.hasAnyPermission(['user_management', 'role_management', 'permission_management', 'all_modules']);
   }
 
   logout(): void {

@@ -77,20 +77,32 @@
         <div class="form-row">
           <div class="form-group">
             <label>Permission ID:</label>
-            <input type="text" [(ngModel)]="permissionId" name="permissionId" required [disabled]="isIdDisabled">
+            <input type="text" [(ngModel)]="permissionId" name="permissionId" required [disabled]="isIdDisabled"
+                   (focus)="idTouched = true"
+                   (ngModelChange)="validateId()"
+                   [class.input-error]="idError">
+            <small class="error-text" *ngIf="idError">{{ idError }}</small>
           </div>
           <div class="form-group">
             <label>Permission Name:</label>
-            <input type="text" [(ngModel)]="permissionName" name="permissionName" required>
+            <input type="text" [(ngModel)]="permissionName" name="permissionName" required
+                   (focus)="nameTouched = true"
+                   (ngModelChange)="validateName()"
+                   [class.input-error]="nameError">
+            <small class="error-text" *ngIf="nameError">{{ nameError }}</small>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Category:</label>
-            <select [(ngModel)]="permissionCategory" name="permissionCategory" required>
+            <select [(ngModel)]="permissionCategory" name="permissionCategory" required
+                    (focus)="categoryTouched = true"
+                    (ngModelChange)="validateCategory()"
+                    [class.input-error]="categoryError">
               <option value="">Select Category</option>
               <option *ngFor="let cat of categoryOptions" [value]="cat.value">{{ cat.label }}</option>
             </select>
+            <small class="error-text" *ngIf="categoryError">{{ categoryError }}</small>
           </div>
           <div class="form-group">
             <label>Status:</label>
@@ -103,13 +115,17 @@
         <div class="form-group">
           <label>Description:</label>
           <textarea [(ngModel)]="permissionDescription" name="permissionDescription" rows="3"
-                    placeholder="Describe what this permission allows..."></textarea>
+                    placeholder="Describe what this permission allows..."
+                    (focus)="descriptionTouched = true"
+                    (ngModelChange)="validateDescription()"
+                    [class.input-error]="descriptionError"></textarea>
+          <small class="error-text" *ngIf="descriptionError">{{ descriptionError }}</small>
         </div>
       </form>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn-secondary" (click)="closePermissionModal()">Cancel</button>
-      <button type="button" class="btn-primary" (click)="savePermission()">Save Permission</button>
+      <button type="button" class="btn-primary" (click)="savePermission()" [disabled]="hasFormErrors">Save Permission</button>
     </div>
   </div>
 </div>

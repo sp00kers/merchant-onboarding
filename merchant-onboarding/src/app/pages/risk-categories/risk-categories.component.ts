@@ -22,8 +22,22 @@ export class RiskCategoriesComponent implements OnInit {
   currentEditingId: string | null = null;
   isLoading = false;
 
-  form = { level: null as number | null, name: '', scoreRange: '', description: '', actionsRequired: '' };
+  form = { level: null as number | null, name: '', scoreMin: null as number | null, scoreMax: null as number | null, description: '', actionsRequired: '' };
   levelDisabled = false;
+
+  // Validation errors
+  levelError = '';
+  nameError = '';
+  scoreRangeError = '';
+  descriptionError = '';
+  actionsRequiredError = '';
+
+  // Touched flags
+  levelTouched = false;
+  nameTouched = false;
+  scoreRangeTouched = false;
+  descriptionTouched = false;
+  actionsRequiredTouched = false;
 
   constructor(
     private paramsService: BusinessParamsService,
@@ -56,8 +70,9 @@ export class RiskCategoriesComponent implements OnInit {
   openCreateModal(): void {
     this.currentEditingId = null;
     this.modalTitle = 'Add Risk Category';
-    this.form = { level: null, name: '', scoreRange: '', description: '', actionsRequired: '' };
+    this.form = { level: null, name: '', scoreMin: null, scoreMax: null, description: '', actionsRequired: '' };
     this.levelDisabled = false;
+    this.resetValidation();
     this.showModal = true;
   }
 
@@ -67,11 +82,15 @@ export class RiskCategoriesComponent implements OnInit {
         if (item) {
           this.currentEditingId = id;
           this.modalTitle = 'Edit Risk Category';
+          const parts = (item.scoreRange || '').split('-');
           this.form = {
-            level: item.level, name: item.name, scoreRange: item.scoreRange,
+            level: item.level, name: item.name,
+            scoreMin: parts.length >= 1 ? Number(parts[0]) : null,
+            scoreMax: parts.length >= 2 ? Number(parts[1]) : null,
             description: item.description || '', actionsRequired: item.actionsRequired || ''
           };
           this.levelDisabled = true;
+          this.resetValidation();
           this.showModal = true;
         }
       },
@@ -83,13 +102,21 @@ export class RiskCategoriesComponent implements OnInit {
   }
 
   save(): void {
-    const level = this.form.level;
-    const name = this.form.name.trim();
-    const scoreRange = this.form.scoreRange.trim();
-    if (!level || !name || !scoreRange) {
-      this.notificationService.show('Please fill in all required fields', 'error');
+    this.markAllTouched();
+    this.validateLevel();
+    this.validateName();
+    this.validateScoreRange();
+    this.validateDescription();
+    this.validateActionsRequired();
+
+    if (this.levelError || this.nameError || this.scoreRangeError || this.descriptionError || this.actionsRequiredError) {
+      this.notificationService.show('Please fix the errors before saving', 'error');
       return;
     }
+
+    const level = this.form.level as number;
+    const name = this.form.name.trim();
+    const scoreRange = `${this.form.scoreMin}-${this.form.scoreMax}`;
 
     const data = { level, name, scoreRange, description: this.form.description.trim(), actionsRequired: this.form.actionsRequired.trim() };
 
@@ -134,6 +161,74 @@ export class RiskCategoriesComponent implements OnInit {
         }
       });
     }
+  }
+
+  validateLevel(): void {
+    if (!this.levelTouched) return;
+    this.levelError = this.form.level ? '' : 'Level is required';
+  }
+
+  validateName(): void {
+    if (!this.nameTouched) return;
+    this.nameError = this.form.name.trim() ? '' : 'Name is required';
+  }
+
+  validateScoreRange(): void {
+    if (!this.scoreRangeTouched) return;
+    if (this.form.scoreMin === null || this.form.scoreMin === undefined) {
+      this.scoreRangeError = 'Minimum score is required';
+    } else if (this.form.scoreMax === null || this.form.scoreMax === undefined) {
+      this.scoreRangeError = 'Maximum score is required';
+    } else if (this.form.scoreMin > this.form.scoreMax) {
+      this.scoreRangeError = 'Minimum score cannot be greater than maximum score';
+    } else {
+      this.scoreRangeError = '';
+    }
+  }
+
+  validateDescription(): void {
+    if (!this.descriptionTouched) return;
+    this.descriptionError = this.form.description.trim() ? '' : 'Description is required';
+  }
+
+  validateActionsRequired(): void {
+    if (!this.actionsRequiredTouched) return;
+    this.actionsRequiredError = this.form.actionsRequired.trim() ? '' : 'Actions required is required';
+  }
+
+  markAllTouched(): void {
+    this.levelTouched = true;
+    this.nameTouched = true;
+    this.scoreRangeTouched = true;
+    this.descriptionTouched = true;
+    this.actionsRequiredTouched = true;
+  }
+
+  get hasFormErrors(): boolean {
+    return !this.form.level
+      || !this.form.name.trim()
+      || this.form.scoreMin === null || this.form.scoreMin === undefined
+      || this.form.scoreMax === null || this.form.scoreMax === undefined
+      || !this.form.description.trim()
+      || !this.form.actionsRequired.trim()
+      || !!this.levelError
+      || !!this.nameError
+      || !!this.scoreRangeError
+      || !!this.descriptionError
+      || !!this.actionsRequiredError;
+  }
+
+  resetValidation(): void {
+    this.levelError = '';
+    this.nameError = '';
+    this.scoreRangeError = '';
+    this.descriptionError = '';
+    this.actionsRequiredError = '';
+    this.levelTouched = false;
+    this.nameTouched = false;
+    this.scoreRangeTouched = false;
+    this.descriptionTouched = false;
+    this.actionsRequiredTouched = false;
   }
 
   closeModal(): void {

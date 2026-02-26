@@ -44,11 +44,23 @@ export class UserManagementComponent implements OnInit {
   userName = '';
   userEmail = '';
   emailError = '';
+  nameError = '';
+  roleError = '';
+  departmentError = '';
+  phoneError = '';
+  emailPattern = '^[a-zA-Z0-9._%+-]+@bank\\.com$';
   userRole = '';
   userDepartment = '';
   userPhone = '';
   userStatus = 'active';
   userNotes = '';
+
+  // Track whether user has interacted with each field
+  nameTouched = false;
+  emailTouched = false;
+  roleTouched = false;
+  departmentTouched = false;
+  phoneTouched = false;
 
   // Permissions tab
   permissionSearch = '';
@@ -150,6 +162,7 @@ export class UserManagementComponent implements OnInit {
   }
 
   validateEmail(): void {
+    if (!this.emailTouched) return;
     const email = this.userEmail.trim();
     if (!email) {
       this.emailError = 'Email is required';
@@ -162,16 +175,67 @@ export class UserManagementComponent implements OnInit {
     }
   }
 
-  saveUser(): void {
-    if (!this.userName.trim() || !this.userEmail.trim() || !this.userRole || !this.userDepartment) {
-      this.notificationService.error('Please fill in all required fields');
-      return;
-    }
+  validateName(): void {
+    if (!this.nameTouched) return;
+    this.nameError = this.userName.trim() ? '' : 'Full name is required';
+  }
 
-    // Validate email domain - only @bank.com allowed
+  validateRole(): void {
+    if (!this.roleTouched) return;
+    this.roleError = this.userRole ? '' : 'Please select a role';
+  }
+
+  validateDepartment(): void {
+    if (!this.departmentTouched) return;
+    this.departmentError = this.userDepartment ? '' : 'Please select a department';
+  }
+
+  validatePhone(): void {
+    if (!this.phoneTouched) return;
+    const phone = this.userPhone.trim();
+    if (!phone) {
+      this.phoneError = 'Phone number is required';
+    } else if (!/^\+?[0-9]+$/.test(phone)) {
+      this.phoneError = 'Phone number must contain only numbers';
+    } else {
+      this.phoneError = '';
+    }
+  }
+
+  markAllTouched(): void {
+    this.nameTouched = true;
+    this.emailTouched = true;
+    this.roleTouched = true;
+    this.departmentTouched = true;
+    this.phoneTouched = true;
+  }
+
+  get hasFormErrors(): boolean {
+    return !this.userName.trim()
+      || !this.userEmail.trim()
+      || !this.userRole
+      || !this.userDepartment
+      || !this.userPhone.trim()
+      || !!this.nameError
+      || !!this.emailError
+      || !!this.roleError
+      || !!this.departmentError
+      || !!this.phoneError;
+  }
+
+  saveUser(): void {
+    // Mark all fields as touched so errors display
+    this.markAllTouched();
+
+    // Validate all fields
+    this.validateName();
     this.validateEmail();
-    if (this.emailError) {
-      this.notificationService.error(this.emailError);
+    this.validateRole();
+    this.validateDepartment();
+    this.validatePhone();
+
+    if (this.nameError || this.emailError || this.roleError || this.departmentError || this.phoneError) {
+      this.notificationService.error('Please fix the errors before saving');
       return;
     }
 
@@ -227,6 +291,15 @@ export class UserManagementComponent implements OnInit {
     this.userName = '';
     this.userEmail = '';
     this.emailError = '';
+    this.nameError = '';
+    this.roleError = '';
+    this.departmentError = '';
+    this.phoneError = '';
+    this.nameTouched = false;
+    this.emailTouched = false;
+    this.roleTouched = false;
+    this.departmentTouched = false;
+    this.phoneTouched = false;
     this.userRole = '';
     this.userDepartment = '';
     this.userPhone = '';

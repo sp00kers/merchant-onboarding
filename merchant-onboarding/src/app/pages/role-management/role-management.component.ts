@@ -38,6 +38,16 @@ export class RoleManagementComponent implements OnInit {
   permissionSearch = '';
   selectedPermissions: { [key: string]: boolean } = {};
 
+  // Validation errors
+  nameError = '';
+  descriptionError = '';
+  permissionsError = '';
+
+  // Track whether user has interacted with each field
+  nameTouched = false;
+  descriptionTouched = false;
+  permissionsTouched = false;
+
   // View modal
   viewRole: Role | null = null;
 
@@ -131,9 +141,46 @@ export class RoleManagementComponent implements OnInit {
     });
   }
 
+  validateName(): void {
+    if (!this.nameTouched) return;
+    this.nameError = this.roleName.trim() ? '' : 'Role name is required';
+  }
+
+  validateDescription(): void {
+    if (!this.descriptionTouched) return;
+    this.descriptionError = this.roleDescription.trim() ? '' : 'Description is required';
+  }
+
+  validatePermissions(): void {
+    if (!this.permissionsTouched) return;
+    const hasSelected = Object.values(this.selectedPermissions).some(v => v);
+    this.permissionsError = hasSelected ? '' : 'At least one permission must be selected';
+  }
+
+  markAllTouched(): void {
+    this.nameTouched = true;
+    this.descriptionTouched = true;
+    this.permissionsTouched = true;
+  }
+
+  get hasFormErrors(): boolean {
+    const hasSelected = Object.values(this.selectedPermissions).some(v => v);
+    return !this.roleName.trim()
+      || !this.roleDescription.trim()
+      || !hasSelected
+      || !!this.nameError
+      || !!this.descriptionError
+      || !!this.permissionsError;
+  }
+
   saveRole(): void {
-    if (!this.roleName.trim()) {
-      this.notificationService.error('Please enter a role name');
+    this.markAllTouched();
+    this.validateName();
+    this.validateDescription();
+    this.validatePermissions();
+
+    if (this.nameError || this.descriptionError || this.permissionsError) {
+      this.notificationService.error('Please fix the errors before saving');
       return;
     }
 
@@ -184,6 +231,12 @@ export class RoleManagementComponent implements OnInit {
     this.roleStatus = 'active';
     this.permissionSearch = '';
     this.selectedPermissions = {};
+    this.nameError = '';
+    this.descriptionError = '';
+    this.permissionsError = '';
+    this.nameTouched = false;
+    this.descriptionTouched = false;
+    this.permissionsTouched = false;
   }
 
   // View modal
