@@ -351,4 +351,16 @@ export class CasesComponent implements OnInit {
       this.closeCreateModal();
     }
   }
+
+  onDateFocus(event: FocusEvent): void {
+    const input = event.target as HTMLInputElement;
+    input.type = 'date';
+  }
+
+  onDateBlur(event: FocusEvent): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.value) {
+      input.type = 'text';
+    }
+  }
 }

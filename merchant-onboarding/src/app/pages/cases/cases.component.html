@@ -18,14 +18,11 @@
   <div class="filters">
     <div class="filters-row">
       <div class="filter-group">
-        <label for="searchBox">Business Name:</label>
-        <input type="text" id="searchBox" placeholder=""
-               [(ngModel)]="searchTerm">
+        <input type="text" id="searchBox" placeholder="Business Name (Optional)" [(ngModel)]="searchTerm">
       </div>
       <div class="filter-group">
-        <label for="statusFilter">Status:</label>
         <select id="statusFilter" [(ngModel)]="statusFilter">
-          <option value="">All Status</option>
+          <option value="">Status (Optional)</option>
           <option value="draft">Draft</option>
           <option value="pending_review">Pending Review</option>
           <option value="compliance_review">Compliance Review</option>
@@ -34,15 +31,17 @@
           <option value="rejected">Rejected</option>
         </select>
       </div>
-    </div>
-    <div class="filters-row">
       <div class="filter-group">
-        <label for="dateFrom">Date From:</label>
-        <input type="date" id="dateFrom" [(ngModel)]="dateFrom">
+        <input type="text" id="dateFrom" placeholder="Date From (mm/dd/yyyy) (Optional)"
+               [(ngModel)]="dateFrom"
+               (focus)="onDateFocus($event)"
+               (blur)="onDateBlur($event)">
       </div>
       <div class="filter-group">
-        <label for="dateTo">Date To:</label>
-        <input type="date" id="dateTo" [(ngModel)]="dateTo">
+        <input type="text" id="dateTo" placeholder="Date To (mm/dd/yyyy) (Optional)"
+               [(ngModel)]="dateTo"
+               (focus)="onDateFocus($event)"
+               (blur)="onDateBlur($event)">
       </div>
       <div class="filter-actions">
         <button class="btn-primary" (click)="searchCases()">Search</button>
@@ -70,7 +69,7 @@
           <td>{{ c.businessName }}</td>
           <td>{{ c.merchantCategory }}</td>
           <td><span>{{ c.status }}</span></td>
-          <td>{{ c.createdDate }}</td>
+          <td>{{ c.createdDate | date:'dd/MM/yyyy' }}</td>
           <td>{{ c.assignedTo }}</td>
           <td>
             <button class="btn-small btn-primary" (click)="viewCase(c.caseId)">View</button>
