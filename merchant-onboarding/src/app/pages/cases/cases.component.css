@@ -1,5 +1,62 @@
 /* Cases component styles inherited from global styles.css */
 
+/* Filter section layout */
+.filters {
+  background: #f8f9fa;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e0e0e0;
+}
+
+.filters-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.filters-row:last-child {
+  margin-bottom: 0;
+}
+
+.filters-row .filter-group {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filters-row .filter-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.filters-row .filter-group input,
+.filters-row .filter-group select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  padding-bottom: 1px;
+}
+
+.filter-actions .btn-primary,
+.filter-actions .btn-secondary {
+  white-space: nowrap;
+  padding: 8px 20px;
+}
+
 /* Validation error styles */
 .error-text {
   color: #dc3545;

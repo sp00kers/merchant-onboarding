@@ -61,6 +61,9 @@ export class CasesComponent implements OnInit {
   directorPhoneTouched = false;
   directorEmailTouched = false;
 
+  // All cases fetched from backend (before date filtering)
+  allCases: Case[] = [];
+
   constructor(
     private authService: AuthService,
     private caseService: CaseService,
@@ -86,7 +89,8 @@ export class CasesComponent implements OnInit {
     this.isLoading = true;
     this.caseService.filterCases(this.statusFilter, this.searchTerm).subscribe({
       next: (cases) => {
-        this.cases = cases;
+        this.allCases = cases;
+        this.applyDateFilter();
         this.isLoading = false;
       },
       error: (error) => {
@@ -97,11 +101,49 @@ export class CasesComponent implements OnInit {
     });
   }
 
-  filterCases(): void {
+  /**
+   * Apply client-side date range filter on the Created Date field.
+   */
+  applyDateFilter(): void {
+    let filtered = [...this.allCases];
+
+    if (this.dateFrom) {
+      const from = new Date(this.dateFrom);
+      from.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(c => {
+        const created = new Date(c.createdDate);
+        return created >= from;
+      });
+    }
+
+    if (this.dateTo) {
+      const to = new Date(this.dateTo);
+      to.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(c => {
+        const created = new Date(c.createdDate);
+        return created <= to;
+      });
+    }
+
+    this.cases = filtered;
+  }
+
+  /**
+   * Triggered by the Search button click.
+   * Sends search term + status to backend, then applies date range client-side.
+   */
+  searchCases(): void {
     this.loadCases();
   }
 
-  searchCases(): void {
+  /**
+   * Resets all filters and reloads all cases.
+   */
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = '';
+    this.dateFrom = '';
+    this.dateTo = '';
     this.loadCases();
   }
 

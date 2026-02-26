@@ -16,26 +16,38 @@
   </div>
 
   <div class="filters">
-    <div class="filter-group">
-      <label for="statusFilter">Status:</label>
-      <select id="statusFilter" [(ngModel)]="statusFilter" (change)="filterCases()">
-        <option value="">All Status</option>
-        <option value="draft">Draft</option>
-        <option value="pending_review">Pending Review</option>
-        <option value="compliance_review">Compliance Review</option>
-        <option value="background_verification">Background Verification</option>
-        <option value="approved">Approved</option>
-        <option value="rejected">Rejected</option>
-      </select>
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="searchBox">Business Name:</label>
+        <input type="text" id="searchBox" placeholder=""
+               [(ngModel)]="searchTerm">
+      </div>
+      <div class="filter-group">
+        <label for="statusFilter">Status:</label>
+        <select id="statusFilter" [(ngModel)]="statusFilter">
+          <option value="">All Status</option>
+          <option value="draft">Draft</option>
+          <option value="pending_review">Pending Review</option>
+          <option value="compliance_review">Compliance Review</option>
+          <option value="background_verification">Background Verification</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
     </div>
-    <div class="filter-group">
-      <label for="dateFrom">Date Range:</label>
-      <input type="date" id="dateFrom" [(ngModel)]="dateFrom">
-      <input type="date" id="dateTo" [(ngModel)]="dateTo">
-    </div>
-    <div class="filter-group">
-      <input type="text" id="searchBox" placeholder="Search by business name or case ID..."
-             [(ngModel)]="searchTerm" (keyup)="searchCases()">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="dateFrom">Date From:</label>
+        <input type="date" id="dateFrom" [(ngModel)]="dateFrom">
+      </div>
+      <div class="filter-group">
+        <label for="dateTo">Date To:</label>
+        <input type="date" id="dateTo" [(ngModel)]="dateTo">
+      </div>
+      <div class="filter-actions">
+        <button class="btn-primary" (click)="searchCases()">Search</button>
+        <button class="btn-secondary" (click)="clearFilters()">Clear</button>
+      </div>
     </div>
   </div>
 
