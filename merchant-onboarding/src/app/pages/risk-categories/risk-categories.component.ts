@@ -16,6 +16,7 @@ import { NotificationService } from '../../services/notification.service';
 })
 export class RiskCategoriesComponent implements OnInit {
   categories: RiskCategory[] = [];
+  allCategories: RiskCategory[] = [];
   searchTerm = '';
   showModal = false;
   modalTitle = 'Add Risk Category';
@@ -50,9 +51,10 @@ export class RiskCategoriesComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-    this.paramsService.filterRiskCategories(this.searchTerm).subscribe({
+    this.paramsService.filterRiskCategories().subscribe({
       next: (categories) => {
-        this.categories = categories;
+        this.allCategories = categories;
+        this.filter();
         this.isLoading = false;
       },
       error: (error) => {
@@ -64,7 +66,18 @@ export class RiskCategoriesComponent implements OnInit {
   }
 
   filter(): void {
-    this.loadData();
+    if (!this.searchTerm) {
+      this.categories = [...this.allCategories];
+    } else {
+      this.categories = this.allCategories.filter(cat =>
+        cat.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
+    }
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.filter();
   }
 
   openCreateModal(): void {
@@ -233,12 +246,6 @@ export class RiskCategoriesComponent implements OnInit {
 
   closeModal(): void {
     this.showModal = false;
-  }
-
-  onBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal')) {
-      this.closeModal();
-    }
   }
 
   formatDate(dateString: string): string {

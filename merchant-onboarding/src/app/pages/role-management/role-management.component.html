@@ -14,15 +14,15 @@
 
   <!-- Search and Filter Section -->
   <div class="search-filters">
-    <div class="search-bar">
-      <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search by role name or description...">
-    </div>
     <div class="filter-controls">
-      <select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Name">
+      <select [(ngModel)]="statusFilter">
         <option value="">All Status</option>
         <option value="active">Active</option>
         <option value="inactive">Inactive</option>
       </select>
+      <button class="btn-primary" (click)="applyFilters()">Search</button>
+      <button class="btn-secondary" (click)="clearFilters()">Clear</button>
     </div>
   </div>
 
@@ -68,7 +68,7 @@
 </div>
 
 <!-- Create/Edit Role Modal -->
-<div class="modal" *ngIf="showRoleModal" (click)="onBackdropClick($event)">
+<div class="modal" *ngIf="showRoleModal">
   <div class="modal-content">
     <div class="modal-header">
       <h3>{{ modalTitle }}</h3>
@@ -127,7 +127,7 @@
 </div>
 
 <!-- View Role Modal -->
-<div class="modal" *ngIf="showViewModal" (click)="onBackdropClick($event)">
+<div class="modal" *ngIf="showViewModal">
   <div class="modal-content" *ngIf="viewRole">
     <div class="modal-header">
       <h3>Role Details</h3>

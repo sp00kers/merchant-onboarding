@@ -83,13 +83,18 @@ export class RoleManagementComponent implements OnInit {
   applyFilters(): void {
     this.filteredRoles = this.allRoles.filter(role => {
       const matchesSearch = !this.searchTerm ||
-        role.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        role.description.toLowerCase().includes(this.searchTerm.toLowerCase());
+        role.name.toLowerCase().includes(this.searchTerm.toLowerCase());
       const matchesStatus = !this.statusFilter ||
         (this.statusFilter === 'active' && role.isActive) ||
         (this.statusFilter === 'inactive' && !role.isActive);
       return matchesSearch && matchesStatus;
     });
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = '';
+    this.applyFilters();
   }
 
   getPermissionNames(role: Role): string[] {
@@ -318,10 +323,4 @@ export class RoleManagementComponent implements OnInit {
     }
   }
 
-  onBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal')) {
-      this.showRoleModal = false;
-      this.showViewModal = false;
-    }
-  }
 }

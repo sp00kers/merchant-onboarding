@@ -48,10 +48,16 @@ export class UserManagementComponent implements OnInit {
   roleError = '';
   departmentError = '';
   phoneError = '';
+  passwordError = '';
+  confirmPasswordError = '';
   emailPattern = '^[a-zA-Z0-9._%+-]+@bank\\.com$';
   userRole = '';
   userDepartment = '';
   userPhone = '';
+  userPassword = '';
+  userConfirmPassword = '';
+  showPassword = false;
+  showConfirmPassword = false;
   userStatus = 'active';
   userNotes = '';
 
@@ -61,6 +67,8 @@ export class UserManagementComponent implements OnInit {
   roleTouched = false;
   departmentTouched = false;
   phoneTouched = false;
+  passwordTouched = false;
+  confirmPasswordTouched = false;
 
   // Permissions tab
   permissionSearch = '';
@@ -119,14 +127,20 @@ export class UserManagementComponent implements OnInit {
   applyFilters(): void {
     this.filteredUsers = this.allUsers.filter(user => {
       const matchesSearch = !this.searchTerm ||
-        user.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        user.department.toLowerCase().includes(this.searchTerm.toLowerCase());
+        user.name.toLowerCase().includes(this.searchTerm.toLowerCase());
       const matchesRole = !this.roleFilter || user.roleId === this.roleFilter;
       const matchesStatus = !this.statusFilter || user.status === this.statusFilter;
       const matchesDept = !this.departmentFilter || user.department === this.departmentFilter;
       return matchesSearch && matchesRole && matchesStatus && matchesDept;
     });
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.roleFilter = '';
+    this.statusFilter = '';
+    this.departmentFilter = '';
+    this.applyFilters();
   }
 
   // Create / Edit Modal
@@ -202,16 +216,47 @@ export class UserManagementComponent implements OnInit {
     }
   }
 
+  validatePassword(): void {
+    if (!this.passwordTouched) return;
+    const password = this.userPassword;
+    if (!password) {
+      this.passwordError = 'This field is required.';
+    } else if (password.length < 6) {
+      this.passwordError = 'Password must be at least 6 characters';
+    } else {
+      this.passwordError = '';
+    }
+    // Re-validate confirm password if it was touched
+    if (this.confirmPasswordTouched) {
+      this.validateConfirmPassword();
+    }
+  }
+
+  validateConfirmPassword(): void {
+    if (!this.confirmPasswordTouched) return;
+    if (!this.userConfirmPassword) {
+      this.confirmPasswordError = 'This field is required.';
+    } else if (this.userConfirmPassword !== this.userPassword) {
+      this.confirmPasswordError = 'Passwords do not match';
+    } else {
+      this.confirmPasswordError = '';
+    }
+  }
+
   markAllTouched(): void {
     this.nameTouched = true;
     this.emailTouched = true;
     this.roleTouched = true;
     this.departmentTouched = true;
     this.phoneTouched = true;
+    if (!this.currentEditingId) {
+      this.passwordTouched = true;
+      this.confirmPasswordTouched = true;
+    }
   }
 
   get hasFormErrors(): boolean {
-    return !this.userName.trim()
+    const baseErrors = !this.userName.trim()
       || !this.userEmail.trim()
       || !this.userRole
       || !this.userDepartment
@@ -221,6 +266,17 @@ export class UserManagementComponent implements OnInit {
       || !!this.roleError
       || !!this.departmentError
       || !!this.phoneError;
+
+    // Password fields are only required when creating a new user
+    if (!this.currentEditingId) {
+      return baseErrors
+        || !this.userPassword
+        || !this.userConfirmPassword
+        || !!this.passwordError
+        || !!this.confirmPasswordError;
+    }
+
+    return baseErrors;
   }
 
   saveUser(): void {
@@ -233,8 +289,13 @@ export class UserManagementComponent implements OnInit {
     this.validateRole();
     this.validateDepartment();
     this.validatePhone();
+    if (!this.currentEditingId) {
+      this.validatePassword();
+      this.validateConfirmPassword();
+    }
 
-    if (this.nameError || this.emailError || this.roleError || this.departmentError || this.phoneError) {
+    if (this.nameError || this.emailError || this.roleError || this.departmentError || this.phoneError
+        || (!this.currentEditingId && (this.passwordError || this.confirmPasswordError))) {
       this.notificationService.error('Please fix the errors before saving');
       return;
     }
@@ -248,6 +309,11 @@ export class UserManagementComponent implements OnInit {
       status: this.userStatus,
       notes: this.userNotes
     };
+
+    // Include password only when creating a new user
+    if (!this.currentEditingId) {
+      userData.password = this.userPassword;
+    }
 
     if (this.isAdmin && this.currentEditingId) {
       userData.customPermissions = Object.keys(this.customPermissions).filter(k => this.customPermissions[k]);
@@ -295,14 +361,22 @@ export class UserManagementComponent implements OnInit {
     this.roleError = '';
     this.departmentError = '';
     this.phoneError = '';
+    this.passwordError = '';
+    this.confirmPasswordError = '';
     this.nameTouched = false;
     this.emailTouched = false;
     this.roleTouched = false;
     this.departmentTouched = false;
     this.phoneTouched = false;
+    this.passwordTouched = false;
+    this.confirmPasswordTouched = false;
     this.userRole = '';
     this.userDepartment = '';
     this.userPhone = '';
+    this.userPassword = '';
+    this.userConfirmPassword = '';
+    this.showPassword = false;
+    this.showConfirmPassword = false;
     this.userStatus = 'active';
     this.userNotes = '';
     this.customPermissions = {};
@@ -397,11 +471,4 @@ export class UserManagementComponent implements OnInit {
     }
   }
 
-  onBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal')) {
-      this.showUserModal = false;
-      this.showViewModal = false;
-      this.showPermissionsModal = false;
-    }
-  }
 }

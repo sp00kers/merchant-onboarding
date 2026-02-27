@@ -16,6 +16,7 @@ import { NotificationService } from '../../services/notification.service';
 })
 export class MerchantCategoriesComponent implements OnInit {
   categories: MerchantCategory[] = [];
+  allCategories: MerchantCategory[] = [];
   searchTerm = '';
   statusFilter = '';
   riskFilter = '';
@@ -54,9 +55,10 @@ export class MerchantCategoriesComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-    this.paramsService.filterMerchantCategories(this.searchTerm, this.statusFilter, this.riskFilter).subscribe({
+    this.paramsService.filterMerchantCategories().subscribe({
       next: (categories) => {
-        this.categories = categories;
+        this.allCategories = categories;
+        this.filter();
         this.isLoading = false;
       },
       error: (error) => {
@@ -68,7 +70,20 @@ export class MerchantCategoriesComponent implements OnInit {
   }
 
   filter(): void {
-    this.loadData();
+    this.categories = this.allCategories.filter(cat => {
+      const matchesCode = !this.searchTerm ||
+        cat.code.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesStatus = !this.statusFilter || cat.status === this.statusFilter;
+      const matchesRisk = !this.riskFilter || cat.riskLevel === this.riskFilter;
+      return matchesCode && matchesStatus && matchesRisk;
+    });
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = '';
+    this.riskFilter = '';
+    this.filter();
   }
 
   openCreateModal(): void {
@@ -214,12 +229,6 @@ export class MerchantCategoriesComponent implements OnInit {
 
   closeModal(): void {
     this.showModal = false;
-  }
-
-  onBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal')) {
-      this.closeModal();
-    }
   }
 
   formatDate(dateString: string): string {

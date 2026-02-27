@@ -14,9 +14,11 @@
 
   <!-- Search -->
   <div class="search-filters">
-    <div class="search-bar">
-      <input type="text" placeholder="Search by level, name, or description..."
-             [(ngModel)]="searchTerm" (keyup)="filter()">
+    <div class="filter-controls">
+      <input type="text" placeholder="Name"
+             [(ngModel)]="searchTerm">
+      <button class="btn-primary" (click)="filter()">Search</button>
+      <button class="btn-secondary" (click)="clearFilters()">Clear</button>
     </div>
   </div>
 
@@ -55,7 +57,7 @@
 </div>
 
 <!-- Create/Edit Modal -->
-<div *ngIf="showModal" class="modal" (click)="onBackdropClick($event)">
+<div *ngIf="showModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <h3>{{ modalTitle }}</h3>

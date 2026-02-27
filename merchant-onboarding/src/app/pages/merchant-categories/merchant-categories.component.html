@@ -14,22 +14,22 @@
 
   <!-- Search and Filter -->
   <div class="search-filters">
-    <div class="search-bar">
-      <input type="text" placeholder="Search by code, name, or description..."
-             [(ngModel)]="searchTerm" (keyup)="filter()">
-    </div>
     <div class="filter-controls">
-      <select [(ngModel)]="statusFilter" (change)="filter()">
+      <input type="text" placeholder="Merchant Category Code"
+             [(ngModel)]="searchTerm">
+      <select [(ngModel)]="statusFilter">
         <option value="">All Status</option>
         <option value="active">Active</option>
         <option value="inactive">Inactive</option>
       </select>
-      <select [(ngModel)]="riskFilter" (change)="filter()">
+      <select [(ngModel)]="riskFilter">
         <option value="">All Risk Levels</option>
         <option value="low">Low Risk</option>
         <option value="medium">Medium Risk</option>
         <option value="high">High Risk</option>
       </select>
+      <button class="btn-primary" (click)="filter()">Search</button>
+      <button class="btn-secondary" (click)="clearFilters()">Clear</button>
     </div>
   </div>
 
@@ -68,7 +68,7 @@
 </div>
 
 <!-- Create/Edit Modal -->
-<div *ngIf="showModal" class="modal" (click)="onBackdropClick($event)">
+<div *ngIf="showModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <h3>{{ modalTitle }}</h3>

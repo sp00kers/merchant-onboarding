@@ -95,15 +95,20 @@ export class PermissionManagementComponent implements OnInit {
   applyFilters(): void {
     this.filteredPermissions = this.allPermissions.filter(perm => {
       const matchesSearch = !this.searchTerm ||
-        perm.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        perm.description.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        perm.id.toLowerCase().includes(this.searchTerm.toLowerCase());
+        perm.name.toLowerCase().includes(this.searchTerm.toLowerCase());
       const matchesCategory = !this.categoryFilter || perm.category === this.categoryFilter;
       const matchesStatus = !this.statusFilter ||
         (this.statusFilter === 'active' && perm.isActive !== false) ||
         (this.statusFilter === 'inactive' && perm.isActive === false);
       return matchesSearch && matchesCategory && matchesStatus;
     });
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.categoryFilter = '';
+    this.statusFilter = '';
+    this.applyFilters();
   }
 
   getCategoryLabel(category?: string): string {
@@ -313,10 +318,4 @@ export class PermissionManagementComponent implements OnInit {
     }
   }
 
-  onBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal')) {
-      this.showPermissionModal = false;
-      this.showViewModal = false;
-    }
-  }
 }

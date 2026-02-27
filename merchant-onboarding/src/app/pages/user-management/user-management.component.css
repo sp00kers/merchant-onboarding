@@ -1,4 +1,13 @@
 /* Uses global styles */
+
+.filter-controls input[type="text"] {
+  width: 200px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
 .modal-tabs {
   display: flex;
   border-bottom: 1px solid #e0e0e0;
@@ -171,4 +180,30 @@
 /* Invalid email styling */
 input[type="email"]:invalid {
   border-color: #dc3545;
+}
+
+/* Password field wrapper */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #666;
+  user-select: none;
+}
+
+.password-toggle:hover {
+  color: #333;
 }

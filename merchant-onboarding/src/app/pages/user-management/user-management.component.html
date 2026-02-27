@@ -14,23 +14,23 @@
 
   <!-- Search and Filter Section -->
   <div class="search-filters">
-    <div class="search-bar">
-      <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search by name, email, or department...">
-    </div>
     <div class="filter-controls">
-      <select [(ngModel)]="roleFilter" (ngModelChange)="applyFilters()">
+      <input type="text" [(ngModel)]="searchTerm" placeholder="Name">
+      <select [(ngModel)]="roleFilter">
         <option value="">All Roles</option>
         <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
       </select>
-      <select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+      <select [(ngModel)]="statusFilter">
         <option value="">All Status</option>
         <option value="active">Active</option>
         <option value="inactive">Inactive</option>
       </select>
-      <select [(ngModel)]="departmentFilter" (ngModelChange)="applyFilters()">
+      <select [(ngModel)]="departmentFilter">
         <option value="">All Departments</option>
         <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
       </select>
+      <button class="btn-primary" (click)="applyFilters()">Search</button>
+      <button class="btn-secondary" (click)="clearFilters()">Clear</button>
     </div>
   </div>
 
@@ -72,7 +72,7 @@
 </div>
 
 <!-- Create/Edit User Modal -->
-<div class="modal" *ngIf="showUserModal" (click)="onBackdropClick($event)">
+<div class="modal" *ngIf="showUserModal">
   <div class="modal-content">
     <div class="modal-header">
       <h3>{{ modalTitle }}</h3>
@@ -152,6 +152,39 @@
               </select>
             </div>
           </div>
+          <!-- Password fields - only shown when adding a new user -->
+          <div class="form-row" *ngIf="!currentEditingId">
+            <div class="form-group">
+              <label>Password:</label>
+              <div class="password-wrapper">
+                <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="userPassword" name="userPassword" required
+                       placeholder="Password"
+                       (focus)="passwordTouched = true"
+                       (ngModelChange)="validatePassword()"
+                       [class.input-error]="passwordError">
+                <span class="password-toggle" (click)="showPassword = !showPassword">
+                  <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                </span>
+              </div>
+              <small class="error-text" *ngIf="passwordError">{{ passwordError }}</small>
+            </div>
+            <div class="form-group">
+              <label>Re-enter Password:</label>
+              <div class="password-wrapper">
+                <input [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="userConfirmPassword" name="userConfirmPassword" required
+                       placeholder="Re-enter Password"
+                       (focus)="confirmPasswordTouched = true"
+                       (ngModelChange)="validateConfirmPassword()"
+                       [class.input-error]="confirmPasswordError">
+                <span class="password-toggle" (click)="showConfirmPassword = !showConfirmPassword">
+                  <svg *ngIf="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  <svg *ngIf="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                </span>
+              </div>
+              <small class="error-text" *ngIf="confirmPasswordError">{{ confirmPasswordError }}</small>
+            </div>
+          </div>
           <div class="form-group">
             <label>Notes (Optional):</label>
             <textarea [(ngModel)]="userNotes" name="userNotes" rows="3" placeholder="Additional notes about the user..."></textarea>
@@ -188,7 +221,7 @@
 </div>
 
 <!-- View User Modal -->
-<div class="modal" *ngIf="showViewModal" (click)="onBackdropClick($event)">
+<div class="modal" *ngIf="showViewModal">
   <div class="modal-content" *ngIf="viewUser">
     <div class="modal-header">
       <h3>User Details</h3>
@@ -239,7 +272,7 @@
 </div>
 
 <!-- User Permissions Modal -->
-<div class="modal" *ngIf="showPermissionsModal" (click)="onBackdropClick($event)">
+<div class="modal" *ngIf="showPermissionsModal">
   <div class="modal-content" *ngIf="permissionsUser">
     <div class="modal-header">
       <h3>User Permissions</h3>

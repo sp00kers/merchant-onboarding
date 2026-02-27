@@ -64,6 +64,12 @@ export class BusinessTypesComponent implements OnInit {
     this.loadData();
   }
 
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = '';
+    this.loadData();
+  }
+
   openCreateModal(): void {
     this.currentEditingId = null;
     this.modalTitle = 'Add Business Type';
@@ -192,12 +198,6 @@ export class BusinessTypesComponent implements OnInit {
 
   closeModal(): void {
     this.showModal = false;
-  }
-
-  onBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal')) {
-      this.closeModal();
-    }
   }
 
   formatDate(dateString: string): string {

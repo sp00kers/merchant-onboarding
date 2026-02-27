@@ -1,5 +1,13 @@
 /* Styles inherited from global styles.css */
 
+.filter-controls input[type="text"] {
+  width: 200px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
 /* Validation error styles */
 .error-text {
   color: #dc3545;
