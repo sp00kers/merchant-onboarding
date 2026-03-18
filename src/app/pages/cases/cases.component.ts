@@ -234,7 +234,14 @@ export class CasesComponent implements OnInit {
 
   validateBusinessAddress(): void {
     if (!this.businessAddressTouched) return;
-    this.businessAddressError = this.newCase.businessAddress.trim() ? '' : 'Business address is required';
+    const address = this.newCase.businessAddress.trim();
+    if (!address) {
+      this.businessAddressError = 'Business address is required';
+    } else if (address.length < 10) {
+      this.businessAddressError = 'Business address must be at least 10 characters';
+    } else {
+      this.businessAddressError = '';
+    }
   }
 
   validateDirectorName(): void {
