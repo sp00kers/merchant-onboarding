@@ -7,6 +7,7 @@ import { Case, RoleBanner } from '../../models/case.model';
 import { AuthService } from '../../services/auth.service';
 import { CaseService } from '../../services/case.service';
 import { NotificationService } from '../../services/notification.service';
+import { User, UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-case-details',
@@ -25,12 +26,19 @@ export class CaseDetailsComponent implements OnInit {
   showReassign = false;
   isLoading = false;
 
+  // Assign modal properties
+  showAssignModal = false;
+  complianceReviewers: User[] = [];
+  selectedReviewerId = '';
+  isLoadingReviewers = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
     private caseService: CaseService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -51,7 +59,7 @@ export class CaseDetailsComponent implements OnInit {
     }
 
     this.roleBanner = this.caseService.getRoleBanner(this.roleId, 'detail');
-    this.showReassign = this.roleId === 'compliance_reviewer' || this.roleId === 'admin';
+    this.showReassign = this.roleId === 'compliance_reviewer' || this.roleId === 'admin' || this.roleId === 'onboarding_officer';
   }
 
   loadCase(caseId: string): void {
@@ -194,8 +202,65 @@ export class CaseDetailsComponent implements OnInit {
   }
 
   assignCase(): void {
-    this.notificationService.show('Case reassignment feature coming soon!', 'info');
     this.showActionDropdown = false;
+    this.openAssignModal();
+  }
+
+  // Assign modal methods
+  openAssignModal(): void {
+    this.showAssignModal = true;
+    this.selectedReviewerId = '';
+    this.loadComplianceReviewers();
+  }
+
+  closeAssignModal(): void {
+    this.showAssignModal = false;
+    this.selectedReviewerId = '';
+  }
+
+  loadComplianceReviewers(): void {
+    this.isLoadingReviewers = true;
+    this.userService.getComplianceReviewers().subscribe({
+      next: (reviewers) => {
+        this.complianceReviewers = reviewers.filter(r => r.status === 'active');
+        this.isLoadingReviewers = false;
+      },
+      error: (error) => {
+        console.error('Error loading compliance reviewers:', error);
+        this.notificationService.show('Failed to load compliance reviewers', 'error');
+        this.isLoadingReviewers = false;
+      }
+    });
+  }
+
+  confirmAssignment(): void {
+    if (!this.selectedReviewerId) {
+      this.notificationService.show('Please select a compliance reviewer', 'error');
+      return;
+    }
+
+    const selectedReviewer = this.complianceReviewers.find(r => r.id === this.selectedReviewerId);
+    if (!selectedReviewer || !this.caseData) {
+      return;
+    }
+
+    this.caseService.assignCase(this.caseData.caseId, selectedReviewer.name).subscribe({
+      next: () => {
+        this.notificationService.show(`Case assigned to ${selectedReviewer.name} successfully!`, 'success');
+        this.closeAssignModal();
+        this.loadCase(this.caseData!.caseId);
+      },
+      error: (error) => {
+        console.error('Error assigning case:', error);
+        this.notificationService.show('Failed to assign case', 'error');
+      }
+    });
+  }
+
+  onAssignModalBackdropClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal')) {
+      this.closeAssignModal();
+    }
   }
 
   // Comment functions

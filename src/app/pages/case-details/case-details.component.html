@@ -237,3 +237,39 @@
     </div>
   </div>
 </div>
+
+<!-- Assign Compliance Reviewer Modal -->
+<div *ngIf="showAssignModal" class="modal" (click)="onAssignModalBackdropClick($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Assign Compliance Reviewer</h3>
+      <span class="close" (click)="closeAssignModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="reviewerSelect">Select Compliance Reviewer *</label>
+        <select id="reviewerSelect" [(ngModel)]="selectedReviewerId" [disabled]="isLoadingReviewers">
+          <option value="">-- Select a Reviewer --</option>
+          <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.id">
+            {{ reviewer.name }} ({{ reviewer.email }})
+          </option>
+        </select>
+        <small *ngIf="isLoadingReviewers" class="loading-text">Loading reviewers...</small>
+        <small *ngIf="!isLoadingReviewers && complianceReviewers.length === 0" class="warning-text">
+          No active compliance reviewers available
+        </small>
+      </div>
+      <div class="case-summary" *ngIf="caseData">
+        <p><strong>Case ID:</strong> {{ caseData.caseId }}</p>
+        <p><strong>Business Name:</strong> {{ caseData.businessName }}</p>
+        <p><strong>Current Assignee:</strong> {{ caseData.assignedTo || 'Unassigned' }}</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="closeAssignModal()" class="btn-secondary">Cancel</button>
+      <button type="button" (click)="confirmAssignment()" class="btn-primary" [disabled]="!selectedReviewerId || isLoadingReviewers">
+        Assign Reviewer
+      </button>
+    </div>
+  </div>
+</div>

@@ -202,6 +202,22 @@
         </div>
 
         <div class="form-section">
+          <h4>Case Assignment</h4>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label for="assignedTo">Assign to Compliance Reviewer (Optional)</label>
+              <select id="assignedTo" [(ngModel)]="newCase.assignedTo" name="assignedTo" [disabled]="isLoadingReviewers">
+                <option value="">-- Select a Reviewer (can be assigned later) --</option>
+                <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.name">
+                  {{ reviewer.name }} ({{ reviewer.email }})
+                </option>
+              </select>
+              <small *ngIf="isLoadingReviewers" class="loading-text">Loading reviewers...</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
           <h4>Document Upload</h4>
           <div class="upload-area">
             <div class="upload-group">

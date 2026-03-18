@@ -7,6 +7,7 @@ import { Case, RoleBanner } from '../../models/case.model';
 import { AuthService } from '../../services/auth.service';
 import { CaseService } from '../../services/case.service';
 import { NotificationService } from '../../services/notification.service';
+import { UserService, User } from '../../services/user.service';
 
 @Component({
   selector: 'app-cases',
@@ -26,6 +27,10 @@ export class CasesComponent implements OnInit {
   roleBanner: RoleBanner | null = null;
   isLoading = false;
 
+  // Compliance reviewers for assignment
+  complianceReviewers: User[] = [];
+  isLoadingReviewers = false;
+
   // Create case form fields
   newCase = {
     businessName: '',
@@ -36,7 +41,8 @@ export class CasesComponent implements OnInit {
     directorName: '',
     directorIC: '',
     directorPhone: '',
-    directorEmail: ''
+    directorEmail: '',
+    assignedTo: ''
   };
 
   // Validation errors
@@ -68,7 +74,8 @@ export class CasesComponent implements OnInit {
     private authService: AuthService,
     private caseService: CaseService,
     private notificationService: NotificationService,
-    private router: Router
+    private router: Router,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -156,9 +163,24 @@ export class CasesComponent implements OnInit {
     if (roleId && ['admin', 'onboarding_officer'].includes(roleId)) {
       this.resetValidation();
       this.showCreateModal = true;
+      this.loadComplianceReviewers();
     } else {
       this.notificationService.show('You do not have permission to create cases', 'error');
     }
+  }
+
+  loadComplianceReviewers(): void {
+    this.isLoadingReviewers = true;
+    this.userService.getComplianceReviewers().subscribe({
+      next: (reviewers) => {
+        this.complianceReviewers = reviewers.filter(r => r.status === 'active');
+        this.isLoadingReviewers = false;
+      },
+      error: (error) => {
+        console.error('Error loading compliance reviewers:', error);
+        this.isLoadingReviewers = false;
+      }
+    });
   }
 
   closeCreateModal(): void {
@@ -349,7 +371,8 @@ export class CasesComponent implements OnInit {
       directorName: '',
       directorIC: '',
       directorPhone: '',
-      directorEmail: ''
+      directorEmail: '',
+      assignedTo: ''
     };
   }
 

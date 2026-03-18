@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
-import { Case, RoleBanner } from '../models/case.model';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { Case, RoleBanner } from '../models/case.model';
 
 @Injectable({
   providedIn: 'root'
@@ -65,6 +65,10 @@ export class CaseService {
 
   addHistoryItem(caseId: string, action: string): Observable<Case> {
     return this.http.post<Case>(`${this.apiUrl}/${caseId}/history`, { action });
+  }
+
+  assignCase(caseId: string, assignedTo: string): Observable<Case> {
+    return this.http.patch<Case>(`${this.apiUrl}/${caseId}/assign`, { assignedTo });
   }
 
   getRoleBanner(roleId: string, context: 'list' | 'detail'): RoleBanner | null {

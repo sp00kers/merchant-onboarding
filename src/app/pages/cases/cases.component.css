@@ -80,3 +80,7 @@
   opacity: 0.65;
 }
 
+.loading-text {
+  color: #7f8c8d;
+  font-style: italic;
+}
