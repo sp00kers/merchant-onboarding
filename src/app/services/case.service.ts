@@ -71,6 +71,13 @@ export class CaseService {
     return this.http.patch<Case>(`${this.apiUrl}/${caseId}/assign`, { assignedTo });
   }
 
+  uploadDocuments(caseId: string, files: File[], types: string[]): Observable<Case> {
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+    types.forEach(type => formData.append('types', type));
+    return this.http.post<Case>(`${this.apiUrl}/${caseId}/documents`, formData);
+  }
+
   getRoleBanner(roleId: string, context: 'list' | 'detail'): RoleBanner | null {
     const banners: Record<string, Record<string, RoleBanner>> = {
       onboarding_officer: {

@@ -98,6 +98,52 @@ export class CaseDetailsComponent implements OnInit {
     this.router.navigate(['/cases']);
   }
 
+  /**
+   * Returns the current workflow step index (0-based) based on case status.
+   * 0 = Data Entry, 1 = Compliance Review, 2 = Background Verification, 3 = Final Approval
+   * -1 = Rejected
+   */
+  get workflowStep(): number {
+    if (!this.caseData) return 0;
+    const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
+    switch (status) {
+      case 'draft':
+      case 'pending_review':
+      case 'pending review':
+        return 0;
+      case 'compliance_review':
+      case 'compliance review':
+        return 1;
+      case 'background_verification':
+      case 'background verification':
+        return 2;
+      case 'approved':
+        return 3;
+      case 'rejected':
+        return -1;
+      default:
+        return 0;
+    }
+  }
+
+  getStepClass(stepIndex: number): string {
+    const current = this.workflowStep;
+    if (current === -1) {
+      // Rejected: mark steps up to where it was rejected
+      return stepIndex === 0 ? 'completed' : 'rejected';
+    }
+    if (stepIndex < current) return 'completed';
+    if (stepIndex === current) return current === 3 ? 'completed' : 'active';
+    return '';
+  }
+
+  getStepCircle(stepIndex: number): string {
+    const cls = this.getStepClass(stepIndex);
+    if (cls === 'completed') return '✓';
+    if (cls === 'rejected') return '✗';
+    return String(stepIndex + 1);
+  }
+
   // Action dropdown toggling
   toggleActionDropdown(): void {
     this.showActionDropdown = !this.showActionDropdown;

@@ -83,9 +83,9 @@
   </div>
 
   <div class="pagination">
-    <button class="btn-secondary">Previous</button>
-    <span>Page 1 of 1</span>
-    <button class="btn-secondary">Next</button>
+    <button class="btn-secondary" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">Previous</button>
+    <span>Page {{ currentPage }} of {{ totalPages }}</span>
+    <button class="btn-secondary" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">Next</button>
   </div>
 </div>
 
@@ -222,19 +222,23 @@
           <div class="upload-area">
             <div class="upload-group">
               <label for="businessReg">Business Registration Certificate *</label>
-              <input type="file" id="businessReg" name="businessReg" accept=".pdf,.jpg,.png">
+              <input type="file" id="businessReg" name="businessReg" accept=".pdf,.jpg,.png"
+                     (change)="onFileSelected($event, 'Business Registration')">
             </div>
             <div class="upload-group">
               <label for="directorID">Director ID Copy *</label>
-              <input type="file" id="directorID" name="directorID" accept=".pdf,.jpg,.png">
+              <input type="file" id="directorID" name="directorID" accept=".pdf,.jpg,.png"
+                     (change)="onFileSelected($event, 'Director ID')">
             </div>
             <div class="upload-group">
               <label for="financialStatement">Financial Statement</label>
-              <input type="file" id="financialStatement" name="financialStatement" accept=".pdf,.xls,.xlsx">
+              <input type="file" id="financialStatement" name="financialStatement" accept=".pdf,.xls,.xlsx"
+                     (change)="onFileSelected($event, 'Financial Statement')">
             </div>
             <div class="upload-group">
               <label for="bankStatement">Bank Statement</label>
-              <input type="file" id="bankStatement" name="bankStatement" accept=".pdf">
+              <input type="file" id="bankStatement" name="bankStatement" accept=".pdf"
+                     (change)="onFileSelected($event, 'Bank Statement')">
             </div>
           </div>
         </div>

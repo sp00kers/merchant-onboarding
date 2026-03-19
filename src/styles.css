@@ -1644,6 +1644,19 @@ body {
     background: #27ae60;
 }
 
+.progress-steps-horizontal .step.rejected .step-circle {
+    background: #e74c3c;
+    color: white;
+}
+
+.progress-steps-horizontal .step-line.rejected {
+    background: #e74c3c;
+}
+
+.progress-steps-horizontal .step-line.active {
+    background: #3498db;
+}
+
 /* Case Content Layout */
 .case-content {
     display: grid;

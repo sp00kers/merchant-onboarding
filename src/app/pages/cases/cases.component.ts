@@ -7,7 +7,7 @@ import { Case, RoleBanner } from '../../models/case.model';
 import { AuthService } from '../../services/auth.service';
 import { CaseService } from '../../services/case.service';
 import { NotificationService } from '../../services/notification.service';
-import { UserService, User } from '../../services/user.service';
+import { User, UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-cases',
@@ -30,6 +30,12 @@ export class CasesComponent implements OnInit {
   // Compliance reviewers for assignment
   complianceReviewers: User[] = [];
   isLoadingReviewers = false;
+
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 1;
+  filteredCases: Case[] = [];
 
   // Create case form fields
   newCase = {
@@ -69,6 +75,9 @@ export class CasesComponent implements OnInit {
 
   // All cases fetched from backend (before date filtering)
   allCases: Case[] = [];
+
+  // File upload tracking
+  selectedFiles: { [key: string]: File } = {};
 
   constructor(
     private authService: AuthService,
@@ -132,7 +141,18 @@ export class CasesComponent implements OnInit {
       });
     }
 
-    this.cases = filtered;
+    this.filteredCases = filtered;
+    this.totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = 1;
+    }
+    this.cases = filtered.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.cases = this.filteredCases.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
   }
 
   /**
@@ -151,6 +171,7 @@ export class CasesComponent implements OnInit {
     this.statusFilter = '';
     this.dateFrom = '';
     this.dateTo = '';
+    this.currentPage = 1;
     this.loadCases();
   }
 
@@ -189,7 +210,8 @@ export class CasesComponent implements OnInit {
   }
 
   saveDraft(): void {
-    this.caseService.createCase(this.newCase).subscribe({
+    const draftCase = { ...this.newCase, status: 'Draft' };
+    this.caseService.createCase(draftCase).subscribe({
       next: () => {
         this.notificationService.show('Case saved as draft successfully!', 'success');
         this.closeCreateModal();
@@ -221,6 +243,7 @@ export class CasesComponent implements OnInit {
 
     this.caseService.createCase(this.newCase).subscribe({
       next: (created) => {
+        this.uploadDocuments(created.caseId);
         this.notificationService.show(`Case submitted successfully! Case ID: ${created.caseId}`, 'success');
         this.closeCreateModal();
         this.loadCases();
@@ -233,6 +256,23 @@ export class CasesComponent implements OnInit {
   }
 
   // ─── Validation Methods ───────────────────────────────────────
+
+  onFileSelected(event: Event, fileType: string): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFiles[fileType] = input.files[0];
+    }
+  }
+
+  private uploadDocuments(caseId: string): void {
+    const files = Object.values(this.selectedFiles);
+    const types = Object.keys(this.selectedFiles);
+    if (files.length === 0) return;
+
+    this.caseService.uploadDocuments(caseId, files, types).subscribe({
+      error: (err) => console.error('Document upload failed:', err)
+    });
+  }
 
   validateBusinessName(): void {
     if (!this.businessNameTouched) return;
@@ -374,6 +414,7 @@ export class CasesComponent implements OnInit {
       directorEmail: '',
       assignedTo: ''
     };
+    this.selectedFiles = {};
   }
 
   onModalBackdropClick(event: MouseEvent): void {
