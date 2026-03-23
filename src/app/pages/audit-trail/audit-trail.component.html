@@ -1,0 +1,193 @@
+<app-navbar></app-navbar>
+
+<div class="audit-trail-container">
+  <div class="page-header">
+    <h1>Audit Trail</h1>
+    <p class="subtitle">System activity log and audit history</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.actionsLast24Hours }}</div>
+      <div class="stat-label">Actions (24h)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.actionsLast7Days }}</div>
+      <div class="stat-label">Actions (7 days)</div>
+    </div>
+    <div class="stat-card warning">
+      <div class="stat-value">{{ stats.loginFailuresLast24Hours }}</div>
+      <div class="stat-label">Failed Logins (24h)</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label>Action</label>
+        <select [(ngModel)]="filters.action">
+          <option value="">All Actions</option>
+          <option *ngFor="let action of availableActions" [value]="action">{{ action }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Entity Type</label>
+        <select [(ngModel)]="filters.entityType">
+          <option value="">All Types</option>
+          <option *ngFor="let type of availableEntityTypes" [value]="type">{{ type }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>User Email</label>
+        <input type="text" [(ngModel)]="filters.userId" placeholder="Filter by user...">
+      </div>
+      <div class="filter-group">
+        <label>Start Date</label>
+        <input type="date" [(ngModel)]="filters.startDate">
+      </div>
+      <div class="filter-group">
+        <label>End Date</label>
+        <input type="date" [(ngModel)]="filters.endDate">
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary" (click)="applyFilters()">Apply Filters</button>
+      <button class="btn btn-secondary" (click)="clearFilters()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Audit Logs Table -->
+  <div class="table-container">
+    <div class="loading-overlay" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <table class="audit-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Action</th>
+          <th>Entity</th>
+          <th>User</th>
+          <th>Status</th>
+          <th>Details</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of auditLogs">
+          <td class="timestamp">{{ formatTimestamp(log.timestamp) }}</td>
+          <td>
+            <span class="action-badge" [ngClass]="getActionClass(log.action)">
+              {{ log.action }}
+            </span>
+          </td>
+          <td>
+            <div class="entity-info">
+              <span class="entity-type">{{ log.entityType || '-' }}</span>
+              <span class="entity-id" *ngIf="log.entityId">{{ log.entityId }}</span>
+            </div>
+          </td>
+          <td class="user-cell">{{ log.userEmail || '-' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(log.status)">
+              {{ log.status || '-' }}
+            </span>
+          </td>
+          <td class="details-cell">{{ log.details || '-' }}</td>
+          <td>
+            <button class="btn-icon" (click)="viewDetails(log)" title="View Details">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="auditLogs.length === 0 && !loading">
+          <td colspan="7" class="no-data">No audit logs found</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="page-btn" (click)="goToPage(0)" [disabled]="currentPage === 0">First</button>
+    <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0">Prev</button>
+    <button
+      *ngFor="let page of pageNumbers"
+      class="page-btn"
+      [class.active]="page === currentPage"
+      (click)="goToPage(page)">
+      {{ page + 1 }}
+    </button>
+    <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage >= totalPages - 1">Next</button>
+    <button class="page-btn" (click)="goToPage(totalPages - 1)" [disabled]="currentPage >= totalPages - 1">Last</button>
+    <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }} ({{ totalElements }} total)</span>
+  </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal-overlay" *ngIf="selectedLog" (click)="closeDetails()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Audit Log Details</h2>
+      <button class="close-btn" (click)="closeDetails()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>ID</label>
+          <span>{{ selectedLog.id }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Timestamp</label>
+          <span>{{ formatTimestamp(selectedLog.timestamp) }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Action</label>
+          <span class="action-badge" [ngClass]="getActionClass(selectedLog.action)">{{ selectedLog.action }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Status</label>
+          <span class="status-badge" [ngClass]="getStatusClass(selectedLog.status)">{{ selectedLog.status }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Entity Type</label>
+          <span>{{ selectedLog.entityType || '-' }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Entity ID</label>
+          <span>{{ selectedLog.entityId || '-' }}</span>
+        </div>
+        <div class="detail-item">
+          <label>User ID</label>
+          <span>{{ selectedLog.userId || '-' }}</span>
+        </div>
+        <div class="detail-item">
+          <label>User Email</label>
+          <span>{{ selectedLog.userEmail || '-' }}</span>
+        </div>
+        <div class="detail-item">
+          <label>IP Address</label>
+          <span>{{ selectedLog.ipAddress || '-' }}</span>
+        </div>
+        <div class="detail-item full-width">
+          <label>Details</label>
+          <span>{{ selectedLog.details || '-' }}</span>
+        </div>
+        <div class="detail-item full-width" *ngIf="selectedLog.oldValue">
+          <label>Old Value</label>
+          <pre class="json-view">{{ formatJson(selectedLog.oldValue) }}</pre>
+        </div>
+        <div class="detail-item full-width" *ngIf="selectedLog.newValue">
+          <label>New Value</label>
+          <pre class="json-view">{{ formatJson(selectedLog.newValue) }}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

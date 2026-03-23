@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
 import { AccountManagementComponent } from './pages/account-management/account-management.component';
+import { AuditTrailComponent } from './pages/audit-trail/audit-trail.component';
 import { BusinessParamsComponent } from './pages/business-params/business-params.component';
 import { BusinessTypesComponent } from './pages/business-types/business-types.component';
 import { CaseDetailsComponent } from './pages/case-details/case-details.component';
@@ -36,6 +37,9 @@ export const routes: Routes = [
   { path: 'account-management/user-management', component: UserManagementComponent, canActivate: [authGuard, roleGuard(['user_management', 'all_modules'])] },
   { path: 'account-management/role-management', component: RoleManagementComponent, canActivate: [authGuard, roleGuard(['role_management', 'all_modules'])] },
   { path: 'account-management/permission-management', component: PermissionManagementComponent, canActivate: [authGuard, roleGuard(['permission_management', 'all_modules'])] },
+
+  // Audit Trail — require audit_view or all_modules (Admin only)
+  { path: 'audit-trail', component: AuditTrailComponent, canActivate: [authGuard, roleGuard(['audit_view', 'all_modules'])] },
 
   { path: '**', redirectTo: 'login' }
 ];

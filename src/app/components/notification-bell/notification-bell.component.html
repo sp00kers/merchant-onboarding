@@ -1,0 +1,54 @@
+<div class="notification-bell-wrapper">
+  <button class="bell-button" (click)="toggleDropdown()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+    <span class="badge" *ngIf="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+  </button>
+
+  <div class="dropdown" *ngIf="isOpen" (click)="$event.stopPropagation()">
+    <div class="dropdown-header">
+      <h3>Notifications</h3>
+      <button class="mark-all-btn" *ngIf="unreadCount > 0" (click)="markAllAsRead()">
+        Mark all read
+      </button>
+    </div>
+
+    <div class="notifications-list" *ngIf="notifications.length > 0">
+      <div
+        class="notification-item"
+        *ngFor="let notification of notifications"
+        [class.unread]="!notification.read"
+        (click)="navigateToEntity(notification)"
+      >
+        <div class="notification-icon" [class]="'type-' + notification.type.toLowerCase()">
+          {{ getTypeIcon(notification.type) }}
+        </div>
+        <div class="notification-content">
+          <div class="notification-title">{{ notification.title }}</div>
+          <div class="notification-message">{{ notification.message }}</div>
+          <div class="notification-time">{{ getTimeAgo(notification.createdAt) }}</div>
+        </div>
+        <button
+          class="read-btn"
+          *ngIf="!notification.read"
+          (click)="markAsRead(notification, $event)"
+          title="Mark as read"
+        >
+          •
+        </button>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="notifications.length === 0">
+      <p>No notifications yet</p>
+    </div>
+
+    <div class="dropdown-footer">
+      <a routerLink="/notifications" (click)="closeDropdown()">View all notifications</a>
+    </div>
+  </div>
+
+  <div class="backdrop" *ngIf="isOpen" (click)="closeDropdown()"></div>
+</div>

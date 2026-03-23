@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NotificationBellComponent],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
 })
@@ -23,6 +24,10 @@ export class NavbarComponent {
 
   get showAccountManagement(): boolean {
     return this.authService.hasAnyPermission(['user_management', 'role_management', 'permission_management', 'all_modules']);
+  }
+
+  get showAuditTrail(): boolean {
+    return this.authService.hasAnyPermission(['audit_view', 'all_modules']);
   }
 
   logout(): void {

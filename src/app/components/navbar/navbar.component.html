@@ -4,6 +4,8 @@
     <a *ngIf="showCases" routerLink="/cases" routerLinkActive="active">Merchant Onboarding Cases</a>
     <a *ngIf="showBusinessParams" routerLink="/business-params" routerLinkActive="active">Business Parameters Management</a>
     <a *ngIf="showAccountManagement" routerLink="/account-management" routerLinkActive="active">Account Management</a>
+    <a *ngIf="showAuditTrail" routerLink="/audit-trail" routerLinkActive="active">Audit Trail</a>
+    <app-notification-bell></app-notification-bell>
     <a href="javascript:void(0)" (click)="logout()">Logout</a>
   </div>
 </nav>
