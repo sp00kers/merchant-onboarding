@@ -25,7 +25,7 @@ export interface Analytics {
   topReviewers: UserPerformance[];
 
   // Verification Stats
-  verificationStats: VerificationStats;
+  verificationStats?: VerificationStats;
 }
 
 export interface TrendData {
