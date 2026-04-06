@@ -57,7 +57,7 @@ export class InAppNotificationService {
   }
 
   markAsRead(id: number): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/${id}/read`, {}).pipe(
+    return this.http.put<void>(`${this.apiUrl}/${id}/read`, {}).pipe(
       tap(() => {
         const current = this.unreadCountSubject.value;
         if (current > 0) {
@@ -73,7 +73,7 @@ export class InAppNotificationService {
   }
 
   markAllAsRead(): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/mark-all-read`, {}).pipe(
+    return this.http.put<void>(`${this.apiUrl}/read-all`, {}).pipe(
       tap(() => {
         this.unreadCountSubject.next(0);
         const notifications = this.notificationsSubject.value.map(n => ({ ...n, read: true }));

@@ -32,14 +32,16 @@ export interface VerificationType {
 
 export const VERIFICATION_TYPE_LABELS: { [key: string]: string } = {
   'BUSINESS_REGISTRY': 'Business Registry',
-  'DIRECTOR_IDENTITY': 'Director Identity',
-  'ADDRESS': 'Address Verification',
-  'FINANCIAL': 'Financial Check'
+  'IDENTITY_VERIFICATION': 'Identity Verification',
+  'ADDRESS_VERIFICATION': 'Address Verification',
+  'FINANCIAL_CHECK': 'Financial Check',
+  'SANCTIONS_SCREENING': 'Sanctions Screening'
 };
 
 export const VERIFICATION_TYPE_ICONS: { [key: string]: string } = {
   'BUSINESS_REGISTRY': '🏢',
-  'DIRECTOR_IDENTITY': '👤',
-  'ADDRESS': '📍',
-  'FINANCIAL': '💰'
+  'IDENTITY_VERIFICATION': '👤',
+  'ADDRESS_VERIFICATION': '📍',
+  'FINANCIAL_CHECK': '💰',
+  'SANCTIONS_SCREENING': '🛡️'
 };
