@@ -119,25 +119,24 @@ export class CasesComponent implements OnInit {
 
   /**
    * Apply client-side date range filter on the Created Date field.
+   * Uses YYYY-MM-DD string comparison to avoid timezone issues.
    */
   applyDateFilter(): void {
     let filtered = [...this.allCases];
 
     if (this.dateFrom) {
-      const from = new Date(this.dateFrom);
-      from.setHours(0, 0, 0, 0);
       filtered = filtered.filter(c => {
-        const created = new Date(c.createdDate);
-        return created >= from;
+        if (!c.createdDate) return false;
+        const created = c.createdDate.substring(0, 10);
+        return created >= this.dateFrom;
       });
     }
 
     if (this.dateTo) {
-      const to = new Date(this.dateTo);
-      to.setHours(23, 59, 59, 999);
       filtered = filtered.filter(c => {
-        const created = new Date(c.createdDate);
-        return created <= to;
+        if (!c.createdDate) return false;
+        const created = c.createdDate.substring(0, 10);
+        return created <= this.dateTo;
       });
     }
 

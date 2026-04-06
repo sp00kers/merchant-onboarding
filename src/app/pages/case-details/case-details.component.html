@@ -415,7 +415,7 @@
     <h3>Available Actions</h3>
     <div class="actions-layout">
 
-      <!-- Compliance Reviewer / Admin actions -->
+      <!-- Compliance Reviewer actions (only assigned reviewer) -->
       <ng-container *ngIf="canAuthorizeCase">
         <button class="btn-success btn-large" (click)="approveStep()">
           <span class="btn-icon">✅</span>Approve
@@ -425,7 +425,7 @@
         </button>
       </ng-container>
       <ng-container *ngIf="isComplianceOrAdmin && !canAuthorizeCase">
-        <p class="info-text">This case is not assigned to you. You can view it but cannot approve or reject.</p>
+        <p class="info-text">You can only view this case. Approve/reject is reserved for the assigned compliance reviewer.</p>
       </ng-container>
 
       <!-- Verifier actions -->
