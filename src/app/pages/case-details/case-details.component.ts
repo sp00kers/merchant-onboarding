@@ -131,6 +131,19 @@ export class CaseDetailsComponent implements OnInit {
     return this.roleId === 'compliance_reviewer' || this.roleId === 'admin';
   }
 
+  /**
+   * A compliance reviewer can only approve/reject cases assigned to them.
+   * Admins can approve/reject any case.
+   */
+  get canAuthorizeCase(): boolean {
+    if (this.roleId === 'admin') return true;
+    if (this.roleId === 'compliance_reviewer') {
+      const currentUserName = this.authService.getCurrentUser()?.user?.name;
+      return !!currentUserName && currentUserName === this.caseData?.assignedTo;
+    }
+    return false;
+  }
+
   get isVerifier(): boolean {
     return this.roleId === 'verifier';
   }
