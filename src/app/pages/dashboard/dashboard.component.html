@@ -3,26 +3,6 @@
 <div class="container">
   <h1>Dashboard</h1>
 
-  <!-- Quick Stats -->
-  <div class="dashboard-stats">
-    <div class="stat-card">
-      <h3>Pending Cases</h3>
-      <div class="stat-number">{{ pendingCount }}</div>
-    </div>
-    <div class="stat-card">
-      <h3>Under Review</h3>
-      <div class="stat-number">{{ underReviewCount }}</div>
-    </div>
-    <div class="stat-card">
-      <h3>Approved Today</h3>
-      <div class="stat-number">{{ approvedTodayCount }}</div>
-    </div>
-    <div class="stat-card">
-      <h3>Rejected</h3>
-      <div class="stat-number">{{ rejectedCount }}</div>
-    </div>
-  </div>
-
   <!-- Analytics Section -->
   <div class="analytics-section" *ngIf="analytics">
     <!-- Processing Metrics -->
@@ -50,28 +30,8 @@
       </div>
     </div>
 
-    <!-- Charts Row -->
-    <div class="analytics-row charts-row">
-      <!-- Risk Distribution -->
-      <div class="analytics-card chart-card">
-        <h3>Risk Distribution</h3>
-        <div class="distribution-chart">
-          <div class="chart-bars">
-            <div class="chart-bar-item" *ngFor="let item of getRiskDistributionData()">
-              <div class="bar-label">{{ item.label }}</div>
-              <div class="bar-container">
-                <div class="bar-fill"
-                     [style.width.%]="getPercentage(item.value, getTotalFromDistribution(analytics.riskDistribution))"
-                     [style.backgroundColor]="item.color">
-                </div>
-              </div>
-              <div class="bar-value">{{ item.value }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Status Distribution -->
+    <!-- Case Status Distribution -->
+    <div class="analytics-row">
       <div class="analytics-card chart-card">
         <h3>Case Status Distribution</h3>
         <div class="distribution-chart">
@@ -91,7 +51,7 @@
       </div>
     </div>
 
-    <!-- Trends Row -->
+    <!-- Case Trends -->
     <div class="analytics-row">
       <div class="analytics-card trend-card">
         <h3>Case Trends (Last 7 Days)</h3>
@@ -124,30 +84,9 @@
       </div>
     </div>
 
-    <!-- Bottom Row -->
-    <div class="analytics-row bottom-row">
-      <!-- Top Performers -->
-      <div class="analytics-card performers-card">
-        <h3>Top Reviewers</h3>
-        <div class="performers-list" *ngIf="getTopPerformers().length > 0">
-          <div class="performer-item" *ngFor="let performer of getTopPerformers(); let i = index">
-            <div class="performer-rank">{{ i + 1 }}</div>
-            <div class="performer-info">
-              <div class="performer-name">{{ performer.userName }}</div>
-              <div class="performer-stats">
-                <span>{{ performer.casesProcessed }} cases</span>
-                <span>{{ performer.approvalRate | number:'1.0-0' }}% approval</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="empty-state" *ngIf="getTopPerformers().length === 0">
-          <p>No reviewer data available yet.</p>
-        </div>
-      </div>
-
-      <!-- Verification Stats -->
-      <div class="analytics-card verification-card" *ngIf="analytics.verificationStats">
+    <!-- Verification Overview -->
+    <div class="analytics-row" *ngIf="analytics.verificationStats">
+      <div class="analytics-card verification-card">
         <h3>Verification Overview</h3>
         <div class="verification-stats">
           <div class="verification-stat">

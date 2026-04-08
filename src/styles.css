@@ -371,9 +371,9 @@ body {
 }
 
 .case-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
 .info-section {
@@ -386,7 +386,7 @@ body {
 
 .info-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
 }
 
@@ -403,14 +403,6 @@ body {
     font-weight: 600;
     color: #7f8c8d;
     margin-bottom: 0.25rem;
-}
-
-.case-sidebar > div {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* Workflow Progress */
@@ -685,10 +677,6 @@ body {
     }
     
     .dashboard-content,
-    .case-content {
-        grid-template-columns: 1fr;
-    }
-    
     .form-row,
     .info-grid,
     .upload-area {
@@ -1173,11 +1161,6 @@ body {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 8px;
     border-left: 4px solid #3498db;
-    transition: transform 0.2s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
 }
 
 .stat-card:nth-child(2) { border-left-color: #27ae60; }
@@ -1659,35 +1642,10 @@ body {
 
 /* Case Content Layout */
 .case-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-}
-
-.case-main-content {
-    background: white;
-    border-radius: 8px;
-    padding: 2rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.case-sidebar {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-}
-
-.case-sidebar > div {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.case-sidebar h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #2c3e50;
+    gap: 0;
+    margin-bottom: 2rem;
 }
 
 .mode-info {
@@ -1698,12 +1656,6 @@ body {
     margin-bottom: 1rem;
     font-size: 0.9rem;
     text-align: center;
-}
-
-.case-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
 }
 
 .meta-item {
@@ -1798,25 +1750,12 @@ body {
     .progress-steps-horizontal .step-line {
         display: none;
     }
-    
-    .case-content {
-        grid-template-columns: 1fr;
-    }
-    
-    .case-sidebar {
-        order: -1;
-    }
 }
 
 @media (max-width: 480px) {
     .progress-steps-horizontal .step-label {
         font-size: 0.8rem;
         max-width: 80px;
-    }
-    
-    .case-main-content,
-    .case-sidebar > div {
-        padding: 1rem;
     }
 }
 
@@ -2274,38 +2213,12 @@ body {
     background: #2980b9;
 }
 
-/* Updated Case Content Layout - Remove Actions from Sidebar */
+/* Updated Case Content Layout - Single Column */
 .case-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    margin-bottom: 2rem; /* Add space before bottom actions */
-}
-
-.case-main-content {
-    background: white;
-    border-radius: 8px;
-    padding: 2rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.case-sidebar {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-}
-
-.case-sidebar > div {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.case-sidebar h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #2c3e50;
+    gap: 0;
+    margin-bottom: 2rem;
 }
 
 /* Enhanced History Section */
@@ -2387,14 +2300,6 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .case-content {
-        grid-template-columns: 1fr;
-    }
-    
-    .case-sidebar {
-        order: -1;
-    }
-    
     .actions-container {
         padding: 1rem;
     }
@@ -2436,11 +2341,6 @@ body {
     
     .actions-container {
         padding: 1rem 0.5rem;
-    }
-    
-    .case-main-content,
-    .case-sidebar > div {
-        padding: 1rem;
     }
     
     .mode-info {
@@ -2745,36 +2645,10 @@ body {
 
 /* Updated Case Content Layout */
 .case-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    margin-bottom: 2rem;
-}
-
-.case-main-content {
-    background: white;
-    border-radius: 8px;
-    padding: 2rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.case-sidebar {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-}
-
-.case-sidebar > div {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.case-sidebar h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    color: #2c3e50;
+    gap: 0;
+    margin-bottom: 2rem;
 }
 
 /* Enhanced View Mode Buttons */
@@ -2869,14 +2743,6 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .case-content {
-        grid-template-columns: 1fr;
-    }
-    
-    .case-sidebar {
-        order: -1;
-    }
-    
     .actions-container {
         padding: 1.5rem 1rem;
     }
@@ -2912,11 +2778,6 @@ body {
 @media (max-width: 480px) {
     .actions-container {
         padding: 1rem 0.5rem;
-    }
-    
-    .case-main-content,
-    .case-sidebar > div {
-        padding: 1rem;
     }
     
     .action-buttons button {
@@ -3279,51 +3140,6 @@ body {
 .btn-warning.btn-large:hover {
     background: #e0a800;
     border-color: #e0a800;
-}
-
-/* Add Comment Section in Sidebar */
-.case-sidebar .add-comment-section {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-}
-
-.case-sidebar .add-comment-section h3 {
-    margin-bottom: 1rem;
-    color: #495057;
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.case-sidebar .comment-form textarea {
-    width: 100%;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 0.75rem;
-    font-family: inherit;
-    font-size: 0.9rem;
-    resize: vertical;
-    min-height: 80px;
-    margin-bottom: 1rem;
-}
-
-.case-sidebar .comment-form textarea:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.case-sidebar .comment-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.case-sidebar .comment-actions button {
-    flex: 1;
-    padding: 0.5rem;
-    font-size: 0.875rem;
 }
 
 /* Responsive Design */

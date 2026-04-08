@@ -65,7 +65,6 @@
   </div>
 
   <div class="case-content">
-    <div class="case-main-content">
       <div class="info-section">
         <h3>Business Information</h3>
         <div class="info-grid">
@@ -93,6 +92,36 @@
       </div>
 
       <div class="info-section">
+        <h3>Case Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Case ID:</label>
+            <span>{{ caseData.caseId }}</span>
+          </div>
+          <div class="info-item">
+            <label>Created:</label>
+            <span>{{ caseData.createdDate }}</span>
+          </div>
+          <div class="info-item">
+            <label>Assigned To:</label>
+            <span>{{ caseData.assignedTo }}</span>
+          </div>
+          <div class="info-item">
+            <label>Priority:</label>
+            <span>{{ caseData.priority }}</span>
+          </div>
+          <div class="info-item">
+            <label>Last Updated:</label>
+            <span>{{ caseData.lastUpdated }}</span>
+          </div>
+          <div class="info-item">
+            <label>Status:</label>
+            <span>{{ caseData.status }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
         <h3>Director Information</h3>
         <div class="info-grid">
           <div class="info-item">
@@ -110,6 +139,27 @@
           <div class="info-item">
             <label>Email:</label>
             <span>{{ caseData.directorEmail }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>Case History</h3>
+        <div class="history-list">
+          <div class="history-item" *ngFor="let item of caseData.history">
+            <div class="history-time">{{ item.time }}</div>
+            <div class="history-action">{{ item.action }}</div>
+          </div>
+        </div>
+
+        <div class="add-comment-form">
+          <h4>Add Comment</h4>
+          <div class="comment-form">
+            <textarea [(ngModel)]="commentText" placeholder="Enter your comment here..." rows="4"></textarea>
+            <div class="comment-actions">
+              <button class="btn-primary" (click)="submitComment()">Add Comment</button>
+              <button class="btn-secondary" (click)="clearComment()">Clear</button>
+            </div>
           </div>
         </div>
       </div>
@@ -204,210 +254,6 @@
           <p>Loading verification results...</p>
         </div>
       </div>
-
-      <!-- Risk Score Section -->
-      <div class="info-section risk-section">
-        <div class="section-header">
-          <h3>Risk Assessment</h3>
-          <button
-            *ngIf="canCalculateRisk"
-            class="btn-primary"
-            (click)="calculateRiskScore()"
-            [disabled]="isCalculatingRisk"
-          >
-            {{ isCalculatingRisk ? 'Calculating...' : 'Calculate Risk Score' }}
-          </button>
-        </div>
-
-        <!-- Risk Score Card -->
-        <div class="risk-score-card" *ngIf="riskScore">
-          <div class="risk-score-header">
-            <div class="risk-gauge">
-              <div class="gauge-circle" [ngClass]="getRiskLevelClass(riskScore.riskLevel)">
-                <span class="gauge-value">{{ riskScore.totalScore }}</span>
-                <span class="gauge-label">/ 100</span>
-              </div>
-            </div>
-            <div class="risk-level-info">
-              <div class="risk-level-badge" [ngClass]="getRiskLevelClass(riskScore.riskLevel)">
-                {{ riskLevelLabels[riskScore.riskLevel] || riskScore.riskLevel }}
-              </div>
-              <div class="risk-recommendation" [ngClass]="getRecommendationClass(riskScore.recommendation)">
-                {{ recommendationLabels[riskScore.recommendation] || riskScore.recommendation }}
-              </div>
-              <div class="risk-calculated-at">
-                Calculated: {{ riskScore.calculatedAt | date:'medium' }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Risk Factors Breakdown -->
-          <div class="risk-factors">
-            <h4>Risk Factors Breakdown</h4>
-            <div class="factors-list">
-              <div class="factor-item" *ngFor="let factor of riskScore.factors">
-                <div class="factor-header">
-                  <div class="factor-icon">{{ factorCategoryIcons[factor.category] || '📊' }}</div>
-                  <div class="factor-name">{{ factor.name }}</div>
-                  <div class="factor-impact" [ngClass]="getImpactClass(factor.impact)">
-                    {{ getImpactIcon(factor.impact) }}
-                  </div>
-                </div>
-                <div class="factor-score">
-                  <div class="score-bar">
-                    <div
-                      class="score-fill"
-                      [ngClass]="getImpactClass(factor.impact)"
-                      [style.width.%]="(factor.score / factor.maxScore) * 100"
-                    ></div>
-                  </div>
-                  <span class="score-text">{{ factor.score }} / {{ factor.maxScore }}</span>
-                </div>
-                <div class="factor-description">{{ factor.description }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty state -->
-        <div class="empty-risk" *ngIf="!riskScore && !isLoadingRisk">
-          <p>Risk score has not been calculated for this case.</p>
-          <button *ngIf="canCalculateRisk" class="btn-primary" (click)="calculateRiskScore()">
-            Calculate Risk Score
-          </button>
-        </div>
-
-        <!-- Loading state -->
-        <div class="loading-risk" *ngIf="isLoadingRisk">
-          <p>Loading risk assessment...</p>
-        </div>
-      </div>
-
-      <!-- Document OCR/Extraction Section -->
-      <div class="info-section extraction-section">
-        <div class="section-header">
-          <h3>Document Content Analysis (OCR)</h3>
-          <button
-            *ngIf="canExtractDocuments && caseData.documents && caseData.documents.length > 0"
-            class="btn-primary"
-            (click)="extractAllDocuments()"
-            [disabled]="isExtractingDocuments"
-          >
-            {{ isExtractingDocuments ? 'Processing...' : 'Extract All Documents' }}
-          </button>
-        </div>
-
-        <!-- Extraction Summary -->
-        <div class="extraction-summary" *ngIf="documentExtractions.length > 0">
-          <div class="summary-stats">
-            <div class="summary-stat">
-              <span class="stat-value">{{ documentExtractions.length }}</span>
-              <span class="stat-label">Processed</span>
-            </div>
-            <div class="summary-stat">
-              <span class="stat-value extraction-validated">{{ extractedCount }}</span>
-              <span class="stat-label">Validated</span>
-            </div>
-            <div class="summary-stat">
-              <span class="stat-value extraction-mismatch">{{ mismatchCount }}</span>
-              <span class="stat-label">Mismatches</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Extraction Results List -->
-        <div class="extraction-list" *ngIf="documentExtractions.length > 0">
-          <div class="extraction-item" *ngFor="let extraction of documentExtractions">
-            <div class="extraction-icon">{{ validationStatusIcons[extraction.validationStatus] || '📄' }}</div>
-            <div class="extraction-info">
-              <div class="extraction-doc-name">{{ extraction.documentName }}</div>
-              <div class="extraction-meta">
-                <span class="status-badge" [ngClass]="getExtractionStatusClass(extraction.validationStatus)">
-                  {{ validationStatusLabels[extraction.validationStatus] || extraction.validationStatus }}
-                </span>
-                <span class="confidence-score" *ngIf="extraction.confidenceScore" [ngClass]="getConfidenceClass(extraction.confidenceScore)">
-                  {{ extraction.confidenceScore }}% confidence
-                </span>
-              </div>
-              <div class="extraction-notes" *ngIf="extraction.validationNotes">{{ extraction.validationNotes }}</div>
-            </div>
-            <button class="btn-small btn-secondary" (click)="viewExtractionDetails(extraction)">
-              View Details
-            </button>
-          </div>
-        </div>
-
-        <!-- Empty state -->
-        <div class="empty-extraction" *ngIf="documentExtractions.length === 0 && !isLoadingExtractions">
-          <p>No documents have been processed with OCR yet.</p>
-          <p *ngIf="caseData.documents && caseData.documents.length > 0">
-            Click "Extract All Documents" to analyze uploaded documents.
-          </p>
-          <p *ngIf="!caseData.documents || caseData.documents.length === 0">
-            Upload documents first to enable content analysis.
-          </p>
-        </div>
-
-        <!-- Loading state -->
-        <div class="loading-extraction" *ngIf="isLoadingExtractions">
-          <p>Loading document extractions...</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="case-sidebar">
-      <div class="case-info">
-        <h3>Case Information</h3>
-        <div class="case-meta">
-          <div class="meta-item">
-            <label>Case ID:</label>
-            <span>{{ caseData.caseId }}</span>
-          </div>
-          <div class="meta-item">
-            <label>Created:</label>
-            <span>{{ caseData.createdDate }}</span>
-          </div>
-          <div class="meta-item">
-            <label>Assigned To:</label>
-            <span>{{ caseData.assignedTo }}</span>
-          </div>
-          <div class="meta-item">
-            <label>Priority:</label>
-            <span>{{ caseData.priority }}</span>
-          </div>
-          <div class="meta-item">
-            <label>Last Updated:</label>
-            <span>{{ caseData.lastUpdated }}</span>
-          </div>
-          <div class="meta-item">
-            <label>Status:</label>
-            <span>{{ caseData.status }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="case-history">
-        <h3>Case History</h3>
-        <div class="history-list">
-          <div class="history-item" *ngFor="let item of caseData.history">
-            <div class="history-time">{{ item.time }}</div>
-            <div class="history-action">{{ item.action }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Add Comment Section -->
-      <div class="add-comment-section">
-        <h3>Add Comment</h3>
-        <div class="comment-form">
-          <textarea [(ngModel)]="commentText" placeholder="Enter your comment here..." rows="4"></textarea>
-          <div class="comment-actions">
-            <button class="btn-primary" (click)="submitComment()">Add Comment</button>
-            <button class="btn-secondary" (click)="clearComment()">Clear</button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Available Actions Section at Bottom -->
@@ -506,74 +352,6 @@
       <button type="button" (click)="confirmAssignment()" class="btn-primary" [disabled]="!selectedReviewerId || isLoadingReviewers">
         Assign Reviewer
       </button>
-    </div>
-  </div>
-</div>
-
-<!-- Document Extraction Details Modal -->
-<div *ngIf="showExtractionModal && selectedExtraction" class="modal" (click)="onExtractionModalBackdropClick($event)">
-  <div class="modal-content modal-large">
-    <div class="modal-header">
-      <h3>Document Extraction Details</h3>
-      <span class="close" (click)="closeExtractionModal()">&times;</span>
-    </div>
-    <div class="modal-body">
-      <div class="extraction-details">
-        <div class="extraction-header-info">
-          <h4>{{ selectedExtraction.documentName }}</h4>
-          <div class="extraction-meta">
-            <span class="status-badge" [ngClass]="getExtractionStatusClass(selectedExtraction.validationStatus)">
-              {{ validationStatusLabels[selectedExtraction.validationStatus] }}
-            </span>
-            <span class="confidence-score" *ngIf="selectedExtraction.confidenceScore" [ngClass]="getConfidenceClass(selectedExtraction.confidenceScore)">
-              {{ selectedExtraction.confidenceScore }}% OCR Confidence
-            </span>
-          </div>
-        </div>
-
-        <div class="extraction-fields">
-          <h5>Extracted Information</h5>
-          <div class="field-comparison-grid">
-            <div class="field-row" *ngIf="selectedExtraction.extractedBusinessName">
-              <div class="field-label">Business Name:</div>
-              <div class="field-extracted">{{ selectedExtraction.extractedBusinessName }}</div>
-              <div class="field-case" *ngIf="caseData">{{ caseData.businessName }}</div>
-            </div>
-            <div class="field-row" *ngIf="selectedExtraction.extractedRegistrationNumber">
-              <div class="field-label">Registration No:</div>
-              <div class="field-extracted">{{ selectedExtraction.extractedRegistrationNumber }}</div>
-              <div class="field-case" *ngIf="caseData">{{ caseData.registrationNumber }}</div>
-            </div>
-            <div class="field-row" *ngIf="selectedExtraction.extractedDirectorName">
-              <div class="field-label">Director Name:</div>
-              <div class="field-extracted">{{ selectedExtraction.extractedDirectorName }}</div>
-              <div class="field-case" *ngIf="caseData">{{ caseData.directorName }}</div>
-            </div>
-            <div class="field-row" *ngIf="selectedExtraction.extractedDirectorIC">
-              <div class="field-label">Director IC:</div>
-              <div class="field-extracted">{{ selectedExtraction.extractedDirectorIC }}</div>
-              <div class="field-case" *ngIf="caseData">{{ caseData.directorIC }}</div>
-            </div>
-            <div class="field-row full-width" *ngIf="selectedExtraction.extractedAddress">
-              <div class="field-label">Address:</div>
-              <div class="field-extracted">{{ selectedExtraction.extractedAddress }}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="validation-notes-section" *ngIf="selectedExtraction.validationNotes">
-          <h5>Validation Notes</h5>
-          <p>{{ selectedExtraction.validationNotes }}</p>
-        </div>
-
-        <div class="raw-text-section" *ngIf="selectedExtraction.rawText">
-          <h5>Raw Extracted Text</h5>
-          <pre class="raw-text-content">{{ selectedExtraction.rawText }}</pre>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" (click)="closeExtractionModal()" class="btn-secondary">Close</button>
     </div>
   </div>
 </div>

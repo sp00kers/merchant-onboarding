@@ -47,6 +47,16 @@
   border-radius: 4px;
   font-size: 14px;
   box-sizing: border-box;
+  color: #333;
+}
+
+.filters-row .filter-group select {
+  color: #333;
+}
+
+.filters-row .filter-group select.ng-pristine:not(:focus),
+.filters-row .filter-group select option[value=""] {
+  color: #999;
 }
 
 .filter-actions {
@@ -60,6 +70,29 @@
 .filter-actions .btn-secondary {
   white-space: nowrap;
   padding: 8px 20px;
+}
+
+.filter-actions .btn-clear {
+  background-color: #e74c3c;
+  color: white;
+  white-space: nowrap;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.filter-actions .btn-clear:hover {
+  background-color: #c0392b;
+}
+
+/* Pagination disabled state */
+.pagination .btn-secondary:disabled {
+  background-color: #d5d8dc;
+  color: #666;
+  cursor: not-allowed;
 }
 
 /* Validation error styles */

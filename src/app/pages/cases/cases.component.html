@@ -21,7 +21,7 @@
         <input type="text" id="searchBox" placeholder="Business Name (Optional)" [(ngModel)]="searchTerm">
       </div>
       <div class="filter-group">
-        <select id="statusFilter" [(ngModel)]="statusFilter">
+        <select id="statusFilter" [(ngModel)]="statusFilter" [style.color]="statusFilter ? '#333' : '#999'">
           <option value="">Status (Optional)</option>
           <option value="draft">Draft</option>
           <option value="pending_review">Pending Review</option>
@@ -45,7 +45,7 @@
       </div>
       <div class="filter-actions">
         <button class="btn-primary" (click)="searchCases()">Search</button>
-        <button class="btn-secondary" (click)="clearFilters()">Clear</button>
+        <button class="btn-clear" (click)="clearFilters()">Clear</button>
       </div>
     </div>
   </div>

@@ -4,15 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { Case, RoleBanner } from '../../models/case.model';
-import { DocumentExtraction, VALIDATION_STATUS_ICONS, VALIDATION_STATUS_LABELS } from '../../models/document-extraction.model';
-import { FACTOR_CATEGORY_ICONS, RECOMMENDATION_LABELS, RISK_LEVEL_COLORS, RISK_LEVEL_LABELS, RiskScore } from '../../models/risk.model';
 import { VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary } from '../../models/verification.model';
 import { AuthService } from '../../services/auth.service';
 import { CaseService } from '../../services/case.service';
-import { DocumentService } from '../../services/document.service';
 import { ExportService } from '../../services/export.service';
 import { NotificationService } from '../../services/notification.service';
-import { RiskService } from '../../services/risk.service';
 import { User, UserService } from '../../services/user.service';
 import { VerificationService } from '../../services/verification.service';
 
@@ -48,24 +44,6 @@ export class CaseDetailsComponent implements OnInit {
   verificationTypeLabels = VERIFICATION_TYPE_LABELS;
   verificationTypeIcons = VERIFICATION_TYPE_ICONS;
 
-  // Risk scoring properties
-  riskScore: RiskScore | null = null;
-  isLoadingRisk = false;
-  isCalculatingRisk = false;
-  riskLevelLabels = RISK_LEVEL_LABELS;
-  riskLevelColors = RISK_LEVEL_COLORS;
-  recommendationLabels = RECOMMENDATION_LABELS;
-  factorCategoryIcons = FACTOR_CATEGORY_ICONS;
-
-  // Document extraction properties
-  documentExtractions: DocumentExtraction[] = [];
-  isLoadingExtractions = false;
-  isExtractingDocuments = false;
-  validationStatusLabels = VALIDATION_STATUS_LABELS;
-  validationStatusIcons = VALIDATION_STATUS_ICONS;
-  selectedExtraction: DocumentExtraction | null = null;
-  showExtractionModal = false;
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -74,8 +52,6 @@ export class CaseDetailsComponent implements OnInit {
     private notificationService: NotificationService,
     private userService: UserService,
     private verificationService: VerificationService,
-    private riskService: RiskService,
-    private documentService: DocumentService,
     private exportService: ExportService
   ) {}
 
@@ -112,10 +88,6 @@ export class CaseDetailsComponent implements OnInit {
         } else {
           // Load verifications
           this.loadVerifications(caseId);
-          // Load risk score
-          this.loadRiskScore(caseId);
-          // Load document extractions
-          this.loadDocumentExtractions(caseId);
         }
       },
       error: (error) => {
@@ -132,10 +104,12 @@ export class CaseDetailsComponent implements OnInit {
   }
 
   /**
-   * Only the assigned compliance reviewer can approve/reject cases.
-   * Admins cannot approve/reject — they can only view.
+   * The assigned compliance reviewer or an admin can approve/reject cases.
    */
   get canAuthorizeCase(): boolean {
+    if (this.roleId === 'admin') {
+      return true;
+    }
     if (this.roleId === 'compliance_reviewer') {
       const currentUserName = this.authService.getCurrentUser()?.user?.name;
       return !!currentUserName && currentUserName === this.caseData?.assignedTo;
@@ -504,164 +478,4 @@ export class CaseDetailsComponent implements OnInit {
     return this.roleId === 'verifier' || this.roleId === 'compliance_reviewer' || this.roleId === 'admin';
   }
 
-  // Risk scoring methods
-  loadRiskScore(caseId: string): void {
-    this.isLoadingRisk = true;
-    this.riskService.getRiskScore(caseId).subscribe({
-      next: (riskScore) => {
-        this.riskScore = riskScore;
-        this.isLoadingRisk = false;
-      },
-      error: (error) => {
-        console.error('Error loading risk score:', error);
-        this.isLoadingRisk = false;
-      }
-    });
-  }
-
-  calculateRiskScore(): void {
-    if (!this.caseData) return;
-
-    this.isCalculatingRisk = true;
-    this.riskService.calculateRiskScore(this.caseData.caseId).subscribe({
-      next: (riskScore) => {
-        this.riskScore = riskScore;
-        this.isCalculatingRisk = false;
-        this.notificationService.show('Risk score calculated successfully!', 'success');
-        // Reload case to get updated risk data
-        this.loadCase(this.caseData!.caseId);
-      },
-      error: (error) => {
-        console.error('Error calculating risk score:', error);
-        this.notificationService.show('Failed to calculate risk score', 'error');
-        this.isCalculatingRisk = false;
-      }
-    });
-  }
-
-  getRiskLevelClass(level: string): string {
-    switch (level) {
-      case 'LOW': return 'risk-low';
-      case 'MEDIUM': return 'risk-medium';
-      case 'HIGH': return 'risk-high';
-      case 'CRITICAL': return 'risk-critical';
-      default: return '';
-    }
-  }
-
-  getImpactClass(impact: string): string {
-    switch (impact) {
-      case 'POSITIVE': return 'impact-positive';
-      case 'NEGATIVE': return 'impact-negative';
-      case 'NEUTRAL': return 'impact-neutral';
-      default: return '';
-    }
-  }
-
-  getImpactIcon(impact: string): string {
-    switch (impact) {
-      case 'POSITIVE': return '+';
-      case 'NEGATIVE': return '-';
-      case 'NEUTRAL': return '~';
-      default: return '';
-    }
-  }
-
-  get canCalculateRisk(): boolean {
-    return this.roleId === 'verifier' || this.roleId === 'compliance_reviewer' || this.roleId === 'admin';
-  }
-
-  // Document extraction methods
-  loadDocumentExtractions(caseId: string): void {
-    this.isLoadingExtractions = true;
-    this.documentService.getCaseExtractions(caseId).subscribe({
-      next: (extractions) => {
-        this.documentExtractions = extractions;
-        this.isLoadingExtractions = false;
-      },
-      error: (error) => {
-        console.error('Error loading document extractions:', error);
-        this.isLoadingExtractions = false;
-      }
-    });
-  }
-
-  extractAllDocuments(): void {
-    if (!this.caseData) return;
-
-    if (confirm('This will process all documents with OCR. Continue?')) {
-      this.isExtractingDocuments = true;
-      this.documentService.extractAllDocuments(this.caseData.caseId).subscribe({
-        next: () => {
-          this.notificationService.show('Document extraction initiated. Results will appear shortly.', 'success');
-          this.isExtractingDocuments = false;
-          // Reload extractions after a delay
-          setTimeout(() => this.loadDocumentExtractions(this.caseData!.caseId), 5000);
-        },
-        error: (error) => {
-          console.error('Error extracting documents:', error);
-          this.notificationService.show('Failed to extract documents', 'error');
-          this.isExtractingDocuments = false;
-        }
-      });
-    }
-  }
-
-  extractSingleDocument(documentId: number): void {
-    this.documentService.extractDocument(documentId).subscribe({
-      next: (extraction) => {
-        this.notificationService.show('Document extraction completed!', 'success');
-        // Update the extraction in the list
-        const index = this.documentExtractions.findIndex(e => e.documentId === documentId);
-        if (index >= 0) {
-          this.documentExtractions[index] = extraction;
-        } else {
-          this.documentExtractions.push(extraction);
-        }
-      },
-      error: (error) => {
-        console.error('Error extracting document:', error);
-        this.notificationService.show('Failed to extract document', 'error');
-      }
-    });
-  }
-
-  viewExtractionDetails(extraction: DocumentExtraction): void {
-    this.selectedExtraction = extraction;
-    this.showExtractionModal = true;
-  }
-
-  closeExtractionModal(): void {
-    this.showExtractionModal = false;
-    this.selectedExtraction = null;
-  }
-
-  onExtractionModalBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal')) {
-      this.closeExtractionModal();
-    }
-  }
-
-  getExtractionStatusClass(status: string): string {
-    switch (status) {
-      case 'VALIDATED': return 'extraction-validated';
-      case 'PARTIAL_MATCH': return 'extraction-partial';
-      case 'MISMATCH': return 'extraction-mismatch';
-      case 'FAILED': return 'extraction-failed';
-      case 'PROCESSING': return 'extraction-processing';
-      default: return 'extraction-pending';
-    }
-  }
-
-  get canExtractDocuments(): boolean {
-    return this.roleId === 'verifier' || this.roleId === 'compliance_reviewer' || this.roleId === 'admin' || this.roleId === 'onboarding_officer';
-  }
-
-  get extractedCount(): number {
-    return this.documentExtractions.filter(e => e.validationStatus === 'VALIDATED' || e.validationStatus === 'PARTIAL_MATCH').length;
-  }
-
-  get mismatchCount(): number {
-    return this.documentExtractions.filter(e => e.validationStatus === 'MISMATCH').length;
-  }
 }

@@ -2,11 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
-import { Analytics, RISK_LEVEL_COLORS, STATUS_COLORS, TrendData, UserPerformance } from '../../models/analytics.model';
-import { Case } from '../../models/case.model';
+import { Analytics, STATUS_COLORS, TrendData } from '../../models/analytics.model';
 import { AnalyticsService } from '../../services/analytics.service';
 import { AuthService } from '../../services/auth.service';
-import { CaseService } from '../../services/case.service';
 import { NotificationService } from '../../services/notification.service';
 
 @Component({
@@ -19,23 +17,15 @@ import { NotificationService } from '../../services/notification.service';
 export class DashboardComponent implements OnInit {
   roleName = '';
 
-  // Case status counts
-  pendingCount = 0;
-  underReviewCount = 0;
-  approvedTodayCount = 0;
-  rejectedCount = 0;
-
   // Analytics data
   analytics: Analytics | null = null;
   isLoadingAnalytics = false;
-  riskLevelColors = RISK_LEVEL_COLORS;
   statusColors = STATUS_COLORS;
 
   constructor(
     private authService: AuthService,
     private route: ActivatedRoute,
     private notificationService: NotificationService,
-    private caseService: CaseService,
     private analyticsService: AnalyticsService
   ) {}
 
@@ -49,22 +39,8 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    // Load case statistics
-    this.loadCaseStats();
-
     // Load analytics
     this.loadAnalytics();
-  }
-
-  private loadCaseStats(): void {
-    this.caseService.getAllCases().subscribe({
-      next: (cases: Case[]) => {
-        this.calculateStats(cases);
-      },
-      error: (error) => {
-        console.error('Error loading case statistics:', error);
-      }
-    });
   }
 
   private loadAnalytics(): void {
@@ -79,41 +55,6 @@ export class DashboardComponent implements OnInit {
         this.isLoadingAnalytics = false;
       }
     });
-  }
-
-  private calculateStats(cases: Case[]): void {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    this.pendingCount = cases.filter(c =>
-      c.status === 'pending_review' || c.status === 'draft' || c.status === 'Pending Review'
-    ).length;
-
-    this.underReviewCount = cases.filter(c =>
-      c.status === 'compliance_review' || c.status === 'background_verification' ||
-      c.status === 'Compliance Review' || c.status === 'Background Verification'
-    ).length;
-
-    this.approvedTodayCount = cases.filter(c => {
-      if (c.status !== 'approved' && c.status !== 'Approved') return false;
-      const lastUpdated = new Date(c.lastUpdated);
-      lastUpdated.setHours(0, 0, 0, 0);
-      return lastUpdated.getTime() === today.getTime();
-    }).length;
-
-    this.rejectedCount = cases.filter(c => c.status === 'rejected' || c.status === 'Rejected').length;
-  }
-
-  // Helper methods for charts
-  getRiskDistributionData(): { label: string; value: number; color: string }[] {
-    if (!this.analytics?.riskDistribution) return [];
-    return Object.entries(this.analytics.riskDistribution)
-      .filter(([_, value]) => value > 0)
-      .map(([label, value]) => ({
-        label,
-        value,
-        color: this.riskLevelColors[label] || '#6c757d'
-      }));
   }
 
   getStatusDistributionData(): { label: string; value: number; color: string }[] {
@@ -145,15 +86,17 @@ export class DashboardComponent implements OnInit {
   getMaxTrendValue(): number {
     const trends = this.getRecentTrends();
     if (trends.length === 0) return 0;
-    return Math.max(...trends.map(t => t.totalCases), 1);
+    return Math.max(
+      ...trends.map(t => t.totalCases),
+      ...trends.map(t => t.approvedCases),
+      ...trends.map(t => t.rejectedCases),
+      ...trends.map(t => t.pendingCases),
+      1
+    );
   }
 
   formatDate(dateStr: string): string {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
-
-  getTopPerformers(): UserPerformance[] {
-    return this.analytics?.topReviewers || [];
   }
 }
