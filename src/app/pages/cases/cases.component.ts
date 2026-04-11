@@ -24,6 +24,7 @@ export class CasesComponent implements OnInit {
   dateTo = '';
   showCreateModal = false;
   canCreateCase = false;
+  canEditCase = false;
   roleBanner: RoleBanner | null = null;
   isLoading = false;
 
@@ -61,6 +62,7 @@ export class CasesComponent implements OnInit {
   directorICError = '';
   directorPhoneError = '';
   directorEmailError = '';
+  assignedToError = '';
 
   // Touched flags
   businessNameTouched = false;
@@ -72,12 +74,59 @@ export class CasesComponent implements OnInit {
   directorICTouched = false;
   directorPhoneTouched = false;
   directorEmailTouched = false;
+  assignedToTouched = false;
 
   // All cases fetched from backend (before date filtering)
   allCases: Case[] = [];
 
   // File upload tracking
   selectedFiles: { [key: string]: File } = {};
+
+  // Document validation errors
+  businessLicenseError = '';
+  pciDssSaqError = '';
+  termsOfServiceError = '';
+  businessRegCertError = '';
+  directorGovIdError = '';
+  beneficialOwnershipError = '';
+
+  // Required document keys
+  requiredDocuments: string[] = [
+    'Business License',
+    'PCI DSS SAQ',
+    'Terms of Service',
+    'Business Registration Certificate',
+    'Director Government ID',
+    'Beneficial Ownership Declaration'
+  ];
+
+  // Edit case properties
+  showEditModal = false;
+  editingCaseId = '';
+  editCase = {
+    businessName: '',
+    registrationNumber: '',
+    businessType: '',
+    merchantCategory: '',
+    businessAddress: '',
+    directorName: '',
+    directorIC: '',
+    directorPhone: '',
+    directorEmail: '',
+    assignedTo: ''
+  };
+
+  // Edit validation errors
+  editBusinessNameError = '';
+  editRegistrationNumberError = '';
+  editBusinessTypeError = '';
+  editMerchantCategoryError = '';
+  editBusinessAddressError = '';
+  editDirectorNameError = '';
+  editDirectorICError = '';
+  editDirectorPhoneError = '';
+  editDirectorEmailError = '';
+  editAssignedToError = '';
 
   constructor(
     private authService: AuthService,
@@ -97,6 +146,7 @@ export class CasesComponent implements OnInit {
 
     // Check permission async - for now use sync check
     this.canCreateCase = ['admin', 'onboarding_officer'].includes(roleId);
+    this.canEditCase = ['admin', 'onboarding_officer'].includes(roleId);
     this.roleBanner = this.caseService.getRoleBanner(roleId, 'list');
     this.loadCases();
   }
@@ -234,6 +284,8 @@ export class CasesComponent implements OnInit {
     this.validateDirectorIC();
     this.validateDirectorPhone();
     this.validateDirectorEmail();
+    this.validateAssignedTo();
+    this.validateAllDocuments();
 
     if (this.hasFormErrors) {
       this.notificationService.show('Please fix the errors before submitting', 'error');
@@ -260,6 +312,27 @@ export class CasesComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.selectedFiles[fileType] = input.files[0];
+    } else {
+      delete this.selectedFiles[fileType];
+    }
+    this.validateDocumentField(fileType);
+  }
+
+  validateDocumentField(fileType: string): void {
+    const errorMsg = this.selectedFiles[fileType] ? '' : 'This field is required';
+    switch (fileType) {
+      case 'Business License': this.businessLicenseError = errorMsg; break;
+      case 'PCI DSS SAQ': this.pciDssSaqError = errorMsg; break;
+      case 'Terms of Service': this.termsOfServiceError = errorMsg; break;
+      case 'Business Registration Certificate': this.businessRegCertError = errorMsg; break;
+      case 'Director Government ID': this.directorGovIdError = errorMsg; break;
+      case 'Beneficial Ownership Declaration': this.beneficialOwnershipError = errorMsg; break;
+    }
+  }
+
+  validateAllDocuments(): void {
+    for (const doc of this.requiredDocuments) {
+      this.validateDocumentField(doc);
     }
   }
 
@@ -346,6 +419,11 @@ export class CasesComponent implements OnInit {
     }
   }
 
+  validateAssignedTo(): void {
+    if (!this.assignedToTouched) return;
+    this.assignedToError = this.newCase.assignedTo ? '' : 'Please select a compliance reviewer';
+  }
+
   markAllTouched(): void {
     this.businessNameTouched = true;
     this.registrationNumberTouched = true;
@@ -356,6 +434,7 @@ export class CasesComponent implements OnInit {
     this.directorICTouched = true;
     this.directorPhoneTouched = true;
     this.directorEmailTouched = true;
+    this.assignedToTouched = true;
   }
 
   get hasFormErrors(): boolean {
@@ -368,6 +447,13 @@ export class CasesComponent implements OnInit {
       || !this.newCase.directorIC.trim()
       || !this.newCase.directorPhone.trim()
       || !this.newCase.directorEmail.trim()
+      || !this.newCase.assignedTo
+      || !this.selectedFiles['Business License']
+      || !this.selectedFiles['PCI DSS SAQ']
+      || !this.selectedFiles['Terms of Service']
+      || !this.selectedFiles['Business Registration Certificate']
+      || !this.selectedFiles['Director Government ID']
+      || !this.selectedFiles['Beneficial Ownership Declaration']
       || !!this.businessNameError
       || !!this.registrationNumberError
       || !!this.businessTypeError
@@ -376,7 +462,14 @@ export class CasesComponent implements OnInit {
       || !!this.directorNameError
       || !!this.directorICError
       || !!this.directorPhoneError
-      || !!this.directorEmailError;
+      || !!this.directorEmailError
+      || !!this.assignedToError
+      || !!this.businessLicenseError
+      || !!this.pciDssSaqError
+      || !!this.termsOfServiceError
+      || !!this.businessRegCertError
+      || !!this.directorGovIdError
+      || !!this.beneficialOwnershipError;
   }
 
   resetValidation(): void {
@@ -389,6 +482,13 @@ export class CasesComponent implements OnInit {
     this.directorICError = '';
     this.directorPhoneError = '';
     this.directorEmailError = '';
+    this.assignedToError = '';
+    this.businessLicenseError = '';
+    this.pciDssSaqError = '';
+    this.termsOfServiceError = '';
+    this.businessRegCertError = '';
+    this.directorGovIdError = '';
+    this.beneficialOwnershipError = '';
     this.businessNameTouched = false;
     this.registrationNumberTouched = false;
     this.businessTypeTouched = false;
@@ -398,6 +498,7 @@ export class CasesComponent implements OnInit {
     this.directorICTouched = false;
     this.directorPhoneTouched = false;
     this.directorEmailTouched = false;
+    this.assignedToTouched = false;
   }
 
   private resetForm(): void {
@@ -432,5 +533,203 @@ export class CasesComponent implements OnInit {
     if (!input.value) {
       input.type = 'text';
     }
+  }
+
+  // ─── Edit Case Methods ────────────────────────────────────────
+
+  canEditCaseByStatus(c: Case): boolean {
+    if (!this.canEditCase) return false;
+    const status = c.status?.toLowerCase().replace(/[\s_]+/g, '_');
+    return status !== 'rejected' && status !== 'approved';
+  }
+
+  openEditModal(caseId: string): void {
+    this.caseService.getCaseById(caseId).subscribe({
+      next: (caseData) => {
+        if (!caseData) {
+          this.notificationService.show('Case not found', 'error');
+          return;
+        }
+        this.editingCaseId = caseId;
+        this.editCase = {
+          businessName: caseData.businessName || '',
+          registrationNumber: caseData.registrationNumber || '',
+          businessType: caseData.businessType || '',
+          merchantCategory: caseData.merchantCategory || '',
+          businessAddress: caseData.businessAddress || '',
+          directorName: caseData.directorName || '',
+          directorIC: caseData.directorIC || '',
+          directorPhone: caseData.directorPhone || '',
+          directorEmail: caseData.directorEmail || '',
+          assignedTo: caseData.assignedTo || ''
+        };
+        this.resetEditValidation();
+        this.showEditModal = true;
+        this.loadComplianceReviewers();
+      },
+      error: () => {
+        this.notificationService.show('Failed to load case for editing', 'error');
+      }
+    });
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.editingCaseId = '';
+    this.resetEditValidation();
+  }
+
+  saveEditCase(): void {
+    this.markAllTouched();
+    this.validateEditBusinessName();
+    this.validateEditRegistrationNumber();
+    this.validateEditBusinessType();
+    this.validateEditMerchantCategory();
+    this.validateEditBusinessAddress();
+    this.validateEditDirectorName();
+    this.validateEditDirectorIC();
+    this.validateEditDirectorPhone();
+    this.validateEditDirectorEmail();
+    this.validateEditAssignedTo();
+
+    if (this.hasEditFormErrors) {
+      this.notificationService.show('Please fix the errors before saving', 'error');
+      return;
+    }
+
+    this.caseService.updateCase(this.editingCaseId, this.editCase).subscribe({
+      next: () => {
+        this.caseService.addHistoryItem(this.editingCaseId, 'Case details updated').subscribe();
+        this.notificationService.show('Case updated successfully!', 'success');
+        this.closeEditModal();
+        this.loadCases();
+      },
+      error: (error) => {
+        console.error('Error updating case:', error);
+        this.notificationService.show(error?.error?.message || 'Failed to update case', 'error');
+      }
+    });
+  }
+
+  onEditModalBackdropClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal')) {
+      this.closeEditModal();
+    }
+  }
+
+  // ─── Edit Validation Methods ──────────────────────────────────
+
+  validateEditBusinessName(): void {
+    if (!this.businessNameTouched) return;
+    this.editBusinessNameError = this.editCase.businessName.trim() ? '' : 'Business name is required';
+  }
+
+  validateEditRegistrationNumber(): void {
+    if (!this.registrationNumberTouched) return;
+    this.editRegistrationNumberError = this.editCase.registrationNumber.trim() ? '' : 'Registration number is required';
+  }
+
+  validateEditBusinessType(): void {
+    if (!this.businessTypeTouched) return;
+    this.editBusinessTypeError = this.editCase.businessType ? '' : 'Please select a business type';
+  }
+
+  validateEditMerchantCategory(): void {
+    if (!this.merchantCategoryTouched) return;
+    this.editMerchantCategoryError = this.editCase.merchantCategory ? '' : 'Please select a merchant category';
+  }
+
+  validateEditBusinessAddress(): void {
+    if (!this.businessAddressTouched) return;
+    const address = this.editCase.businessAddress.trim();
+    if (!address) {
+      this.editBusinessAddressError = 'Business address is required';
+    } else if (address.length < 10) {
+      this.editBusinessAddressError = 'Business address must be at least 10 characters';
+    } else {
+      this.editBusinessAddressError = '';
+    }
+  }
+
+  validateEditDirectorName(): void {
+    if (!this.directorNameTouched) return;
+    this.editDirectorNameError = this.editCase.directorName.trim() ? '' : 'Director name is required';
+  }
+
+  validateEditDirectorIC(): void {
+    if (!this.directorICTouched) return;
+    const ic = this.editCase.directorIC.trim();
+    if (!ic) {
+      this.editDirectorICError = 'Director IC number is required';
+    } else if (!/^[0-9\-]+$/.test(ic)) {
+      this.editDirectorICError = 'IC number must contain only numbers';
+    } else {
+      this.editDirectorICError = '';
+    }
+  }
+
+  validateEditDirectorPhone(): void {
+    if (!this.directorPhoneTouched) return;
+    const phone = this.editCase.directorPhone.trim();
+    if (!phone) {
+      this.editDirectorPhoneError = 'Phone number is required';
+    } else if (!/^\+?[0-9]+$/.test(phone)) {
+      this.editDirectorPhoneError = 'Phone number must contain only numbers';
+    } else {
+      this.editDirectorPhoneError = '';
+    }
+  }
+
+  validateEditDirectorEmail(): void {
+    if (!this.directorEmailTouched) return;
+    const email = this.editCase.directorEmail.trim();
+    if (!email) {
+      this.editDirectorEmailError = 'Email address is required';
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+      this.editDirectorEmailError = 'Please enter a valid email address';
+    } else {
+      this.editDirectorEmailError = '';
+    }
+  }
+
+  validateEditAssignedTo(): void {
+    if (!this.assignedToTouched) return;
+    this.editAssignedToError = this.editCase.assignedTo ? '' : 'Please select a compliance reviewer';
+  }
+
+  get hasEditFormErrors(): boolean {
+    return !this.editCase.businessName.trim()
+      || !this.editCase.registrationNumber.trim()
+      || !this.editCase.businessType
+      || !this.editCase.merchantCategory
+      || !this.editCase.businessAddress.trim()
+      || !this.editCase.directorName.trim()
+      || !this.editCase.directorIC.trim()
+      || !this.editCase.directorPhone.trim()
+      || !this.editCase.directorEmail.trim()
+      || !this.editCase.assignedTo
+      || !!this.editBusinessNameError
+      || !!this.editRegistrationNumberError
+      || !!this.editBusinessTypeError
+      || !!this.editMerchantCategoryError
+      || !!this.editBusinessAddressError
+      || !!this.editDirectorNameError
+      || !!this.editDirectorICError
+      || !!this.editDirectorPhoneError
+      || !!this.editDirectorEmailError
+      || !!this.editAssignedToError;
+  }
+
+  resetEditValidation(): void {
+    this.editBusinessNameError = '';
+    this.editRegistrationNumberError = '';
+    this.editBusinessTypeError = '';
+    this.editMerchantCategoryError = '';
+    this.editBusinessAddressError = '';
+    this.editDirectorNameError = '';
+    this.editDirectorICError = '';
+    this.editDirectorPhoneError = '';
+    this.editDirectorEmailError = '';
+    this.editAssignedToError = '';
   }
 }

@@ -67,12 +67,13 @@
         <tr *ngFor="let c of cases">
           <td>{{ c.caseId }}</td>
           <td>{{ c.businessName }}</td>
-          <td>{{ c.merchantCategory }}</td>
+          <td>{{ c.businessType }}</td>
           <td><span>{{ c.status }}</span></td>
           <td>{{ c.createdDate | date:'dd/MM/yyyy' }}</td>
           <td>{{ c.assignedTo }}</td>
           <td>
             <button class="btn-small btn-primary" (click)="viewCase(c.caseId)">View</button>
+            <button *ngIf="canEditCaseByStatus(c)" class="btn-small btn-secondary" (click)="openEditModal(c.caseId)" style="margin-left: 0.25rem;">Edit</button>
           </td>
         </tr>
         <tr *ngIf="cases.length === 0">
@@ -102,7 +103,7 @@
           <h4>Business Information</h4>
           <div class="form-row">
             <div class="form-group">
-              <label for="businessName">Business Name *</label>
+              <label for="businessName">Business Name <span class="required-asterisk">*</span></label>
               <input type="text" id="businessName" [(ngModel)]="newCase.businessName" name="businessName" required
                      (focus)="businessNameTouched = true"
                      (ngModelChange)="validateBusinessName()"
@@ -110,7 +111,7 @@
               <small class="error-text" *ngIf="businessNameError">{{ businessNameError }}</small>
             </div>
             <div class="form-group">
-              <label for="registrationNumber">Registration Number *</label>
+              <label for="registrationNumber">Registration Number <span class="required-asterisk">*</span></label>
               <input type="text" id="registrationNumber" [(ngModel)]="newCase.registrationNumber" name="registrationNumber" required
                      (focus)="registrationNumberTouched = true"
                      (ngModelChange)="validateRegistrationNumber()"
@@ -121,21 +122,21 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="businessType">Business Type *</label>
+              <label for="businessType">Business Type <span class="required-asterisk">*</span></label>
               <select id="businessType" [(ngModel)]="newCase.businessType" name="businessType" required
                       (focus)="businessTypeTouched = true"
                       (ngModelChange)="validateBusinessType()"
                       [class.input-error]="businessTypeError">
                 <option value="">Select Business Type</option>
-                <option value="sole_proprietorship">Sole Proprietorship</option>
-                <option value="partnership">Partnership</option>
-                <option value="sdn_bhd">Sdn Bhd</option>
-                <option value="bhd">Bhd</option>
+                <option value="Sole Proprietorship">Sole Proprietorship</option>
+                <option value="Partnership">Partnership</option>
+                <option value="Sdn Bhd">Sdn Bhd</option>
+                <option value="Bhd">Bhd</option>
               </select>
               <small class="error-text" *ngIf="businessTypeError">{{ businessTypeError }}</small>
             </div>
             <div class="form-group">
-              <label for="merchantCategory">Merchant Category *</label>
+              <label for="merchantCategory">Merchant Category <span class="required-asterisk">*</span></label>
               <select id="merchantCategory" [(ngModel)]="newCase.merchantCategory" name="merchantCategory" required
                       (focus)="merchantCategoryTouched = true"
                       (ngModelChange)="validateMerchantCategory()"
@@ -151,7 +152,7 @@
           </div>
 
           <div class="form-group">
-            <label for="businessAddress">Business Address *</label>
+            <label for="businessAddress">Business Address <span class="required-asterisk">*</span></label>
             <textarea id="businessAddress" [(ngModel)]="newCase.businessAddress" name="businessAddress" rows="3" required
                       (focus)="businessAddressTouched = true"
                       (ngModelChange)="validateBusinessAddress()"
@@ -164,7 +165,7 @@
           <h4>Director Information</h4>
           <div class="form-row">
             <div class="form-group">
-              <label for="directorName">Director Name *</label>
+              <label for="directorName">Director Name <span class="required-asterisk">*</span></label>
               <input type="text" id="directorName" [(ngModel)]="newCase.directorName" name="directorName" required
                      (focus)="directorNameTouched = true"
                      (ngModelChange)="validateDirectorName()"
@@ -172,7 +173,7 @@
               <small class="error-text" *ngIf="directorNameError">{{ directorNameError }}</small>
             </div>
             <div class="form-group">
-              <label for="directorIC">Director IC Number *</label>
+              <label for="directorIC">Director IC Number <span class="required-asterisk">*</span></label>
               <input type="text" id="directorIC" [(ngModel)]="newCase.directorIC" name="directorIC" required
                      (focus)="directorICTouched = true"
                      (ngModelChange)="validateDirectorIC()"
@@ -183,7 +184,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="directorPhone">Phone Number *</label>
+              <label for="directorPhone">Phone Number <span class="required-asterisk">*</span></label>
               <input type="tel" id="directorPhone" [(ngModel)]="newCase.directorPhone" name="directorPhone" required
                      (focus)="directorPhoneTouched = true"
                      (ngModelChange)="validateDirectorPhone()"
@@ -191,7 +192,7 @@
               <small class="error-text" *ngIf="directorPhoneError">{{ directorPhoneError }}</small>
             </div>
             <div class="form-group">
-              <label for="directorEmail">Email Address *</label>
+              <label for="directorEmail">Email Address <span class="required-asterisk">*</span></label>
               <input type="email" id="directorEmail" [(ngModel)]="newCase.directorEmail" name="directorEmail" required
                      (focus)="directorEmailTouched = true"
                      (ngModelChange)="validateDirectorEmail()"
@@ -205,40 +206,73 @@
           <h4>Case Assignment</h4>
           <div class="form-row">
             <div class="form-group" style="flex: 1;">
-              <label for="assignedTo">Assign to Compliance Reviewer (Optional)</label>
-              <select id="assignedTo" [(ngModel)]="newCase.assignedTo" name="assignedTo" [disabled]="isLoadingReviewers">
-                <option value="">-- Select a Reviewer (can be assigned later) --</option>
+              <label for="assignedTo">Assign to Compliance Reviewer <span class="required-asterisk">*</span></label>
+              <select id="assignedTo" [(ngModel)]="newCase.assignedTo" name="assignedTo" required
+                      [disabled]="isLoadingReviewers"
+                      (focus)="assignedToTouched = true"
+                      (ngModelChange)="validateAssignedTo()"
+                      [class.input-error]="assignedToError">
+                <option value="">-- Select a Reviewer --</option>
                 <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.name">
                   {{ reviewer.name }} ({{ reviewer.email }})
                 </option>
               </select>
+              <small class="error-text" *ngIf="assignedToError">{{ assignedToError }}</small>
               <small *ngIf="isLoadingReviewers" class="loading-text">Loading reviewers...</small>
             </div>
           </div>
         </div>
 
         <div class="form-section">
-          <h4>Document Upload</h4>
+          <h4>Document Upload — Compliance Review</h4>
           <div class="upload-area">
             <div class="upload-group">
-              <label for="businessReg">Business Registration Certificate *</label>
-              <input type="file" id="businessReg" name="businessReg" accept=".pdf,.jpg,.png"
-                     (change)="onFileSelected($event, 'Business Registration')">
+              <label for="businessLicense">Business License <span class="required-asterisk">*</span></label>
+              <input type="file" id="businessLicense" name="businessLicense" accept=".pdf,.jpg,.png"
+                     (change)="onFileSelected($event, 'Business License')"
+                     [class.input-error]="businessLicenseError">
+              <small class="error-text" *ngIf="businessLicenseError">{{ businessLicenseError }}</small>
             </div>
             <div class="upload-group">
-              <label for="directorID">Director ID Copy *</label>
-              <input type="file" id="directorID" name="directorID" accept=".pdf,.jpg,.png"
-                     (change)="onFileSelected($event, 'Director ID')">
+              <label for="pciDssSaq">PCI DSS Self-Assessment Questionnaire <span class="required-asterisk">*</span></label>
+              <input type="file" id="pciDssSaq" name="pciDssSaq" accept=".pdf,.jpg,.png"
+                     (change)="onFileSelected($event, 'PCI DSS SAQ')"
+                     [class.input-error]="pciDssSaqError">
+              <small class="error-text" *ngIf="pciDssSaqError">{{ pciDssSaqError }}</small>
             </div>
             <div class="upload-group">
-              <label for="financialStatement">Financial Statement</label>
-              <input type="file" id="financialStatement" name="financialStatement" accept=".pdf,.xls,.xlsx"
-                     (change)="onFileSelected($event, 'Financial Statement')">
+              <label for="termsOfService">Terms of Service <span class="required-asterisk">*</span></label>
+              <input type="file" id="termsOfService" name="termsOfService" accept=".pdf,.jpg,.png"
+                     (change)="onFileSelected($event, 'Terms of Service')"
+                     [class.input-error]="termsOfServiceError">
+              <small class="error-text" *ngIf="termsOfServiceError">{{ termsOfServiceError }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Document Upload — Background Verification</h4>
+          <div class="upload-area">
+            <div class="upload-group">
+              <label for="businessRegCert">Business Registration Certificate <span class="required-asterisk">*</span></label>
+              <input type="file" id="businessRegCert" name="businessRegCert" accept=".pdf,.jpg,.png"
+                     (change)="onFileSelected($event, 'Business Registration Certificate')"
+                     [class.input-error]="businessRegCertError">
+              <small class="error-text" *ngIf="businessRegCertError">{{ businessRegCertError }}</small>
             </div>
             <div class="upload-group">
-              <label for="bankStatement">Bank Statement</label>
-              <input type="file" id="bankStatement" name="bankStatement" accept=".pdf"
-                     (change)="onFileSelected($event, 'Bank Statement')">
+              <label for="directorGovId">Director's Government ID <span class="required-asterisk">*</span></label>
+              <input type="file" id="directorGovId" name="directorGovId" accept=".pdf,.jpg,.png"
+                     (change)="onFileSelected($event, 'Director Government ID')"
+                     [class.input-error]="directorGovIdError">
+              <small class="error-text" *ngIf="directorGovIdError">{{ directorGovIdError }}</small>
+            </div>
+            <div class="upload-group">
+              <label for="beneficialOwnership">Beneficial Ownership Declaration <span class="required-asterisk">*</span></label>
+              <input type="file" id="beneficialOwnership" name="beneficialOwnership" accept=".pdf,.jpg,.png"
+                     (change)="onFileSelected($event, 'Beneficial Ownership Declaration')"
+                     [class.input-error]="beneficialOwnershipError">
+              <small class="error-text" *ngIf="beneficialOwnershipError">{{ beneficialOwnershipError }}</small>
             </div>
           </div>
         </div>
@@ -248,6 +282,147 @@
       <button type="button" (click)="closeCreateModal()" class="btn-secondary">Cancel</button>
       <button type="button" (click)="saveDraft()" class="btn-secondary">Save as Draft</button>
       <button type="button" (click)="submitCase()" class="btn-primary" [disabled]="hasFormErrors">Submit Case</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Case Modal -->
+<div *ngIf="showEditModal" class="modal" (click)="onEditModalBackdropClick($event)">
+  <div class="modal-content large-modal">
+    <div class="modal-header">
+      <h3>Edit Merchant Onboarding Case</h3>
+      <span class="close" (click)="closeEditModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form class="case-form">
+        <div class="form-section">
+          <h4>Business Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editBusinessName">Business Name <span class="required-asterisk">*</span></label>
+              <input type="text" id="editBusinessName" [(ngModel)]="editCase.businessName" name="editBusinessName" required
+                     (focus)="businessNameTouched = true"
+                     (ngModelChange)="validateEditBusinessName()"
+                     [class.input-error]="editBusinessNameError">
+              <small class="error-text" *ngIf="editBusinessNameError">{{ editBusinessNameError }}</small>
+            </div>
+            <div class="form-group">
+              <label for="editRegistrationNumber">Registration Number <span class="required-asterisk">*</span></label>
+              <input type="text" id="editRegistrationNumber" [(ngModel)]="editCase.registrationNumber" name="editRegistrationNumber" required
+                     (focus)="registrationNumberTouched = true"
+                     (ngModelChange)="validateEditRegistrationNumber()"
+                     [class.input-error]="editRegistrationNumberError">
+              <small class="error-text" *ngIf="editRegistrationNumberError">{{ editRegistrationNumberError }}</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editBusinessType">Business Type <span class="required-asterisk">*</span></label>
+              <select id="editBusinessType" [(ngModel)]="editCase.businessType" name="editBusinessType" required
+                      (focus)="businessTypeTouched = true"
+                      (ngModelChange)="validateEditBusinessType()"
+                      [class.input-error]="editBusinessTypeError">
+                <option value="">Select Business Type</option>
+                <option value="Sole Proprietorship">Sole Proprietorship</option>
+                <option value="Partnership">Partnership</option>
+                <option value="Sdn Bhd">Sdn Bhd</option>
+                <option value="Bhd">Bhd</option>
+              </select>
+              <small class="error-text" *ngIf="editBusinessTypeError">{{ editBusinessTypeError }}</small>
+            </div>
+            <div class="form-group">
+              <label for="editMerchantCategory">Merchant Category <span class="required-asterisk">*</span></label>
+              <select id="editMerchantCategory" [(ngModel)]="editCase.merchantCategory" name="editMerchantCategory" required
+                      (focus)="merchantCategoryTouched = true"
+                      (ngModelChange)="validateEditMerchantCategory()"
+                      [class.input-error]="editMerchantCategoryError">
+                <option value="">Select Category</option>
+                <option value="retail">Retail</option>
+                <option value="restaurant">Restaurant</option>
+                <option value="ecommerce">E-commerce</option>
+                <option value="services">Services</option>
+              </select>
+              <small class="error-text" *ngIf="editMerchantCategoryError">{{ editMerchantCategoryError }}</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editBusinessAddress">Business Address <span class="required-asterisk">*</span></label>
+            <textarea id="editBusinessAddress" [(ngModel)]="editCase.businessAddress" name="editBusinessAddress" rows="3" required
+                      (focus)="businessAddressTouched = true"
+                      (ngModelChange)="validateEditBusinessAddress()"
+                      [class.input-error]="editBusinessAddressError"></textarea>
+            <small class="error-text" *ngIf="editBusinessAddressError">{{ editBusinessAddressError }}</small>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Director Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editDirectorName">Director Name <span class="required-asterisk">*</span></label>
+              <input type="text" id="editDirectorName" [(ngModel)]="editCase.directorName" name="editDirectorName" required
+                     (focus)="directorNameTouched = true"
+                     (ngModelChange)="validateEditDirectorName()"
+                     [class.input-error]="editDirectorNameError">
+              <small class="error-text" *ngIf="editDirectorNameError">{{ editDirectorNameError }}</small>
+            </div>
+            <div class="form-group">
+              <label for="editDirectorIC">Director IC Number <span class="required-asterisk">*</span></label>
+              <input type="text" id="editDirectorIC" [(ngModel)]="editCase.directorIC" name="editDirectorIC" required
+                     (focus)="directorICTouched = true"
+                     (ngModelChange)="validateEditDirectorIC()"
+                     [class.input-error]="editDirectorICError">
+              <small class="error-text" *ngIf="editDirectorICError">{{ editDirectorICError }}</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editDirectorPhone">Phone Number <span class="required-asterisk">*</span></label>
+              <input type="tel" id="editDirectorPhone" [(ngModel)]="editCase.directorPhone" name="editDirectorPhone" required
+                     (focus)="directorPhoneTouched = true"
+                     (ngModelChange)="validateEditDirectorPhone()"
+                     [class.input-error]="editDirectorPhoneError">
+              <small class="error-text" *ngIf="editDirectorPhoneError">{{ editDirectorPhoneError }}</small>
+            </div>
+            <div class="form-group">
+              <label for="editDirectorEmail">Email Address <span class="required-asterisk">*</span></label>
+              <input type="email" id="editDirectorEmail" [(ngModel)]="editCase.directorEmail" name="editDirectorEmail" required
+                     (focus)="directorEmailTouched = true"
+                     (ngModelChange)="validateEditDirectorEmail()"
+                     [class.input-error]="editDirectorEmailError">
+              <small class="error-text" *ngIf="editDirectorEmailError">{{ editDirectorEmailError }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Case Assignment</h4>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label for="editAssignedTo">Assign to Compliance Reviewer <span class="required-asterisk">*</span></label>
+              <select id="editAssignedTo" [(ngModel)]="editCase.assignedTo" name="editAssignedTo" required
+                      [disabled]="isLoadingReviewers"
+                      (focus)="assignedToTouched = true"
+                      (ngModelChange)="validateEditAssignedTo()"
+                      [class.input-error]="editAssignedToError">
+                <option value="">-- Select a Reviewer --</option>
+                <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.name">
+                  {{ reviewer.name }} ({{ reviewer.email }})
+                </option>
+              </select>
+              <small class="error-text" *ngIf="editAssignedToError">{{ editAssignedToError }}</small>
+              <small *ngIf="isLoadingReviewers" class="loading-text">Loading reviewers...</small>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="closeEditModal()" class="btn-secondary">Cancel</button>
+      <button type="button" (click)="saveEditCase()" class="btn-primary" [disabled]="hasEditFormErrors">Save Changes</button>
     </div>
   </div>
 </div>

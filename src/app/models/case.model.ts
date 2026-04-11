@@ -12,7 +12,6 @@ export interface Case {
   status: string;
   createdDate: string;
   assignedTo: string;
-  priority: string;
   lastUpdated: string;
   documents: CaseDocument[];
   history: CaseHistoryItem[];

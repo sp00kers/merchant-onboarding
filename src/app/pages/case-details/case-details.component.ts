@@ -44,6 +44,39 @@ export class CaseDetailsComponent implements OnInit {
   verificationTypeLabels = VERIFICATION_TYPE_LABELS;
   verificationTypeIcons = VERIFICATION_TYPE_ICONS;
 
+  // Edit case properties
+  showEditModal = false;
+  editCaseData = {
+    businessName: '',
+    registrationNumber: '',
+    businessType: '',
+    merchantCategory: '',
+    businessAddress: '',
+    directorName: '',
+    directorIC: '',
+    directorPhone: '',
+    directorEmail: '',
+    assignedTo: ''
+  };
+  editErrors: Record<string, string> & {
+    businessName: string; registrationNumber: string; businessType: string;
+    merchantCategory: string; businessAddress: string; directorName: string;
+    directorIC: string; directorPhone: string; directorEmail: string; assignedTo: string;
+  } = {
+    businessName: '', registrationNumber: '', businessType: '',
+    merchantCategory: '', businessAddress: '', directorName: '',
+    directorIC: '', directorPhone: '', directorEmail: '', assignedTo: ''
+  };
+  editTouched: Record<string, boolean> & {
+    businessName: boolean; registrationNumber: boolean; businessType: boolean;
+    merchantCategory: boolean; businessAddress: boolean; directorName: boolean;
+    directorIC: boolean; directorPhone: boolean; directorEmail: boolean; assignedTo: boolean;
+  } = {
+    businessName: false, registrationNumber: false, businessType: false,
+    merchantCategory: false, businessAddress: false, directorName: false,
+    directorIC: false, directorPhone: false, directorEmail: false, assignedTo: false
+  };
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -131,29 +164,29 @@ export class CaseDetailsComponent implements OnInit {
 
   /**
    * Returns the current workflow step index (0-based) based on case status.
-   * 0 = Data Entry, 1 = Compliance Review, 2 = Background Verification, 3 = Final Approval
+   * 0 = Data Entry, 1 = Background Verification, 2 = Compliance Review, 3 = Final Approval
    * -1 = Rejected
    */
   get workflowStep(): number {
-    if (!this.caseData) return 0;
+    if (!this.caseData) return 1;
     const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
     switch (status) {
       case 'draft':
       case 'pending_review':
       case 'pending review':
-        return 0;
-      case 'compliance_review':
-      case 'compliance review':
         return 1;
       case 'background_verification':
       case 'background verification':
+        return 1;
+      case 'compliance_review':
+      case 'compliance review':
         return 2;
       case 'approved':
         return 3;
       case 'rejected':
         return -1;
       default:
-        return 0;
+        return 1;
     }
   }
 
@@ -476,6 +509,147 @@ export class CaseDetailsComponent implements OnInit {
 
   get canTriggerVerification(): boolean {
     return this.roleId === 'verifier' || this.roleId === 'compliance_reviewer' || this.roleId === 'admin';
+  }
+
+  // ─── Edit Case Methods ────────────────────────────────────────
+
+  get canEditCase(): boolean {
+    if (!this.caseData) return false;
+    const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
+    if (status === 'rejected' || status === 'approved') return false;
+    return this.roleId === 'onboarding_officer' || this.roleId === 'admin';
+  }
+
+  openEditModal(): void {
+    if (!this.caseData) return;
+    this.showActionDropdown = false;
+    this.editCaseData = {
+      businessName: this.caseData.businessName || '',
+      registrationNumber: this.caseData.registrationNumber || '',
+      businessType: this.caseData.businessType || '',
+      merchantCategory: this.caseData.merchantCategory || '',
+      businessAddress: this.caseData.businessAddress || '',
+      directorName: this.caseData.directorName || '',
+      directorIC: this.caseData.directorIC || '',
+      directorPhone: this.caseData.directorPhone || '',
+      directorEmail: this.caseData.directorEmail || '',
+      assignedTo: this.caseData.assignedTo || ''
+    };
+    this.editErrors = {
+      businessName: '', registrationNumber: '', businessType: '',
+      merchantCategory: '', businessAddress: '', directorName: '',
+      directorIC: '', directorPhone: '', directorEmail: '', assignedTo: ''
+    };
+    this.editTouched = {
+      businessName: false, registrationNumber: false, businessType: false,
+      merchantCategory: false, businessAddress: false, directorName: false,
+      directorIC: false, directorPhone: false, directorEmail: false, assignedTo: false
+    };
+    this.showEditModal = true;
+    this.loadComplianceReviewers();
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.editErrors = {
+      businessName: '', registrationNumber: '', businessType: '',
+      merchantCategory: '', businessAddress: '', directorName: '',
+      directorIC: '', directorPhone: '', directorEmail: '', assignedTo: ''
+    };
+    this.editTouched = {
+      businessName: false, registrationNumber: false, businessType: false,
+      merchantCategory: false, businessAddress: false, directorName: false,
+      directorIC: false, directorPhone: false, directorEmail: false, assignedTo: false
+    };
+  }
+
+  saveEditCase(): void {
+    // Mark all touched
+    const fields = ['businessName', 'registrationNumber', 'businessType', 'merchantCategory',
+      'businessAddress', 'directorName', 'directorIC', 'directorPhone', 'directorEmail', 'assignedTo'];
+    fields.forEach(f => {
+      this.editTouched[f] = true;
+      this.validateEditField(f);
+    });
+
+    if (this.hasEditFormErrors) {
+      this.notificationService.show('Please fix the errors before saving', 'error');
+      return;
+    }
+
+    this.caseService.updateCase(this.caseData!.caseId, this.editCaseData).subscribe({
+      next: () => {
+        this.caseService.addHistoryItem(this.caseData!.caseId, 'Case details updated').subscribe();
+        this.notificationService.show('Case updated successfully!', 'success');
+        this.closeEditModal();
+        this.loadCase(this.caseData!.caseId);
+      },
+      error: (error) => {
+        console.error('Error updating case:', error);
+        this.notificationService.show(error?.error?.message || 'Failed to update case', 'error');
+      }
+    });
+  }
+
+  validateEditField(field: string): void {
+    if (!this.editTouched[field]) return;
+    const val = (this.editCaseData as any)[field]?.trim?.() ?? (this.editCaseData as any)[field];
+
+    switch (field) {
+      case 'businessName':
+        this.editErrors[field] = val ? '' : 'Business name is required';
+        break;
+      case 'registrationNumber':
+        this.editErrors[field] = val ? '' : 'Registration number is required';
+        break;
+      case 'businessType':
+        this.editErrors[field] = val ? '' : 'Please select a business type';
+        break;
+      case 'merchantCategory':
+        this.editErrors[field] = val ? '' : 'Please select a merchant category';
+        break;
+      case 'businessAddress':
+        if (!val) this.editErrors[field] = 'Business address is required';
+        else if (val.length < 10) this.editErrors[field] = 'Business address must be at least 10 characters';
+        else this.editErrors[field] = '';
+        break;
+      case 'directorName':
+        this.editErrors[field] = val ? '' : 'Director name is required';
+        break;
+      case 'directorIC':
+        if (!val) this.editErrors[field] = 'Director IC number is required';
+        else if (!/^[0-9\-]+$/.test(val)) this.editErrors[field] = 'IC number must contain only numbers';
+        else this.editErrors[field] = '';
+        break;
+      case 'directorPhone':
+        if (!val) this.editErrors[field] = 'Phone number is required';
+        else if (!/^\+?[0-9]+$/.test(val)) this.editErrors[field] = 'Phone number must contain only numbers';
+        else this.editErrors[field] = '';
+        break;
+      case 'directorEmail':
+        if (!val) this.editErrors[field] = 'Email address is required';
+        else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) this.editErrors[field] = 'Please enter a valid email address';
+        else this.editErrors[field] = '';
+        break;
+      case 'assignedTo':
+        this.editErrors[field] = val ? '' : 'Please select a compliance reviewer';
+        break;
+    }
+  }
+
+  get hasEditFormErrors(): boolean {
+    const d = this.editCaseData;
+    return !d.businessName.trim() || !d.registrationNumber.trim() || !d.businessType
+      || !d.merchantCategory || !d.businessAddress.trim() || !d.directorName.trim()
+      || !d.directorIC.trim() || !d.directorPhone.trim() || !d.directorEmail.trim()
+      || !d.assignedTo
+      || Object.values(this.editErrors).some(e => !!e);
+  }
+
+  onEditModalBackdropClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal')) {
+      this.closeEditModal();
+    }
   }
 
 }

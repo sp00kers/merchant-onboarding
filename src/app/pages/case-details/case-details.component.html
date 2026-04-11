@@ -22,6 +22,9 @@
             <button *ngIf="showReassign" class="dropdown-item" (click)="assignCase()">
               <span class="dropdown-icon">👥</span>Reassign Case
             </button>
+            <button *ngIf="canEditCase" class="dropdown-item" (click)="openEditModal()">
+              <span class="dropdown-icon">✏️</span>Edit Case
+            </button>
           </div>
         </div>
       </div>
@@ -48,12 +51,12 @@
       </div>
       <div class="step" [ngClass]="getStepClass(1)">
         <div class="step-circle">{{ getStepCircle(1) }}</div>
-        <div class="step-label">Compliance Review</div>
+        <div class="step-label">Background Verification</div>
         <div class="step-line" [ngClass]="getStepClass(1)"></div>
       </div>
       <div class="step" [ngClass]="getStepClass(2)">
         <div class="step-circle">{{ getStepCircle(2) }}</div>
-        <div class="step-label">Background Verification</div>
+        <div class="step-label">Compliance Review</div>
         <div class="step-line" [ngClass]="getStepClass(2)"></div>
       </div>
       <div class="step" [ngClass]="getStepClass(3)">
@@ -105,10 +108,6 @@
           <div class="info-item">
             <label>Assigned To:</label>
             <span>{{ caseData.assignedTo }}</span>
-          </div>
-          <div class="info-item">
-            <label>Priority:</label>
-            <span>{{ caseData.priority }}</span>
           </div>
           <div class="info-item">
             <label>Last Updated:</label>
@@ -203,12 +202,6 @@
               <span class="stat-value">{{ verificationSummary.failedCount }}</span>
               <span class="stat-label">Failed</span>
             </div>
-            <div class="summary-stat">
-              <span class="stat-value" [ngClass]="getConfidenceClass(verificationSummary.averageConfidenceScore)">
-                {{ verificationSummary.averageConfidenceScore }}%
-              </span>
-              <span class="stat-label">Avg Score</span>
-            </div>
           </div>
           <div class="recommendation-badge" [ngClass]="getRecommendationClass(verificationSummary.recommendation)">
             {{ getRecommendationText(verificationSummary.recommendation) }}
@@ -258,7 +251,7 @@
 
   <!-- Available Actions Section at Bottom -->
   <div class="available-actions-section">
-    <h3>Available Actions</h3>
+    <h3>Final Approval</h3>
     <div class="actions-layout">
 
       <!-- Compliance Reviewer actions (only assigned reviewer) -->
@@ -352,6 +345,147 @@
       <button type="button" (click)="confirmAssignment()" class="btn-primary" [disabled]="!selectedReviewerId || isLoadingReviewers">
         Assign Reviewer
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Case Modal -->
+<div *ngIf="showEditModal" class="modal" (click)="onEditModalBackdropClick($event)">
+  <div class="modal-content large-modal">
+    <div class="modal-header">
+      <h3>Edit Merchant Onboarding Case</h3>
+      <span class="close" (click)="closeEditModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form class="case-form">
+        <div class="form-section">
+          <h4>Business Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editBusinessName">Business Name *</label>
+              <input type="text" id="editBusinessName" [(ngModel)]="editCaseData.businessName" name="editBusinessName" required
+                     (focus)="editTouched.businessName = true"
+                     (ngModelChange)="validateEditField('businessName')"
+                     [class.input-error]="editErrors.businessName">
+              <small class="error-text" *ngIf="editErrors.businessName">{{ editErrors.businessName }}</small>
+            </div>
+            <div class="form-group">
+              <label for="editRegistrationNumber">Registration Number *</label>
+              <input type="text" id="editRegistrationNumber" [(ngModel)]="editCaseData.registrationNumber" name="editRegistrationNumber" required
+                     (focus)="editTouched.registrationNumber = true"
+                     (ngModelChange)="validateEditField('registrationNumber')"
+                     [class.input-error]="editErrors.registrationNumber">
+              <small class="error-text" *ngIf="editErrors.registrationNumber">{{ editErrors.registrationNumber }}</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editBusinessType">Business Type *</label>
+              <select id="editBusinessType" [(ngModel)]="editCaseData.businessType" name="editBusinessType" required
+                      (focus)="editTouched.businessType = true"
+                      (ngModelChange)="validateEditField('businessType')"
+                      [class.input-error]="editErrors.businessType">
+                <option value="">Select Business Type</option>
+                <option value="Sole Proprietorship">Sole Proprietorship</option>
+                <option value="Partnership">Partnership</option>
+                <option value="Sdn Bhd">Sdn Bhd</option>
+                <option value="Bhd">Bhd</option>
+              </select>
+              <small class="error-text" *ngIf="editErrors.businessType">{{ editErrors.businessType }}</small>
+            </div>
+            <div class="form-group">
+              <label for="editMerchantCategory">Merchant Category *</label>
+              <select id="editMerchantCategory" [(ngModel)]="editCaseData.merchantCategory" name="editMerchantCategory" required
+                      (focus)="editTouched.merchantCategory = true"
+                      (ngModelChange)="validateEditField('merchantCategory')"
+                      [class.input-error]="editErrors.merchantCategory">
+                <option value="">Select Category</option>
+                <option value="retail">Retail</option>
+                <option value="restaurant">Restaurant</option>
+                <option value="ecommerce">E-commerce</option>
+                <option value="services">Services</option>
+              </select>
+              <small class="error-text" *ngIf="editErrors.merchantCategory">{{ editErrors.merchantCategory }}</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editBusinessAddress">Business Address *</label>
+            <textarea id="editBusinessAddress" [(ngModel)]="editCaseData.businessAddress" name="editBusinessAddress" rows="3" required
+                      (focus)="editTouched.businessAddress = true"
+                      (ngModelChange)="validateEditField('businessAddress')"
+                      [class.input-error]="editErrors.businessAddress"></textarea>
+            <small class="error-text" *ngIf="editErrors.businessAddress">{{ editErrors.businessAddress }}</small>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Director Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editDirectorName">Director Name *</label>
+              <input type="text" id="editDirectorName" [(ngModel)]="editCaseData.directorName" name="editDirectorName" required
+                     (focus)="editTouched.directorName = true"
+                     (ngModelChange)="validateEditField('directorName')"
+                     [class.input-error]="editErrors.directorName">
+              <small class="error-text" *ngIf="editErrors.directorName">{{ editErrors.directorName }}</small>
+            </div>
+            <div class="form-group">
+              <label for="editDirectorIC">Director IC Number *</label>
+              <input type="text" id="editDirectorIC" [(ngModel)]="editCaseData.directorIC" name="editDirectorIC" required
+                     (focus)="editTouched.directorIC = true"
+                     (ngModelChange)="validateEditField('directorIC')"
+                     [class.input-error]="editErrors.directorIC">
+              <small class="error-text" *ngIf="editErrors.directorIC">{{ editErrors.directorIC }}</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editDirectorPhone">Phone Number *</label>
+              <input type="tel" id="editDirectorPhone" [(ngModel)]="editCaseData.directorPhone" name="editDirectorPhone" required
+                     (focus)="editTouched.directorPhone = true"
+                     (ngModelChange)="validateEditField('directorPhone')"
+                     [class.input-error]="editErrors.directorPhone">
+              <small class="error-text" *ngIf="editErrors.directorPhone">{{ editErrors.directorPhone }}</small>
+            </div>
+            <div class="form-group">
+              <label for="editDirectorEmail">Email Address *</label>
+              <input type="email" id="editDirectorEmail" [(ngModel)]="editCaseData.directorEmail" name="editDirectorEmail" required
+                     (focus)="editTouched.directorEmail = true"
+                     (ngModelChange)="validateEditField('directorEmail')"
+                     [class.input-error]="editErrors.directorEmail">
+              <small class="error-text" *ngIf="editErrors.directorEmail">{{ editErrors.directorEmail }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Case Assignment</h4>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label for="editAssignedTo">Assign to Compliance Reviewer *</label>
+              <select id="editAssignedTo" [(ngModel)]="editCaseData.assignedTo" name="editAssignedTo" required
+                      [disabled]="isLoadingReviewers"
+                      (focus)="editTouched.assignedTo = true"
+                      (ngModelChange)="validateEditField('assignedTo')"
+                      [class.input-error]="editErrors.assignedTo">
+                <option value="">-- Select a Reviewer --</option>
+                <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.name">
+                  {{ reviewer.name }} ({{ reviewer.email }})
+                </option>
+              </select>
+              <small class="error-text" *ngIf="editErrors.assignedTo">{{ editErrors.assignedTo }}</small>
+              <small *ngIf="isLoadingReviewers" class="loading-text">Loading reviewers...</small>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" (click)="closeEditModal()" class="btn-secondary">Cancel</button>
+      <button type="button" (click)="saveEditCase()" class="btn-primary" [disabled]="hasEditFormErrors">Save Changes</button>
     </div>
   </div>
 </div>

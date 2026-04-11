@@ -2695,10 +2695,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border-left: 3px solid #3498db;
 }
 
 .info-item.full-width {

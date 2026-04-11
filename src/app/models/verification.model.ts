@@ -19,7 +19,6 @@ export interface VerificationSummary {
   completedCount: number;
   pendingCount: number;
   failedCount: number;
-  averageConfidenceScore: number;
   overallStatus: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'ISSUES_FOUND';
   recommendation: 'PENDING_VERIFICATION' | 'AUTO_APPROVE' | 'MANUAL_REVIEW' | 'ENHANCED_DUE_DILIGENCE' | 'REJECTION_RECOMMENDED';
 }
