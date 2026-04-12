@@ -162,9 +162,25 @@ export class CaseDetailsComponent implements OnInit {
     this.router.navigate(['/cases']);
   }
 
+  // Document category filters
+  private readonly bgVerificationDocTypes = [
+    'Business Registration Certificate', 'Director Government ID', 'Beneficial Ownership Declaration'
+  ];
+  private readonly complianceDocTypes = [
+    'Business License', 'PCI DSS SAQ', 'Terms of Service'
+  ];
+
+  get backgroundVerificationDocs() {
+    return this.caseData?.documents?.filter(d => this.bgVerificationDocTypes.includes(d.name)) ?? [];
+  }
+
+  get complianceReviewDocs() {
+    return this.caseData?.documents?.filter(d => this.complianceDocTypes.includes(d.name)) ?? [];
+  }
+
   /**
    * Returns the current workflow step index (0-based) based on case status.
-   * 0 = Data Entry, 1 = Background Verification, 2 = Compliance Review, 3 = Final Approval
+   * 0 = Data Entry, 1 = Pending Review, 2 = Background Verification, 3 = Compliance Review, 4 = Final Approval
    * -1 = Rejected
    */
   get workflowStep(): number {
@@ -172,17 +188,18 @@ export class CaseDetailsComponent implements OnInit {
     const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
     switch (status) {
       case 'draft':
+        return 0;
       case 'pending_review':
       case 'pending review':
         return 1;
       case 'background_verification':
       case 'background verification':
-        return 1;
+        return 2;
       case 'compliance_review':
       case 'compliance review':
-        return 2;
-      case 'approved':
         return 3;
+      case 'approved':
+        return 4;
       case 'rejected':
         return -1;
       default:
@@ -197,7 +214,7 @@ export class CaseDetailsComponent implements OnInit {
       return stepIndex === 0 ? 'completed' : 'rejected';
     }
     if (stepIndex < current) return 'completed';
-    if (stepIndex === current) return current === 3 ? 'completed' : 'active';
+    if (stepIndex === current) return current === 4 ? 'completed' : 'active';
     return '';
   }
 
@@ -230,14 +247,44 @@ export class CaseDetailsComponent implements OnInit {
 
   // Case actions
   approveStep(): void {
-    if (confirm('Are you sure you want to approve this case?')) {
-      if (this.caseData) {
+    if (!this.caseData) return;
+    const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
+
+    if (status === 'pending_review' || status === 'pending review') {
+      // Pending Review → Background Verification
+      if (confirm('Approve this case to proceed to Background Verification?')) {
+        this.caseService.updateCaseStatus(this.caseData.caseId, 'Background Verification').subscribe({
+          next: () => {
+            this.caseService.addHistoryItem(this.caseData!.caseId, 'Case approved for background verification').subscribe({
+              next: () => this.loadCase(this.caseData!.caseId)
+            });
+            this.notificationService.show('Case approved! Moving to Background Verification...', 'success');
+          },
+          error: () => this.notificationService.show('Failed to approve case', 'error')
+        });
+      }
+    } else if (status === 'compliance_review' || status === 'compliance review') {
+      // Compliance Review → Approved
+      if (confirm('Are you sure you want to give final approval for this case?')) {
+        this.caseService.updateCaseStatus(this.caseData.caseId, 'Approved').subscribe({
+          next: () => {
+            this.caseService.addHistoryItem(this.caseData!.caseId, 'Case approved — final approval granted').subscribe({
+              next: () => this.loadCase(this.caseData!.caseId)
+            });
+            this.notificationService.show('Case approved successfully!', 'success');
+          },
+          error: () => this.notificationService.show('Failed to approve case', 'error')
+        });
+      }
+    } else {
+      // Default fallback
+      if (confirm('Are you sure you want to approve this case?')) {
         this.caseService.updateCaseStatus(this.caseData.caseId, 'Approved').subscribe({
           next: () => {
             this.caseService.addHistoryItem(this.caseData!.caseId, 'Case approved').subscribe({
               next: () => this.loadCase(this.caseData!.caseId)
             });
-            this.notificationService.show('Case approved successfully! Moving to next stage...', 'success');
+            this.notificationService.show('Case approved successfully!', 'success');
           },
           error: () => this.notificationService.show('Failed to approve case', 'error')
         });
@@ -262,12 +309,14 @@ export class CaseDetailsComponent implements OnInit {
   }
 
   completeVerification(): void {
-    if (confirm('Are you sure you want to mark verification as complete?')) {
+    if (confirm('Are you sure you want to mark verification as complete? This will move the case to Compliance Review.')) {
       if (this.caseData) {
-        this.caseService.addHistoryItem(this.caseData.caseId, 'Background verification completed').subscribe({
+        this.caseService.updateCaseStatus(this.caseData.caseId, 'Compliance Review').subscribe({
           next: () => {
-            this.loadCase(this.caseData!.caseId);
-            this.notificationService.show('Verification completed successfully!', 'success');
+            this.caseService.addHistoryItem(this.caseData!.caseId, 'Background verification completed — moving to Compliance Review').subscribe({
+              next: () => this.loadCase(this.caseData!.caseId)
+            });
+            this.notificationService.show('Verification completed! Moving to Compliance Review...', 'success');
           },
           error: () => this.notificationService.show('Failed to complete verification', 'error')
         });

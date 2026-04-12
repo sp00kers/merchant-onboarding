@@ -51,8 +51,16 @@ export class CaseService {
     return this.http.post<Case>(this.apiUrl, caseData);
   }
 
+  saveDraftCase(caseData: Partial<Case>): Observable<Case> {
+    return this.http.post<Case>(`${this.apiUrl}/draft`, caseData);
+  }
+
   updateCase(caseId: string, caseData: Partial<Case>): Observable<Case> {
     return this.http.put<Case>(`${this.apiUrl}/${caseId}`, caseData);
+  }
+
+  updateDraftCase(caseId: string, caseData: Partial<Case>): Observable<Case> {
+    return this.http.put<Case>(`${this.apiUrl}/${caseId}/draft`, caseData);
   }
 
   deleteCase(caseId: string): Observable<void> {

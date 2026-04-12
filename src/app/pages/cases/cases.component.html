@@ -72,8 +72,8 @@
           <td>{{ c.createdDate | date:'dd/MM/yyyy' }}</td>
           <td>{{ c.assignedTo }}</td>
           <td>
-            <button class="btn-small btn-primary" (click)="viewCase(c.caseId)">View</button>
-            <button *ngIf="canEditCaseByStatus(c)" class="btn-small btn-secondary" (click)="openEditModal(c.caseId)" style="margin-left: 0.25rem;">Edit</button>
+            <button *ngIf="c.status !== 'Draft'" class="btn-small btn-primary" (click)="viewCase(c.caseId)">View</button>
+            <button *ngIf="canEditCaseByStatus(c)" class="btn-small btn-edit" (click)="openEditModal(c.caseId)" style="margin-left: 0.25rem;">Edit</button>
           </td>
         </tr>
         <tr *ngIf="cases.length === 0">
@@ -280,7 +280,7 @@
     </div>
     <div class="modal-footer">
       <button type="button" (click)="closeCreateModal()" class="btn-secondary">Cancel</button>
-      <button type="button" (click)="saveDraft()" class="btn-secondary">Save as Draft</button>
+      <button type="button" (click)="saveDraft()" class="btn-draft">Save as Draft</button>
       <button type="button" (click)="submitCase()" class="btn-primary" [disabled]="hasFormErrors">Submit Case</button>
     </div>
   </div>
@@ -418,11 +418,73 @@
             </div>
           </div>
         </div>
+
+        <div class="form-section">
+          <h4>Document Upload — Compliance Review</h4>
+          <div class="upload-area">
+            <div class="upload-group">
+              <label for="editBusinessLicense">Business License <span class="required-asterisk">*</span></label>
+              <span class="existing-doc" *ngIf="existingDocuments['Business License']">✅ Uploaded: {{ existingDocuments['Business License'] }}</span>
+              <input type="file" id="editBusinessLicense" name="editBusinessLicense" accept=".pdf,.jpg,.png"
+                     (change)="onEditFileSelected($event, 'Business License')"
+                     [class.input-error]="editBusinessLicenseError">
+              <small class="error-text" *ngIf="editBusinessLicenseError">{{ editBusinessLicenseError }}</small>
+            </div>
+            <div class="upload-group">
+              <label for="editPciDssSaq">PCI DSS Self-Assessment Questionnaire <span class="required-asterisk">*</span></label>
+              <span class="existing-doc" *ngIf="existingDocuments['PCI DSS SAQ']">✅ Uploaded: {{ existingDocuments['PCI DSS SAQ'] }}</span>
+              <input type="file" id="editPciDssSaq" name="editPciDssSaq" accept=".pdf,.jpg,.png"
+                     (change)="onEditFileSelected($event, 'PCI DSS SAQ')"
+                     [class.input-error]="editPciDssSaqError">
+              <small class="error-text" *ngIf="editPciDssSaqError">{{ editPciDssSaqError }}</small>
+            </div>
+            <div class="upload-group">
+              <label for="editTermsOfService">Terms of Service <span class="required-asterisk">*</span></label>
+              <span class="existing-doc" *ngIf="existingDocuments['Terms of Service']">✅ Uploaded: {{ existingDocuments['Terms of Service'] }}</span>
+              <input type="file" id="editTermsOfService" name="editTermsOfService" accept=".pdf,.jpg,.png"
+                     (change)="onEditFileSelected($event, 'Terms of Service')"
+                     [class.input-error]="editTermsOfServiceError">
+              <small class="error-text" *ngIf="editTermsOfServiceError">{{ editTermsOfServiceError }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>Document Upload — Background Verification</h4>
+          <div class="upload-area">
+            <div class="upload-group">
+              <label for="editBusinessRegCert">Business Registration Certificate <span class="required-asterisk">*</span></label>
+              <span class="existing-doc" *ngIf="existingDocuments['Business Registration Certificate']">✅ Uploaded: {{ existingDocuments['Business Registration Certificate'] }}</span>
+              <input type="file" id="editBusinessRegCert" name="editBusinessRegCert" accept=".pdf,.jpg,.png"
+                     (change)="onEditFileSelected($event, 'Business Registration Certificate')"
+                     [class.input-error]="editBusinessRegCertError">
+              <small class="error-text" *ngIf="editBusinessRegCertError">{{ editBusinessRegCertError }}</small>
+            </div>
+            <div class="upload-group">
+              <label for="editDirectorGovId">Director's Government ID <span class="required-asterisk">*</span></label>
+              <span class="existing-doc" *ngIf="existingDocuments['Director Government ID']">✅ Uploaded: {{ existingDocuments['Director Government ID'] }}</span>
+              <input type="file" id="editDirectorGovId" name="editDirectorGovId" accept=".pdf,.jpg,.png"
+                     (change)="onEditFileSelected($event, 'Director Government ID')"
+                     [class.input-error]="editDirectorGovIdError">
+              <small class="error-text" *ngIf="editDirectorGovIdError">{{ editDirectorGovIdError }}</small>
+            </div>
+            <div class="upload-group">
+              <label for="editBeneficialOwnership">Beneficial Ownership Declaration <span class="required-asterisk">*</span></label>
+              <span class="existing-doc" *ngIf="existingDocuments['Beneficial Ownership Declaration']">✅ Uploaded: {{ existingDocuments['Beneficial Ownership Declaration'] }}</span>
+              <input type="file" id="editBeneficialOwnership" name="editBeneficialOwnership" accept=".pdf,.jpg,.png"
+                     (change)="onEditFileSelected($event, 'Beneficial Ownership Declaration')"
+                     [class.input-error]="editBeneficialOwnershipError">
+              <small class="error-text" *ngIf="editBeneficialOwnershipError">{{ editBeneficialOwnershipError }}</small>
+            </div>
+          </div>
+        </div>
       </form>
     </div>
     <div class="modal-footer">
       <button type="button" (click)="closeEditModal()" class="btn-secondary">Cancel</button>
-      <button type="button" (click)="saveEditCase()" class="btn-primary" [disabled]="hasEditFormErrors">Save Changes</button>
+      <button *ngIf="editingCaseStatus === 'Draft'" type="button" (click)="saveEditDraft()" class="btn-draft">Save as Draft</button>
+      <button *ngIf="editingCaseStatus === 'Draft'" type="button" (click)="submitEditCase()" class="btn-primary" [disabled]="hasEditSubmitErrors">Submit Case</button>
+      <button *ngIf="editingCaseStatus !== 'Draft'" type="button" (click)="saveEditCase()" class="btn-primary" [disabled]="hasEditFormErrors">Save Changes</button>
     </div>
   </div>
 </div>

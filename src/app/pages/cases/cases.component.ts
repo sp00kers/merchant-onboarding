@@ -103,6 +103,7 @@ export class CasesComponent implements OnInit {
   // Edit case properties
   showEditModal = false;
   editingCaseId = '';
+  editingCaseStatus = '';
   editCase = {
     businessName: '',
     registrationNumber: '',
@@ -115,6 +116,18 @@ export class CasesComponent implements OnInit {
     directorEmail: '',
     assignedTo: ''
   };
+
+  // Edit file upload tracking
+  editSelectedFiles: { [key: string]: File } = {};
+  existingDocuments: { [key: string]: string } = {};
+
+  // Edit document validation errors
+  editBusinessLicenseError = '';
+  editPciDssSaqError = '';
+  editTermsOfServiceError = '';
+  editBusinessRegCertError = '';
+  editDirectorGovIdError = '';
+  editBeneficialOwnershipError = '';
 
   // Edit validation errors
   editBusinessNameError = '';
@@ -260,9 +273,10 @@ export class CasesComponent implements OnInit {
 
   saveDraft(): void {
     const draftCase = { ...this.newCase, status: 'Draft' };
-    this.caseService.createCase(draftCase).subscribe({
-      next: () => {
-        this.notificationService.show('Case saved as draft successfully!', 'success');
+    this.caseService.saveDraftCase(draftCase).subscribe({
+      next: (created) => {
+        this.uploadNewDocuments(created.caseId, this.selectedFiles);
+        this.notificationService.show(`Draft saved! Case ID: ${created.caseId}`, 'success');
         this.closeCreateModal();
         this.loadCases();
       },
@@ -551,6 +565,7 @@ export class CasesComponent implements OnInit {
           return;
         }
         this.editingCaseId = caseId;
+        this.editingCaseStatus = caseData.status || '';
         this.editCase = {
           businessName: caseData.businessName || '',
           registrationNumber: caseData.registrationNumber || '',
@@ -563,6 +578,16 @@ export class CasesComponent implements OnInit {
           directorEmail: caseData.directorEmail || '',
           assignedTo: caseData.assignedTo || ''
         };
+        // Build existing documents map from case data
+        this.existingDocuments = {};
+        if (caseData.documents) {
+          for (const doc of caseData.documents) {
+            if (doc.type) {
+              this.existingDocuments[doc.type] = doc.name;
+            }
+          }
+        }
+        this.editSelectedFiles = {};
         this.resetEditValidation();
         this.showEditModal = true;
         this.loadComplianceReviewers();
@@ -576,6 +601,9 @@ export class CasesComponent implements OnInit {
   closeEditModal(): void {
     this.showEditModal = false;
     this.editingCaseId = '';
+    this.editingCaseStatus = '';
+    this.editSelectedFiles = {};
+    this.existingDocuments = {};
     this.resetEditValidation();
   }
 
@@ -599,6 +627,7 @@ export class CasesComponent implements OnInit {
 
     this.caseService.updateCase(this.editingCaseId, this.editCase).subscribe({
       next: () => {
+        this.uploadNewDocuments(this.editingCaseId, this.editSelectedFiles);
         this.caseService.addHistoryItem(this.editingCaseId, 'Case details updated').subscribe();
         this.notificationService.show('Case updated successfully!', 'success');
         this.closeEditModal();
@@ -608,6 +637,94 @@ export class CasesComponent implements OnInit {
         console.error('Error updating case:', error);
         this.notificationService.show(error?.error?.message || 'Failed to update case', 'error');
       }
+    });
+  }
+
+  saveEditDraft(): void {
+    this.caseService.updateDraftCase(this.editingCaseId, this.editCase).subscribe({
+      next: () => {
+        this.uploadNewDocuments(this.editingCaseId, this.editSelectedFiles);
+        this.notificationService.show('Draft saved successfully!', 'success');
+        this.closeEditModal();
+        this.loadCases();
+      },
+      error: (error) => {
+        console.error('Error saving draft:', error);
+        this.notificationService.show('Failed to save draft', 'error');
+      }
+    });
+  }
+
+  submitEditCase(): void {
+    this.markAllTouched();
+    this.validateEditBusinessName();
+    this.validateEditRegistrationNumber();
+    this.validateEditBusinessType();
+    this.validateEditMerchantCategory();
+    this.validateEditBusinessAddress();
+    this.validateEditDirectorName();
+    this.validateEditDirectorIC();
+    this.validateEditDirectorPhone();
+    this.validateEditDirectorEmail();
+    this.validateEditAssignedTo();
+    this.validateAllEditDocuments();
+
+    if (this.hasEditSubmitErrors) {
+      this.notificationService.show('Please fix the errors before submitting', 'error');
+      return;
+    }
+
+    const submitData = { ...this.editCase, status: 'Pending Review' };
+    this.caseService.updateCase(this.editingCaseId, submitData).subscribe({
+      next: () => {
+        this.uploadNewDocuments(this.editingCaseId, this.editSelectedFiles);
+        this.caseService.addHistoryItem(this.editingCaseId, 'Draft submitted — Status changed to Pending Review').subscribe();
+        this.notificationService.show('Case submitted successfully!', 'success');
+        this.closeEditModal();
+        this.loadCases();
+      },
+      error: (error) => {
+        console.error('Error submitting case:', error);
+        this.notificationService.show(error?.error?.message || 'Failed to submit case', 'error');
+      }
+    });
+  }
+
+  onEditFileSelected(event: Event, fileType: string): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.editSelectedFiles[fileType] = input.files[0];
+    } else {
+      delete this.editSelectedFiles[fileType];
+    }
+    this.validateEditDocumentField(fileType);
+  }
+
+  validateEditDocumentField(fileType: string): void {
+    const hasDoc = this.editSelectedFiles[fileType] || this.existingDocuments[fileType];
+    const errorMsg = hasDoc ? '' : 'This field is required';
+    switch (fileType) {
+      case 'Business License': this.editBusinessLicenseError = errorMsg; break;
+      case 'PCI DSS SAQ': this.editPciDssSaqError = errorMsg; break;
+      case 'Terms of Service': this.editTermsOfServiceError = errorMsg; break;
+      case 'Business Registration Certificate': this.editBusinessRegCertError = errorMsg; break;
+      case 'Director Government ID': this.editDirectorGovIdError = errorMsg; break;
+      case 'Beneficial Ownership Declaration': this.editBeneficialOwnershipError = errorMsg; break;
+    }
+  }
+
+  validateAllEditDocuments(): void {
+    for (const doc of this.requiredDocuments) {
+      this.validateEditDocumentField(doc);
+    }
+  }
+
+  private uploadNewDocuments(caseId: string, filesMap: { [key: string]: File }): void {
+    const files = Object.values(filesMap);
+    const types = Object.keys(filesMap);
+    if (files.length === 0) return;
+    this.caseService.uploadDocuments(caseId, files, types).subscribe({
+      error: (err) => console.error('Document upload failed:', err)
     });
   }
 
@@ -720,6 +837,20 @@ export class CasesComponent implements OnInit {
       || !!this.editAssignedToError;
   }
 
+  get hasEditSubmitErrors(): boolean {
+    const missingDoc = this.requiredDocuments.some(
+      doc => !this.editSelectedFiles[doc] && !this.existingDocuments[doc]
+    );
+    return this.hasEditFormErrors
+      || missingDoc
+      || !!this.editBusinessLicenseError
+      || !!this.editPciDssSaqError
+      || !!this.editTermsOfServiceError
+      || !!this.editBusinessRegCertError
+      || !!this.editDirectorGovIdError
+      || !!this.editBeneficialOwnershipError;
+  }
+
   resetEditValidation(): void {
     this.editBusinessNameError = '';
     this.editRegistrationNumberError = '';
@@ -731,5 +862,11 @@ export class CasesComponent implements OnInit {
     this.editDirectorPhoneError = '';
     this.editDirectorEmailError = '';
     this.editAssignedToError = '';
+    this.editBusinessLicenseError = '';
+    this.editPciDssSaqError = '';
+    this.editTermsOfServiceError = '';
+    this.editBusinessRegCertError = '';
+    this.editDirectorGovIdError = '';
+    this.editBeneficialOwnershipError = '';
   }
 }

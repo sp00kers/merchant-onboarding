@@ -11,7 +11,6 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { LoginComponent } from './pages/login/login.component';
 import { MerchantCategoriesComponent } from './pages/merchant-categories/merchant-categories.component';
 import { PermissionManagementComponent } from './pages/permission-management/permission-management.component';
-import { RiskCategoriesComponent } from './pages/risk-categories/risk-categories.component';
 import { RoleManagementComponent } from './pages/role-management/role-management.component';
 import { UserManagementComponent } from './pages/user-management/user-management.component';
 
@@ -28,15 +27,14 @@ export const routes: Routes = [
 
   // Business Parameters — require system_configuration or all_modules
   { path: 'business-params', component: BusinessParamsComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
-  { path: 'business-params/business-types', component: BusinessTypesComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
-  { path: 'business-params/merchant-categories', component: MerchantCategoriesComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
-  { path: 'business-params/risk-categories', component: RiskCategoriesComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
+  { path: 'business-types', component: BusinessTypesComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
+  { path: 'merchant-categories', component: MerchantCategoriesComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
 
   // Account Management — require user_management, role_management, permission_management, or all_modules
   { path: 'account-management', component: AccountManagementComponent, canActivate: [authGuard, roleGuard(['user_management', 'role_management', 'permission_management', 'all_modules'])] },
-  { path: 'account-management/user-management', component: UserManagementComponent, canActivate: [authGuard, roleGuard(['user_management', 'all_modules'])] },
-  { path: 'account-management/role-management', component: RoleManagementComponent, canActivate: [authGuard, roleGuard(['role_management', 'all_modules'])] },
-  { path: 'account-management/permission-management', component: PermissionManagementComponent, canActivate: [authGuard, roleGuard(['permission_management', 'all_modules'])] },
+  { path: 'user-management', component: UserManagementComponent, canActivate: [authGuard, roleGuard(['user_management', 'all_modules'])] },
+  { path: 'role-management', component: RoleManagementComponent, canActivate: [authGuard, roleGuard(['role_management', 'all_modules'])] },
+  { path: 'permission-management', component: PermissionManagementComponent, canActivate: [authGuard, roleGuard(['permission_management', 'all_modules'])] },
 
   // Audit Trail — require audit_view or all_modules (Admin only)
   { path: 'audit-trail', component: AuditTrailComponent, canActivate: [authGuard, roleGuard(['audit_view', 'all_modules'])] },

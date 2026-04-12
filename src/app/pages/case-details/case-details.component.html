@@ -51,18 +51,23 @@
       </div>
       <div class="step" [ngClass]="getStepClass(1)">
         <div class="step-circle">{{ getStepCircle(1) }}</div>
-        <div class="step-label">Background Verification</div>
+        <div class="step-label">Pending Review</div>
         <div class="step-line" [ngClass]="getStepClass(1)"></div>
       </div>
       <div class="step" [ngClass]="getStepClass(2)">
         <div class="step-circle">{{ getStepCircle(2) }}</div>
-        <div class="step-label">Compliance Review</div>
+        <div class="step-label">Background Verification</div>
         <div class="step-line" [ngClass]="getStepClass(2)"></div>
       </div>
       <div class="step" [ngClass]="getStepClass(3)">
         <div class="step-circle">{{ getStepCircle(3) }}</div>
-        <div class="step-label">Final Approval</div>
+        <div class="step-label">Compliance Review</div>
         <div class="step-line" [ngClass]="getStepClass(3)"></div>
+      </div>
+      <div class="step" [ngClass]="getStepClass(4)">
+        <div class="step-circle">{{ getStepCircle(4) }}</div>
+        <div class="step-label">Final Approval</div>
+        <div class="step-line" [ngClass]="getStepClass(4)"></div>
       </div>
     </div>
   </div>
@@ -164,17 +169,29 @@
       </div>
 
       <div class="info-section">
-        <h3>Documents</h3>
+        <h3>Documents — Background Verification</h3>
         <div class="documents-list">
-          <div class="document-item" *ngFor="let doc of caseData.documents">
+          <div class="document-item" *ngFor="let doc of backgroundVerificationDocs">
             <span class="doc-name">{{ doc.name }}</span>
             <button class="btn-small">Download</button>
           </div>
+          <p *ngIf="backgroundVerificationDocs.length === 0" class="no-documents">No background verification documents uploaded.</p>
         </div>
       </div>
 
-      <!-- Verification Section -->
-      <div class="info-section verification-section">
+      <div class="info-section">
+        <h3>Documents — Compliance Review</h3>
+        <div class="documents-list">
+          <div class="document-item" *ngFor="let doc of complianceReviewDocs">
+            <span class="doc-name">{{ doc.name }}</span>
+            <button class="btn-small">Download</button>
+          </div>
+          <p *ngIf="complianceReviewDocs.length === 0" class="no-documents">No compliance review documents uploaded.</p>
+        </div>
+      </div>
+
+      <!-- Verification Section (visible from Background Verification stage onward) -->
+      <div class="info-section verification-section" *ngIf="workflowStep >= 2">
         <div class="section-header">
           <h3>Background Verification</h3>
           <button
@@ -251,7 +268,7 @@
 
   <!-- Available Actions Section at Bottom -->
   <div class="available-actions-section">
-    <h3>Final Approval</h3>
+    <h3>Action</h3>
     <div class="actions-layout">
 
       <!-- Compliance Reviewer actions (only assigned reviewer) -->

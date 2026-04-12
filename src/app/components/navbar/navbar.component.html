@@ -2,8 +2,24 @@
   <div class="nav-brand" routerLink="/dashboard" style="cursor: pointer;">Merchant Onboarding Platform</div>
   <div class="nav-menu">
     <a *ngIf="showCases" routerLink="/cases" routerLinkActive="active">Merchant Onboarding Cases</a>
-    <a *ngIf="showBusinessParams" routerLink="/business-params" routerLinkActive="active">Business Parameters Management</a>
-    <a *ngIf="showAccountManagement" routerLink="/account-management" routerLinkActive="active">Account Management</a>
+
+    <div *ngIf="showBusinessParams" class="nav-dropdown">
+      <a href="javascript:void(0)" class="nav-dropdown-trigger">Business Parameter Management ▾</a>
+      <div class="nav-dropdown-menu">
+        <a routerLink="/business-types" routerLinkActive="active">Business Types</a>
+        <a routerLink="/merchant-categories" routerLinkActive="active">Merchant Categories</a>
+      </div>
+    </div>
+
+    <div *ngIf="showAccountManagement" class="nav-dropdown">
+      <a href="javascript:void(0)" class="nav-dropdown-trigger">Account Management ▾</a>
+      <div class="nav-dropdown-menu">
+        <a routerLink="/user-management" routerLinkActive="active">User Management</a>
+        <a routerLink="/role-management" routerLinkActive="active">Role Management</a>
+        <a routerLink="/permission-management" routerLinkActive="active">Permission Management</a>
+      </div>
+    </div>
+
     <a *ngIf="showAuditTrail" routerLink="/audit-trail" routerLinkActive="active">Audit Trail</a>
     <app-notification-bell></app-notification-bell>
     <a href="javascript:void(0)" (click)="logout()">Logout</a>

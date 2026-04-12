@@ -54,9 +54,9 @@ export class AccountManagementComponent implements OnInit {
   navigateTo(path: string): void {
     // Check specific permission for the target page
     const permissionMap: { [key: string]: string[] } = {
-      '/account-management/user-management': ['user_management', 'all_modules'],
-      '/account-management/role-management': ['role_management', 'all_modules'],
-      '/account-management/permission-management': ['permission_management', 'all_modules']
+      '/user-management': ['user_management', 'all_modules'],
+      '/role-management': ['role_management', 'all_modules'],
+      '/permission-management': ['permission_management', 'all_modules']
     };
 
     const requiredPermissions = permissionMap[path] || ['all_modules'];
