@@ -172,8 +172,11 @@
         <h3>Documents — Background Verification</h3>
         <div class="documents-list">
           <div class="document-item" *ngFor="let doc of backgroundVerificationDocs">
-            <span class="doc-name">{{ doc.name }}</span>
-            <button class="btn-small">Download</button>
+            <div class="doc-info">
+              <span class="doc-type">{{ doc.type }}</span>
+              <span class="doc-name">{{ doc.name }}</span>
+            </div>
+            <button class="btn-small" (click)="downloadDocument(doc)">Download</button>
           </div>
           <p *ngIf="backgroundVerificationDocs.length === 0" class="no-documents">No background verification documents uploaded.</p>
         </div>
@@ -183,8 +186,11 @@
         <h3>Documents — Compliance Review</h3>
         <div class="documents-list">
           <div class="document-item" *ngFor="let doc of complianceReviewDocs">
-            <span class="doc-name">{{ doc.name }}</span>
-            <button class="btn-small">Download</button>
+            <div class="doc-info">
+              <span class="doc-type">{{ doc.type }}</span>
+              <span class="doc-name">{{ doc.name }}</span>
+            </div>
+            <button class="btn-small" (click)="downloadDocument(doc)">Download</button>
           </div>
           <p *ngIf="complianceReviewDocs.length === 0" class="no-documents">No compliance review documents uploaded.</p>
         </div>
@@ -219,9 +225,6 @@
               <span class="stat-value">{{ verificationSummary.failedCount }}</span>
               <span class="stat-label">Failed</span>
             </div>
-          </div>
-          <div class="recommendation-badge" [ngClass]="getRecommendationClass(verificationSummary.recommendation)">
-            {{ getRecommendationText(verificationSummary.recommendation) }}
           </div>
         </div>
 
@@ -389,6 +392,7 @@
             <div class="form-group">
               <label for="editRegistrationNumber">Registration Number *</label>
               <input type="text" id="editRegistrationNumber" [(ngModel)]="editCaseData.registrationNumber" name="editRegistrationNumber" required
+                     maxlength="12"
                      (focus)="editTouched.registrationNumber = true"
                      (ngModelChange)="validateEditField('registrationNumber')"
                      [class.input-error]="editErrors.registrationNumber">

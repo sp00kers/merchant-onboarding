@@ -113,6 +113,7 @@
             <div class="form-group">
               <label for="registrationNumber">Registration Number <span class="required-asterisk">*</span></label>
               <input type="text" id="registrationNumber" [(ngModel)]="newCase.registrationNumber" name="registrationNumber" required
+                     maxlength="12"
                      (focus)="registrationNumberTouched = true"
                      (ngModelChange)="validateRegistrationNumber()"
                      [class.input-error]="registrationNumberError">
@@ -225,24 +226,28 @@
 
         <div class="form-section">
           <h4>Document Upload — Compliance Review</h4>
+          <div class="upload-disclaimer">
+            <span class="disclaimer-icon">ℹ</span>
+            <span>Accepted file types: <strong>PDF, JPEG, PNG</strong>. Maximum file size: <strong>10MB</strong> per file.</span>
+          </div>
           <div class="upload-area">
             <div class="upload-group">
               <label for="businessLicense">Business License <span class="required-asterisk">*</span></label>
-              <input type="file" id="businessLicense" name="businessLicense" accept=".pdf,.jpg,.png"
+              <input type="file" id="businessLicense" name="businessLicense" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onFileSelected($event, 'Business License')"
                      [class.input-error]="businessLicenseError">
               <small class="error-text" *ngIf="businessLicenseError">{{ businessLicenseError }}</small>
             </div>
             <div class="upload-group">
               <label for="pciDssSaq">PCI DSS Self-Assessment Questionnaire <span class="required-asterisk">*</span></label>
-              <input type="file" id="pciDssSaq" name="pciDssSaq" accept=".pdf,.jpg,.png"
+              <input type="file" id="pciDssSaq" name="pciDssSaq" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onFileSelected($event, 'PCI DSS SAQ')"
                      [class.input-error]="pciDssSaqError">
               <small class="error-text" *ngIf="pciDssSaqError">{{ pciDssSaqError }}</small>
             </div>
             <div class="upload-group">
               <label for="termsOfService">Terms of Service <span class="required-asterisk">*</span></label>
-              <input type="file" id="termsOfService" name="termsOfService" accept=".pdf,.jpg,.png"
+              <input type="file" id="termsOfService" name="termsOfService" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onFileSelected($event, 'Terms of Service')"
                      [class.input-error]="termsOfServiceError">
               <small class="error-text" *ngIf="termsOfServiceError">{{ termsOfServiceError }}</small>
@@ -252,24 +257,28 @@
 
         <div class="form-section">
           <h4>Document Upload — Background Verification</h4>
+          <div class="upload-disclaimer">
+            <span class="disclaimer-icon">ℹ</span>
+            <span>Accepted file types: <strong>PDF, JPEG, PNG</strong>. Maximum file size: <strong>10MB</strong> per file.</span>
+          </div>
           <div class="upload-area">
             <div class="upload-group">
               <label for="businessRegCert">Business Registration Certificate <span class="required-asterisk">*</span></label>
-              <input type="file" id="businessRegCert" name="businessRegCert" accept=".pdf,.jpg,.png"
+              <input type="file" id="businessRegCert" name="businessRegCert" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onFileSelected($event, 'Business Registration Certificate')"
                      [class.input-error]="businessRegCertError">
               <small class="error-text" *ngIf="businessRegCertError">{{ businessRegCertError }}</small>
             </div>
             <div class="upload-group">
               <label for="directorGovId">Director's Government ID <span class="required-asterisk">*</span></label>
-              <input type="file" id="directorGovId" name="directorGovId" accept=".pdf,.jpg,.png"
+              <input type="file" id="directorGovId" name="directorGovId" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onFileSelected($event, 'Director Government ID')"
                      [class.input-error]="directorGovIdError">
               <small class="error-text" *ngIf="directorGovIdError">{{ directorGovIdError }}</small>
             </div>
             <div class="upload-group">
               <label for="beneficialOwnership">Beneficial Ownership Declaration <span class="required-asterisk">*</span></label>
-              <input type="file" id="beneficialOwnership" name="beneficialOwnership" accept=".pdf,.jpg,.png"
+              <input type="file" id="beneficialOwnership" name="beneficialOwnership" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onFileSelected($event, 'Beneficial Ownership Declaration')"
                      [class.input-error]="beneficialOwnershipError">
               <small class="error-text" *ngIf="beneficialOwnershipError">{{ beneficialOwnershipError }}</small>
@@ -309,6 +318,7 @@
             <div class="form-group">
               <label for="editRegistrationNumber">Registration Number <span class="required-asterisk">*</span></label>
               <input type="text" id="editRegistrationNumber" [(ngModel)]="editCase.registrationNumber" name="editRegistrationNumber" required
+                     maxlength="12"
                      (focus)="registrationNumberTouched = true"
                      (ngModelChange)="validateEditRegistrationNumber()"
                      [class.input-error]="editRegistrationNumberError">
@@ -421,11 +431,15 @@
 
         <div class="form-section">
           <h4>Document Upload — Compliance Review</h4>
+          <div class="upload-disclaimer">
+            <span class="disclaimer-icon">ℹ</span>
+            <span>Accepted file types: <strong>PDF, JPEG, PNG</strong>. Maximum file size: <strong>10MB</strong> per file.</span>
+          </div>
           <div class="upload-area">
             <div class="upload-group">
               <label for="editBusinessLicense">Business License <span class="required-asterisk">*</span></label>
               <span class="existing-doc" *ngIf="existingDocuments['Business License']">✅ Uploaded: {{ existingDocuments['Business License'] }}</span>
-              <input type="file" id="editBusinessLicense" name="editBusinessLicense" accept=".pdf,.jpg,.png"
+              <input type="file" id="editBusinessLicense" name="editBusinessLicense" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Business License')"
                      [class.input-error]="editBusinessLicenseError">
               <small class="error-text" *ngIf="editBusinessLicenseError">{{ editBusinessLicenseError }}</small>
@@ -433,7 +447,7 @@
             <div class="upload-group">
               <label for="editPciDssSaq">PCI DSS Self-Assessment Questionnaire <span class="required-asterisk">*</span></label>
               <span class="existing-doc" *ngIf="existingDocuments['PCI DSS SAQ']">✅ Uploaded: {{ existingDocuments['PCI DSS SAQ'] }}</span>
-              <input type="file" id="editPciDssSaq" name="editPciDssSaq" accept=".pdf,.jpg,.png"
+              <input type="file" id="editPciDssSaq" name="editPciDssSaq" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'PCI DSS SAQ')"
                      [class.input-error]="editPciDssSaqError">
               <small class="error-text" *ngIf="editPciDssSaqError">{{ editPciDssSaqError }}</small>
@@ -441,7 +455,7 @@
             <div class="upload-group">
               <label for="editTermsOfService">Terms of Service <span class="required-asterisk">*</span></label>
               <span class="existing-doc" *ngIf="existingDocuments['Terms of Service']">✅ Uploaded: {{ existingDocuments['Terms of Service'] }}</span>
-              <input type="file" id="editTermsOfService" name="editTermsOfService" accept=".pdf,.jpg,.png"
+              <input type="file" id="editTermsOfService" name="editTermsOfService" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Terms of Service')"
                      [class.input-error]="editTermsOfServiceError">
               <small class="error-text" *ngIf="editTermsOfServiceError">{{ editTermsOfServiceError }}</small>
@@ -451,11 +465,15 @@
 
         <div class="form-section">
           <h4>Document Upload — Background Verification</h4>
+          <div class="upload-disclaimer">
+            <span class="disclaimer-icon">ℹ</span>
+            <span>Accepted file types: <strong>PDF, JPEG, PNG</strong>. Maximum file size: <strong>10MB</strong> per file.</span>
+          </div>
           <div class="upload-area">
             <div class="upload-group">
               <label for="editBusinessRegCert">Business Registration Certificate <span class="required-asterisk">*</span></label>
               <span class="existing-doc" *ngIf="existingDocuments['Business Registration Certificate']">✅ Uploaded: {{ existingDocuments['Business Registration Certificate'] }}</span>
-              <input type="file" id="editBusinessRegCert" name="editBusinessRegCert" accept=".pdf,.jpg,.png"
+              <input type="file" id="editBusinessRegCert" name="editBusinessRegCert" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Business Registration Certificate')"
                      [class.input-error]="editBusinessRegCertError">
               <small class="error-text" *ngIf="editBusinessRegCertError">{{ editBusinessRegCertError }}</small>
@@ -463,7 +481,7 @@
             <div class="upload-group">
               <label for="editDirectorGovId">Director's Government ID <span class="required-asterisk">*</span></label>
               <span class="existing-doc" *ngIf="existingDocuments['Director Government ID']">✅ Uploaded: {{ existingDocuments['Director Government ID'] }}</span>
-              <input type="file" id="editDirectorGovId" name="editDirectorGovId" accept=".pdf,.jpg,.png"
+              <input type="file" id="editDirectorGovId" name="editDirectorGovId" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Director Government ID')"
                      [class.input-error]="editDirectorGovIdError">
               <small class="error-text" *ngIf="editDirectorGovIdError">{{ editDirectorGovIdError }}</small>
@@ -471,7 +489,7 @@
             <div class="upload-group">
               <label for="editBeneficialOwnership">Beneficial Ownership Declaration <span class="required-asterisk">*</span></label>
               <span class="existing-doc" *ngIf="existingDocuments['Beneficial Ownership Declaration']">✅ Uploaded: {{ existingDocuments['Beneficial Ownership Declaration'] }}</span>
-              <input type="file" id="editBeneficialOwnership" name="editBeneficialOwnership" accept=".pdf,.jpg,.png"
+              <input type="file" id="editBeneficialOwnership" name="editBeneficialOwnership" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Beneficial Ownership Declaration')"
                      [class.input-error]="editBeneficialOwnershipError">
               <small class="error-text" *ngIf="editBeneficialOwnershipError">{{ editBeneficialOwnershipError }}</small>

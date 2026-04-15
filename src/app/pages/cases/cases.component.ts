@@ -275,10 +275,27 @@ export class CasesComponent implements OnInit {
     const draftCase = { ...this.newCase, status: 'Draft' };
     this.caseService.saveDraftCase(draftCase).subscribe({
       next: (created) => {
-        this.uploadNewDocuments(created.caseId, this.selectedFiles);
-        this.notificationService.show(`Draft saved! Case ID: ${created.caseId}`, 'success');
-        this.closeCreateModal();
-        this.loadCases();
+        const files = Object.values(this.selectedFiles);
+        const types = Object.keys(this.selectedFiles);
+        if (files.length > 0) {
+          this.caseService.uploadDocuments(created.caseId, files, types).subscribe({
+            next: () => {
+              this.notificationService.show(`Draft saved! Case ID: ${created.caseId}`, 'success');
+              this.closeCreateModal();
+              this.loadCases();
+            },
+            error: (err) => {
+              console.error('Document upload failed:', err);
+              this.notificationService.show('Draft saved but failed to upload documents. Please try re-uploading.', 'error');
+              this.closeCreateModal();
+              this.loadCases();
+            }
+          });
+        } else {
+          this.notificationService.show(`Draft saved! Case ID: ${created.caseId}`, 'success');
+          this.closeCreateModal();
+          this.loadCases();
+        }
       },
       error: (error) => {
         console.error('Error saving draft:', error);
@@ -308,10 +325,27 @@ export class CasesComponent implements OnInit {
 
     this.caseService.createCase(this.newCase).subscribe({
       next: (created) => {
-        this.uploadDocuments(created.caseId);
-        this.notificationService.show(`Case submitted successfully! Case ID: ${created.caseId}`, 'success');
-        this.closeCreateModal();
-        this.loadCases();
+        const files = Object.values(this.selectedFiles);
+        const types = Object.keys(this.selectedFiles);
+        if (files.length > 0) {
+          this.caseService.uploadDocuments(created.caseId, files, types).subscribe({
+            next: () => {
+              this.notificationService.show(`Case submitted successfully! Case ID: ${created.caseId}`, 'success');
+              this.closeCreateModal();
+              this.loadCases();
+            },
+            error: (err) => {
+              console.error('Document upload failed:', err);
+              this.notificationService.show('Case created but failed to upload documents. Please try re-uploading.', 'error');
+              this.closeCreateModal();
+              this.loadCases();
+            }
+          });
+        } else {
+          this.notificationService.show(`Case submitted successfully! Case ID: ${created.caseId}`, 'success');
+          this.closeCreateModal();
+          this.loadCases();
+        }
       },
       error: (error) => {
         console.error('Error submitting case:', error);
@@ -322,14 +356,46 @@ export class CasesComponent implements OnInit {
 
   // ─── Validation Methods ───────────────────────────────────────
 
+  private readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+  private isAllowedFileType(file: File): boolean {
+    const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
+    const fileName = file.name.toLowerCase();
+    return allowedExtensions.some(ext => fileName.endsWith(ext));
+  }
+
   onFileSelected(event: Event, fileType: string): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFiles[fileType] = input.files[0];
+      const file = input.files[0];
+      if (!this.isAllowedFileType(file)) {
+        delete this.selectedFiles[fileType];
+        input.value = '';
+        this.setDocumentError(fileType, 'Only PDF, JPEG, and PNG file types accepted.');
+        return;
+      }
+      if (file.size > this.MAX_FILE_SIZE) {
+        delete this.selectedFiles[fileType];
+        input.value = '';
+        this.setDocumentError(fileType, 'File size must not exceed 10MB.');
+        return;
+      }
+      this.selectedFiles[fileType] = file;
     } else {
       delete this.selectedFiles[fileType];
     }
     this.validateDocumentField(fileType);
+  }
+
+  private setDocumentError(fileType: string, errorMsg: string): void {
+    switch (fileType) {
+      case 'Business License': this.businessLicenseError = errorMsg; break;
+      case 'PCI DSS SAQ': this.pciDssSaqError = errorMsg; break;
+      case 'Terms of Service': this.termsOfServiceError = errorMsg; break;
+      case 'Business Registration Certificate': this.businessRegCertError = errorMsg; break;
+      case 'Director Government ID': this.directorGovIdError = errorMsg; break;
+      case 'Beneficial Ownership Declaration': this.beneficialOwnershipError = errorMsg; break;
+    }
   }
 
   validateDocumentField(fileType: string): void {
@@ -350,16 +416,6 @@ export class CasesComponent implements OnInit {
     }
   }
 
-  private uploadDocuments(caseId: string): void {
-    const files = Object.values(this.selectedFiles);
-    const types = Object.keys(this.selectedFiles);
-    if (files.length === 0) return;
-
-    this.caseService.uploadDocuments(caseId, files, types).subscribe({
-      error: (err) => console.error('Document upload failed:', err)
-    });
-  }
-
   validateBusinessName(): void {
     if (!this.businessNameTouched) return;
     this.businessNameError = this.newCase.businessName.trim() ? '' : 'Business name is required';
@@ -367,7 +423,16 @@ export class CasesComponent implements OnInit {
 
   validateRegistrationNumber(): void {
     if (!this.registrationNumberTouched) return;
-    this.registrationNumberError = this.newCase.registrationNumber.trim() ? '' : 'Registration number is required';
+    const val = this.newCase.registrationNumber.trim();
+    if (!val) {
+      this.registrationNumberError = 'Registration number is required';
+    } else if (!/^[0-9]+$/.test(val)) {
+      this.registrationNumberError = 'Registration Number must contain only numbers.';
+    } else if (val.length < 12) {
+      this.registrationNumberError = 'Registration Number must have 12 numbers.';
+    } else {
+      this.registrationNumberError = '';
+    }
   }
 
   validateBusinessType(): void {
@@ -532,9 +597,7 @@ export class CasesComponent implements OnInit {
   }
 
   onModalBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal')) {
-      this.closeCreateModal();
-    }
+    // Do nothing — prevent accidental closure when clicking outside the modal
   }
 
   onDateFocus(event: FocusEvent): void {
@@ -549,7 +612,7 @@ export class CasesComponent implements OnInit {
     }
   }
 
-  // ─── Edit Case Methods ────────────────────────────────────────
+  //  Edit Case Methods
 
   canEditCaseByStatus(c: Case): boolean {
     if (!this.canEditCase) return false;
@@ -627,11 +690,30 @@ export class CasesComponent implements OnInit {
 
     this.caseService.updateCase(this.editingCaseId, this.editCase).subscribe({
       next: () => {
-        this.uploadNewDocuments(this.editingCaseId, this.editSelectedFiles);
-        this.caseService.addHistoryItem(this.editingCaseId, 'Case details updated').subscribe();
-        this.notificationService.show('Case updated successfully!', 'success');
-        this.closeEditModal();
-        this.loadCases();
+        const files = Object.values(this.editSelectedFiles);
+        const types = Object.keys(this.editSelectedFiles);
+        if (files.length > 0) {
+          this.caseService.uploadDocuments(this.editingCaseId, files, types).subscribe({
+            next: () => {
+              this.caseService.addHistoryItem(this.editingCaseId, 'Case details updated').subscribe();
+              this.notificationService.show('Case updated successfully!', 'success');
+              this.closeEditModal();
+              this.loadCases();
+            },
+            error: (err) => {
+              console.error('Document upload failed:', err);
+              this.caseService.addHistoryItem(this.editingCaseId, 'Case details updated').subscribe();
+              this.notificationService.show('Case updated but failed to upload documents. Please try re-uploading.', 'error');
+              this.closeEditModal();
+              this.loadCases();
+            }
+          });
+        } else {
+          this.caseService.addHistoryItem(this.editingCaseId, 'Case details updated').subscribe();
+          this.notificationService.show('Case updated successfully!', 'success');
+          this.closeEditModal();
+          this.loadCases();
+        }
       },
       error: (error) => {
         console.error('Error updating case:', error);
@@ -643,10 +725,27 @@ export class CasesComponent implements OnInit {
   saveEditDraft(): void {
     this.caseService.updateDraftCase(this.editingCaseId, this.editCase).subscribe({
       next: () => {
-        this.uploadNewDocuments(this.editingCaseId, this.editSelectedFiles);
-        this.notificationService.show('Draft saved successfully!', 'success');
-        this.closeEditModal();
-        this.loadCases();
+        const files = Object.values(this.editSelectedFiles);
+        const types = Object.keys(this.editSelectedFiles);
+        if (files.length > 0) {
+          this.caseService.uploadDocuments(this.editingCaseId, files, types).subscribe({
+            next: () => {
+              this.notificationService.show('Draft saved successfully!', 'success');
+              this.closeEditModal();
+              this.loadCases();
+            },
+            error: (err) => {
+              console.error('Document upload failed:', err);
+              this.notificationService.show('Draft saved but failed to upload documents. Please try re-uploading.', 'error');
+              this.closeEditModal();
+              this.loadCases();
+            }
+          });
+        } else {
+          this.notificationService.show('Draft saved successfully!', 'success');
+          this.closeEditModal();
+          this.loadCases();
+        }
       },
       error: (error) => {
         console.error('Error saving draft:', error);
@@ -677,11 +776,30 @@ export class CasesComponent implements OnInit {
     const submitData = { ...this.editCase, status: 'Pending Review' };
     this.caseService.updateCase(this.editingCaseId, submitData).subscribe({
       next: () => {
-        this.uploadNewDocuments(this.editingCaseId, this.editSelectedFiles);
-        this.caseService.addHistoryItem(this.editingCaseId, 'Draft submitted — Status changed to Pending Review').subscribe();
-        this.notificationService.show('Case submitted successfully!', 'success');
-        this.closeEditModal();
-        this.loadCases();
+        const files = Object.values(this.editSelectedFiles);
+        const types = Object.keys(this.editSelectedFiles);
+        if (files.length > 0) {
+          this.caseService.uploadDocuments(this.editingCaseId, files, types).subscribe({
+            next: () => {
+              this.caseService.addHistoryItem(this.editingCaseId, 'Draft submitted — Status changed to Pending Review').subscribe();
+              this.notificationService.show('Case submitted successfully!', 'success');
+              this.closeEditModal();
+              this.loadCases();
+            },
+            error: (err) => {
+              console.error('Document upload failed:', err);
+              this.caseService.addHistoryItem(this.editingCaseId, 'Draft submitted — Status changed to Pending Review').subscribe();
+              this.notificationService.show('Case submitted but failed to upload documents. Please try re-uploading.', 'error');
+              this.closeEditModal();
+              this.loadCases();
+            }
+          });
+        } else {
+          this.caseService.addHistoryItem(this.editingCaseId, 'Draft submitted — Status changed to Pending Review').subscribe();
+          this.notificationService.show('Case submitted successfully!', 'success');
+          this.closeEditModal();
+          this.loadCases();
+        }
       },
       error: (error) => {
         console.error('Error submitting case:', error);
@@ -693,11 +811,35 @@ export class CasesComponent implements OnInit {
   onEditFileSelected(event: Event, fileType: string): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.editSelectedFiles[fileType] = input.files[0];
+      const file = input.files[0];
+      if (!this.isAllowedFileType(file)) {
+        delete this.editSelectedFiles[fileType];
+        input.value = '';
+        this.setEditDocumentError(fileType, 'Only PDF, JPEG, and PNG file types accepted.');
+        return;
+      }
+      if (file.size > this.MAX_FILE_SIZE) {
+        delete this.editSelectedFiles[fileType];
+        input.value = '';
+        this.setEditDocumentError(fileType, 'File size must not exceed 10MB.');
+        return;
+      }
+      this.editSelectedFiles[fileType] = file;
     } else {
       delete this.editSelectedFiles[fileType];
     }
     this.validateEditDocumentField(fileType);
+  }
+
+  private setEditDocumentError(fileType: string, errorMsg: string): void {
+    switch (fileType) {
+      case 'Business License': this.editBusinessLicenseError = errorMsg; break;
+      case 'PCI DSS SAQ': this.editPciDssSaqError = errorMsg; break;
+      case 'Terms of Service': this.editTermsOfServiceError = errorMsg; break;
+      case 'Business Registration Certificate': this.editBusinessRegCertError = errorMsg; break;
+      case 'Director Government ID': this.editDirectorGovIdError = errorMsg; break;
+      case 'Beneficial Ownership Declaration': this.editBeneficialOwnershipError = errorMsg; break;
+    }
   }
 
   validateEditDocumentField(fileType: string): void {
@@ -719,19 +861,8 @@ export class CasesComponent implements OnInit {
     }
   }
 
-  private uploadNewDocuments(caseId: string, filesMap: { [key: string]: File }): void {
-    const files = Object.values(filesMap);
-    const types = Object.keys(filesMap);
-    if (files.length === 0) return;
-    this.caseService.uploadDocuments(caseId, files, types).subscribe({
-      error: (err) => console.error('Document upload failed:', err)
-    });
-  }
-
   onEditModalBackdropClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal')) {
-      this.closeEditModal();
-    }
+    // Do nothing — prevent accidental closure when clicking outside the modal
   }
 
   // ─── Edit Validation Methods ──────────────────────────────────
@@ -743,7 +874,16 @@ export class CasesComponent implements OnInit {
 
   validateEditRegistrationNumber(): void {
     if (!this.registrationNumberTouched) return;
-    this.editRegistrationNumberError = this.editCase.registrationNumber.trim() ? '' : 'Registration number is required';
+    const val = this.editCase.registrationNumber.trim();
+    if (!val) {
+      this.editRegistrationNumberError = 'Registration number is required';
+    } else if (!/^[0-9]+$/.test(val)) {
+      this.editRegistrationNumberError = 'Registration Number must contain only numbers.';
+    } else if (val.length < 12) {
+      this.editRegistrationNumberError = 'Registration Number must have 12 numbers.';
+    } else {
+      this.editRegistrationNumberError = '';
+    }
   }
 
   validateEditBusinessType(): void {

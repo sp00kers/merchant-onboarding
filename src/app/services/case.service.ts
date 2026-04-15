@@ -86,6 +86,12 @@ export class CaseService {
     return this.http.post<Case>(`${this.apiUrl}/${caseId}/documents`, formData);
   }
 
+  downloadDocument(caseId: string, documentId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${caseId}/documents/${documentId}/download`, {
+      responseType: 'blob'
+    });
+  }
+
   getRoleBanner(roleId: string, context: 'list' | 'detail'): RoleBanner | null {
     const banners: Record<string, Record<string, RoleBanner>> = {
       onboarding_officer: {

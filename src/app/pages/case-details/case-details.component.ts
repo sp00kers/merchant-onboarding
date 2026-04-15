@@ -162,6 +162,23 @@ export class CaseDetailsComponent implements OnInit {
     this.router.navigate(['/cases']);
   }
 
+  downloadDocument(doc: { id: number; name: string }): void {
+    if (!this.caseData) return;
+    this.caseService.downloadDocument(this.caseData.caseId, doc.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = doc.name;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.notificationService.show('Failed to download document', 'error');
+      }
+    });
+  }
+
   // Document category filters
   private readonly bgVerificationDocTypes = [
     'Business Registration Certificate', 'Director Government ID', 'Beneficial Ownership Declaration'
@@ -171,11 +188,11 @@ export class CaseDetailsComponent implements OnInit {
   ];
 
   get backgroundVerificationDocs() {
-    return this.caseData?.documents?.filter(d => this.bgVerificationDocTypes.includes(d.name)) ?? [];
+    return this.caseData?.documents?.filter(d => this.bgVerificationDocTypes.includes(d.type)) ?? [];
   }
 
   get complianceReviewDocs() {
-    return this.caseData?.documents?.filter(d => this.complianceDocTypes.includes(d.name)) ?? [];
+    return this.caseData?.documents?.filter(d => this.complianceDocTypes.includes(d.type)) ?? [];
   }
 
   /**
@@ -649,7 +666,10 @@ export class CaseDetailsComponent implements OnInit {
         this.editErrors[field] = val ? '' : 'Business name is required';
         break;
       case 'registrationNumber':
-        this.editErrors[field] = val ? '' : 'Registration number is required';
+        if (!val) this.editErrors[field] = 'Registration number is required';
+        else if (!/^[0-9]+$/.test(val)) this.editErrors[field] = 'Registration Number must contain only numbers.';
+        else if (val.length < 12) this.editErrors[field] = 'Registration Number must have 12 numbers.';
+        else this.editErrors[field] = '';
         break;
       case 'businessType':
         this.editErrors[field] = val ? '' : 'Please select a business type';

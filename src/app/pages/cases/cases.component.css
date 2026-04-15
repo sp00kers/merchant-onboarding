@@ -182,3 +182,20 @@ input[type="file"].input-error {
   color: #27ae60;
   margin-bottom: 4px;
 }
+
+.upload-disclaimer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #eef6ff;
+  border: 1px solid #b8daff;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: #004085;
+}
+
+.upload-disclaimer .disclaimer-icon {
+  flex-shrink: 0;
+}

@@ -18,6 +18,7 @@ export interface Case {
 }
 
 export interface CaseDocument {
+  id: number;
   name: string;
   type: string;
   uploadedAt?: string;
