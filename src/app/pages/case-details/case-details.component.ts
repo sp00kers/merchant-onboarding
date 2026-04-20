@@ -261,10 +261,21 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   getStepClass(stepIndex: number): string {
     const current = this.workflowStep;
     if (current === -1) {
-      // Rejected: show passed steps as completed, rejection step as rejected
       const rejectedAt = this.rejectedAtStep;
       if (stepIndex < rejectedAt) return 'completed';
       if (stepIndex === rejectedAt) return 'rejected';
+      return '';
+    }
+    if (stepIndex < current) return 'completed';
+    if (stepIndex === current) return current === 4 ? 'completed' : 'active';
+    return '';
+  }
+
+  getStepLineClass(stepIndex: number): string {
+    const current = this.workflowStep;
+    if (current === -1) {
+      const rejectedAt = this.rejectedAtStep;
+      if (stepIndex < rejectedAt) return 'completed';
       return '';
     }
     if (stepIndex < current) return 'completed';
@@ -780,7 +791,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   get canEditCase(): boolean {
     if (!this.caseData) return false;
     const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
-    if (status === 'rejected' || status === 'approved') return false;
+    if (status !== 'draft' && status !== 'pending_review') return false;
     return this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
   }
 

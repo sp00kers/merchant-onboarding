@@ -622,7 +622,7 @@ export class CasesComponent implements OnInit {
   canEditCaseByStatus(c: Case): boolean {
     if (!this.canEditCase) return false;
     const status = c.status?.toLowerCase().replace(/[\s_]+/g, '_');
-    return status !== 'rejected' && status !== 'approved';
+    return status === 'draft' || status === 'pending_review';
   }
 
   openEditModal(caseId: string): void {
