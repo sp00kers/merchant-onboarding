@@ -11,6 +11,7 @@ export interface Case {
   directorEmail: string;
   ownershipPercentage: number | null;
   status: string;
+  rejectedAtStage?: string;
   createdDate: string;
   assignedTo: string;
   lastUpdated: string;

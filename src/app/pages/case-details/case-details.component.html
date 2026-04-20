@@ -58,11 +58,6 @@
         <div class="step-label">Compliance Review</div>
         <div class="step-line" [ngClass]="getStepClass(3)"></div>
       </div>
-      <div class="step" [ngClass]="getStepClass(4)">
-        <div class="step-circle">{{ getStepCircle(4) }}</div>
-        <div class="step-label">Final Approval</div>
-        <div class="step-line" [ngClass]="getStepClass(4)"></div>
-      </div>
     </div>
   </div>
 
@@ -265,6 +260,78 @@
           <span class="spinner"></span> Checking verification status...
         </div>
       </div>
+
+      <!-- Compliance Review Section (visible from Compliance Review stage onward) -->
+      <div class="info-section verification-section" *ngIf="workflowStep >= 3">
+        <div class="section-header">
+          <h3>Compliance Review</h3>
+        </div>
+
+        <!-- Compliance Summary -->
+        <div class="verification-summary" *ngIf="complianceSummary && complianceResults.length > 0">
+          <div class="summary-stats">
+            <div class="summary-stat stat-passed">
+              <span class="stat-value">{{ complianceSummary.passedCount }}</span>
+              <span class="stat-label">Passed</span>
+            </div>
+            <div class="summary-stat stat-pending">
+              <span class="stat-value">{{ complianceSummary.pendingCount }}</span>
+              <span class="stat-label">Pending</span>
+            </div>
+            <div class="summary-stat stat-failed">
+              <span class="stat-value">{{ complianceSummary.failedCount }}</span>
+              <span class="stat-label">Failed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compliance Results List -->
+        <div class="verification-list" *ngIf="complianceResults.length > 0">
+          <div class="verification-item" *ngFor="let result of complianceResults">
+            <div class="verification-icon">{{ complianceTypeIcons[result.documentType] || '📋' }}</div>
+            <div class="verification-info">
+              <div class="verification-type">{{ complianceTypeLabels[result.documentType] || result.documentType }}</div>
+              <div class="verification-meta">
+                <span class="status-badge" [ngClass]="getVerificationStatusClass(result.status)">
+                  {{ result.status }}
+                </span>
+              </div>
+              <div class="verification-notes" *ngIf="result.reason">{{ result.reason }}</div>
+            </div>
+            <button
+              *ngIf="canTriggerCompliance && (result.status === 'PASSED' || result.status === 'FAILED')"
+              class="btn-small btn-secondary"
+              (click)="triggerSingleComplianceReview(result.documentType)"
+            >
+              Recheck
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty state / Start Review -->
+        <div class="empty-verification" *ngIf="complianceResults.length === 0 && !isLoadingCompliance">
+          <div *ngIf="!hasComplianceDocs" class="no-docs-warning">
+            <p>⚠️ No compliance review documents have been uploaded for this case.</p>
+            <p>Please upload the required documents (Business License, PCI DSS SAQ, Terms of Service) before starting compliance review.</p>
+          </div>
+          <div *ngIf="hasComplianceDocs">
+            <p>No compliance reviews have been run for this case.</p>
+            <button *ngIf="canTriggerCompliance" class="btn-primary" (click)="triggerAllComplianceReviews()" [disabled]="isStartingCompliance">
+              {{ isStartingCompliance ? 'Starting...' : 'Start Review' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading state -->
+        <div class="loading-verification" *ngIf="isLoadingCompliance">
+          <p>Loading compliance review results...</p>
+        </div>
+
+        <!-- Polling indicator -->
+        <div class="polling-indicator" *ngIf="hasAnyPendingCompliance">
+          <span class="spinner"></span> Checking compliance review status...
+        </div>
+      </div>
   </div>
 
   <!-- Available Actions Section at Bottom -->
@@ -274,7 +341,8 @@
 
       <!-- Compliance Reviewer actions (only assigned reviewer) -->
       <ng-container *ngIf="canAuthorizeCase">
-        <button class="btn-success btn-large" (click)="approveStep()" [disabled]="workflowStep === 2 && !allVerificationsPassed">
+        <button class="btn-success btn-large" (click)="approveStep()"
+          [disabled]="(workflowStep === 2 && !allVerificationsPassed) || (workflowStep === 3 && !allComplianceReviewsPassed)">
           Approve
         </button>
         <button class="btn-danger btn-large" (click)="rejectCase()">
@@ -289,6 +357,13 @@
       <ng-container *ngIf="isVerifier">
         <div *ngIf="workflowStep === 2 && !allVerificationsPassed" class="approval-gate-message">
           All background verifications must pass before completing verification. Use "Start Verification" in the Background Verification section above.
+        </div>
+      </ng-container>
+
+      <!-- Compliance gate message -->
+      <ng-container *ngIf="canAuthorizeCase && workflowStep === 3 && !allComplianceReviewsPassed">
+        <div class="approval-gate-message">
+          All compliance reviews must pass before approving. Use "Start Review" in the Compliance Review section above.
         </div>
       </ng-container>
 

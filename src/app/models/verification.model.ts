@@ -40,3 +40,37 @@ export const VERIFICATION_TYPE_ICONS: { [key: string]: string } = {
   'DIRECTOR_ID': '👤',
   'BENEFICIAL_OWNERSHIP': '🛡️'
 };
+
+// Compliance Review types
+export interface ComplianceReviewResult {
+  id: number;
+  caseId: string;
+  documentType: string;
+  status: 'PENDING' | 'PASSED' | 'FAILED';
+  reason: string | null;
+  externalReference: string;
+  requestedAt: string;
+  completedAt: string | null;
+  reviewedBy: string;
+}
+
+export interface ComplianceReviewSummary {
+  caseId: string;
+  totalReviews: number;
+  passedCount: number;
+  pendingCount: number;
+  failedCount: number;
+  overallStatus: 'NOT_STARTED' | 'IN_PROGRESS' | 'ALL_PASSED' | 'ISSUES_FOUND';
+}
+
+export const COMPLIANCE_TYPE_LABELS: { [key: string]: string } = {
+  'BUSINESS_LICENSE': 'Business License',
+  'PCI_DSS_SAQ': 'PCI DSS Self-Assessment Questionnaire',
+  'TERMS_OF_SERVICE': 'Terms of Service'
+};
+
+export const COMPLIANCE_TYPE_ICONS: { [key: string]: string } = {
+  'BUSINESS_LICENSE': '📄',
+  'PCI_DSS_SAQ': '🔒',
+  'TERMS_OF_SERVICE': '📋'
+};

@@ -4,9 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { Case, RoleBanner } from '../../models/case.model';
-import { VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary } from '../../models/verification.model';
+import {
+    COMPLIANCE_TYPE_ICONS,
+    COMPLIANCE_TYPE_LABELS,
+    ComplianceReviewResult, ComplianceReviewSummary,
+    VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary
+} from '../../models/verification.model';
 import { AuthService } from '../../services/auth.service';
 import { CaseService } from '../../services/case.service';
+import { ComplianceService } from '../../services/compliance.service';
 
 import { NotificationService } from '../../services/notification.service';
 import { User, UserService } from '../../services/user.service';
@@ -43,6 +49,15 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   verificationTypeLabels = VERIFICATION_TYPE_LABELS;
   verificationTypeIcons = VERIFICATION_TYPE_ICONS;
   private verificationPollingInterval: any = null;
+
+  // Compliance review properties
+  complianceResults: ComplianceReviewResult[] = [];
+  complianceSummary: ComplianceReviewSummary | null = null;
+  isLoadingCompliance = false;
+  isStartingCompliance = false;
+  complianceTypeLabels = COMPLIANCE_TYPE_LABELS;
+  complianceTypeIcons = COMPLIANCE_TYPE_ICONS;
+  private compliancePollingInterval: any = null;
 
   // Edit case properties
   showEditModal = false;
@@ -82,6 +97,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
     private router: Router,
     private authService: AuthService,
     private caseService: CaseService,
+    private complianceService: ComplianceService,
     private notificationService: NotificationService,
     private userService: UserService,
     private verificationService: VerificationService
@@ -110,6 +126,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopVerificationPolling();
+    this.stopCompliancePolling();
   }
 
   loadCase(caseId: string): void {
@@ -124,6 +141,8 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
         } else {
           // Load verifications
           this.loadVerifications(caseId);
+          // Load compliance reviews
+          this.loadComplianceResults(caseId);
         }
       },
       error: (error) => {
@@ -200,7 +219,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
 
   /**
    * Returns the current workflow step index (0-based) based on case status.
-   * 0 = Data Entry, 1 = Pending Review, 2 = Background Verification, 3 = Compliance Review, 4 = Final Approval
+   * 0 = Data Entry, 1 = Pending Review, 2 = Background Verification, 3 = Compliance Review, 4 = Approved
    * -1 = Rejected
    */
   get workflowStep(): number {
@@ -227,11 +246,26 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  get rejectedAtStep(): number {
+    if (!this.caseData?.rejectedAtStage) return 1;
+    const stage = this.caseData.rejectedAtStage.toLowerCase().replace(/[\s_]+/g, '_');
+    switch (stage) {
+      case 'draft': return 0;
+      case 'pending_review': case 'pending review': return 1;
+      case 'background_verification': case 'background verification': return 2;
+      case 'compliance_review': case 'compliance review': return 3;
+      default: return 1;
+    }
+  }
+
   getStepClass(stepIndex: number): string {
     const current = this.workflowStep;
     if (current === -1) {
-      // Rejected: mark steps up to where it was rejected
-      return stepIndex === 0 ? 'completed' : 'rejected';
+      // Rejected: show passed steps as completed, rejection step as rejected
+      const rejectedAt = this.rejectedAtStep;
+      if (stepIndex < rejectedAt) return 'completed';
+      if (stepIndex === rejectedAt) return 'rejected';
+      return '';
     }
     if (stepIndex < current) return 'completed';
     if (stepIndex === current) return current === 4 ? 'completed' : 'active';
@@ -625,6 +659,120 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
 
   get canTriggerVerification(): boolean {
     return this.authService.hasAnyPermission(['background_check', 'compliance_check', 'all_modules']);
+  }
+
+  // ─── Compliance Review Methods ────────────────────────────────
+
+  loadComplianceResults(caseId: string): void {
+    this.isLoadingCompliance = true;
+    this.complianceService.getReviewResults(caseId).subscribe({
+      next: (results) => {
+        this.complianceResults = results;
+        this.isLoadingCompliance = false;
+        const hasPending = results.some(r => r.status === 'PENDING');
+        if (hasPending) {
+          this.startCompliancePolling();
+        }
+      },
+      error: () => {
+        this.isLoadingCompliance = false;
+      }
+    });
+
+    this.complianceService.getReviewSummary(caseId).subscribe({
+      next: (summary) => {
+        this.complianceSummary = summary;
+      }
+    });
+  }
+
+  triggerAllComplianceReviews(): void {
+    if (!this.caseData) return;
+
+    if (this.complianceReviewDocs.length === 0) {
+      this.notificationService.show('No compliance review documents uploaded. Please upload documents first.', 'error');
+      return;
+    }
+
+    this.isStartingCompliance = true;
+    this.complianceService.triggerAllReviews(this.caseData.caseId).subscribe({
+      next: (results) => {
+        this.notificationService.show('Compliance review initiated successfully!', 'success');
+        this.complianceResults = results;
+        this.isStartingCompliance = false;
+        this.startCompliancePolling();
+      },
+      error: () => {
+        this.notificationService.show('Failed to start compliance review', 'error');
+        this.isStartingCompliance = false;
+      }
+    });
+  }
+
+  triggerSingleComplianceReview(documentType: string): void {
+    if (!this.caseData) return;
+
+    const idx = this.complianceResults.findIndex(r => r.documentType === documentType);
+    if (idx >= 0) {
+      this.complianceResults[idx] = { ...this.complianceResults[idx], status: 'PENDING', reason: null };
+    }
+
+    this.complianceService.triggerReview(this.caseData.caseId, documentType).subscribe({
+      next: () => {
+        this.notificationService.show(`${this.complianceTypeLabels[documentType]} review initiated`, 'success');
+        this.loadComplianceResults(this.caseData!.caseId);
+        this.startCompliancePolling();
+      },
+      error: () => {
+        this.notificationService.show('Failed to trigger compliance review', 'error');
+        if (this.caseData) this.loadComplianceResults(this.caseData.caseId);
+      }
+    });
+  }
+
+  private startCompliancePolling(): void {
+    this.stopCompliancePolling();
+    this.compliancePollingInterval = setInterval(() => {
+      if (!this.caseData) return;
+      this.complianceService.getReviewResults(this.caseData.caseId).subscribe({
+        next: (results) => {
+          this.complianceResults = results;
+          const hasPending = results.some(r => r.status === 'PENDING');
+          if (!hasPending) {
+            this.stopCompliancePolling();
+          }
+        }
+      });
+      this.complianceService.getReviewSummary(this.caseData.caseId).subscribe({
+        next: (summary) => {
+          this.complianceSummary = summary;
+        }
+      });
+    }, 2000);
+  }
+
+  private stopCompliancePolling(): void {
+    if (this.compliancePollingInterval) {
+      clearInterval(this.compliancePollingInterval);
+      this.compliancePollingInterval = null;
+    }
+  }
+
+  get hasComplianceDocs(): boolean {
+    return this.complianceReviewDocs.length > 0;
+  }
+
+  get allComplianceReviewsPassed(): boolean {
+    if (!this.complianceSummary) return false;
+    return this.complianceSummary.overallStatus === 'ALL_PASSED';
+  }
+
+  get hasAnyPendingCompliance(): boolean {
+    return this.complianceResults.some(r => r.status === 'PENDING');
+  }
+
+  get canTriggerCompliance(): boolean {
+    return this.authService.hasAnyPermission(['compliance_check', 'case_management', 'all_modules']);
   }
 
   // ─── Edit Case Methods ────────────────────────────────────────
