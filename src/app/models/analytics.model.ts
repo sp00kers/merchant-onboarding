@@ -41,7 +41,7 @@ export interface VerificationStats {
 }
 
 export const STATUS_COLORS: Record<string, string> = {
-  'Pending Review': '#6c757d',
+  'Pending Review': '#f39c12',
   'Compliance Review': '#17a2b8',
   'Background Verification': '#007bff',
   'Approved': '#28a745',

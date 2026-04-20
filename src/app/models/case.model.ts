@@ -9,6 +9,7 @@ export interface Case {
   directorIC: string;
   directorPhone: string;
   directorEmail: string;
+  ownershipPercentage: number | null;
   status: string;
   createdDate: string;
   assignedTo: string;

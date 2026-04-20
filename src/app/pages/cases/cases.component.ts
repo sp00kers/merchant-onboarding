@@ -49,6 +49,7 @@ export class CasesComponent implements OnInit {
     directorIC: '',
     directorPhone: '',
     directorEmail: '',
+    ownershipPercentage: null as number | null,
     assignedTo: ''
   };
 
@@ -114,6 +115,7 @@ export class CasesComponent implements OnInit {
     directorIC: '',
     directorPhone: '',
     directorEmail: '',
+    ownershipPercentage: null as number | null,
     assignedTo: ''
   };
 
@@ -157,9 +159,8 @@ export class CasesComponent implements OnInit {
       return;
     }
 
-    // Check permission async - for now use sync check
-    this.canCreateCase = ['admin', 'onboarding_officer'].includes(roleId);
-    this.canEditCase = ['admin', 'onboarding_officer'].includes(roleId);
+    this.canCreateCase = this.authService.hasAnyPermission(['case_creation', 'all_modules']);
+    this.canEditCase = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
     this.roleBanner = this.caseService.getRoleBanner(roleId, 'list');
     this.loadCases();
   }
@@ -242,8 +243,7 @@ export class CasesComponent implements OnInit {
   }
 
   openCreateModal(): void {
-    const roleId = this.authService.getCurrentRoleId();
-    if (roleId && ['admin', 'onboarding_officer'].includes(roleId)) {
+    if (this.authService.hasAnyPermission(['case_creation', 'all_modules'])) {
       this.resetValidation();
       this.showCreateModal = true;
       this.loadComplianceReviewers();
@@ -325,17 +325,21 @@ export class CasesComponent implements OnInit {
 
     this.caseService.createCase(this.newCase).subscribe({
       next: (created) => {
+        console.log('=== Case created response:', JSON.stringify(created));
         const files = Object.values(this.selectedFiles);
         const types = Object.keys(this.selectedFiles);
+        console.log('=== Files to upload:', files.length, 'Types:', types);
         if (files.length > 0) {
           this.caseService.uploadDocuments(created.caseId, files, types).subscribe({
-            next: () => {
+            next: (result) => {
+              console.log('=== Upload success, docs:', result?.documents?.length);
               this.notificationService.show(`Case submitted successfully! Case ID: ${created.caseId}`, 'success');
               this.closeCreateModal();
               this.loadCases();
             },
             error: (err) => {
-              console.error('Document upload failed:', err);
+              console.error('=== Document upload FAILED:', err?.status, err?.statusText, err?.error);
+              console.error('=== Full error object:', JSON.stringify(err));
               this.notificationService.show('Case created but failed to upload documents. Please try re-uploading.', 'error');
               this.closeCreateModal();
               this.loadCases();
@@ -591,6 +595,7 @@ export class CasesComponent implements OnInit {
       directorIC: '',
       directorPhone: '',
       directorEmail: '',
+      ownershipPercentage: null,
       assignedTo: ''
     };
     this.selectedFiles = {};
@@ -639,6 +644,7 @@ export class CasesComponent implements OnInit {
           directorIC: caseData.directorIC || '',
           directorPhone: caseData.directorPhone || '',
           directorEmail: caseData.directorEmail || '',
+          ownershipPercentage: caseData.ownershipPercentage ?? null,
           assignedTo: caseData.assignedTo || ''
         };
         // Build existing documents map from case data

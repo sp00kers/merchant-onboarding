@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
@@ -7,7 +7,7 @@ import { Case, RoleBanner } from '../../models/case.model';
 import { VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary } from '../../models/verification.model';
 import { AuthService } from '../../services/auth.service';
 import { CaseService } from '../../services/case.service';
-import { ExportService } from '../../services/export.service';
+
 import { NotificationService } from '../../services/notification.service';
 import { User, UserService } from '../../services/user.service';
 import { VerificationService } from '../../services/verification.service';
@@ -19,7 +19,7 @@ import { VerificationService } from '../../services/verification.service';
   templateUrl: './case-details.component.html',
   styleUrl: './case-details.component.css'
 })
-export class CaseDetailsComponent implements OnInit {
+export class CaseDetailsComponent implements OnInit, OnDestroy {
   caseData: Case | undefined;
   roleId: string | null = null;
   roleBanner: RoleBanner | null = null;
@@ -28,7 +28,6 @@ export class CaseDetailsComponent implements OnInit {
   showActionDropdown2 = false;
   showReassign = false;
   isLoading = false;
-  showExportOptions = false;
 
   // Assign modal properties
   showAssignModal = false;
@@ -43,6 +42,7 @@ export class CaseDetailsComponent implements OnInit {
   isTriggering = false;
   verificationTypeLabels = VERIFICATION_TYPE_LABELS;
   verificationTypeIcons = VERIFICATION_TYPE_ICONS;
+  private verificationPollingInterval: any = null;
 
   // Edit case properties
   showEditModal = false;
@@ -84,8 +84,7 @@ export class CaseDetailsComponent implements OnInit {
     private caseService: CaseService,
     private notificationService: NotificationService,
     private userService: UserService,
-    private verificationService: VerificationService,
-    private exportService: ExportService
+    private verificationService: VerificationService
   ) {}
 
   ngOnInit(): void {
@@ -106,7 +105,11 @@ export class CaseDetailsComponent implements OnInit {
     }
 
     this.roleBanner = this.caseService.getRoleBanner(this.roleId, 'detail');
-    this.showReassign = this.roleId === 'compliance_reviewer' || this.roleId === 'admin' || this.roleId === 'onboarding_officer';
+    this.showReassign = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
+  }
+
+  ngOnDestroy(): void {
+    this.stopVerificationPolling();
   }
 
   loadCase(caseId: string): void {
@@ -133,17 +136,17 @@ export class CaseDetailsComponent implements OnInit {
 
   // Permission helpers
   get isComplianceOrAdmin(): boolean {
-    return this.roleId === 'compliance_reviewer' || this.roleId === 'admin';
+    return this.authService.hasAnyPermission(['case_management', 'compliance_check', 'all_modules']);
   }
 
   /**
    * The assigned compliance reviewer or an admin can approve/reject cases.
    */
   get canAuthorizeCase(): boolean {
-    if (this.roleId === 'admin') {
+    if (this.authService.hasPermissionSync('all_modules')) {
       return true;
     }
-    if (this.roleId === 'compliance_reviewer') {
+    if (this.authService.hasPermissionSync('case_management')) {
       const currentUserName = this.authService.getCurrentUser()?.user?.name;
       return !!currentUserName && currentUserName === this.caseData?.assignedTo;
     }
@@ -151,11 +154,11 @@ export class CaseDetailsComponent implements OnInit {
   }
 
   get isVerifier(): boolean {
-    return this.roleId === 'verifier';
+    return this.authService.hasPermissionSync('background_check');
   }
 
   get isOnboardingOfficer(): boolean {
-    return this.roleId === 'onboarding_officer';
+    return this.authService.hasPermissionSync('case_creation');
   }
 
   goBackToCases(): void {
@@ -280,6 +283,19 @@ export class CaseDetailsComponent implements OnInit {
           error: () => this.notificationService.show('Failed to approve case', 'error')
         });
       }
+    } else if (status === 'background_verification' || status === 'background verification') {
+      // Background Verification → Compliance Review (only if all verifications passed)
+      if (confirm('All verifications passed. Approve this case to proceed to Compliance Review?')) {
+        this.caseService.updateCaseStatus(this.caseData.caseId, 'Compliance Review').subscribe({
+          next: () => {
+            this.caseService.addHistoryItem(this.caseData!.caseId, 'Background verification completed — moving to Compliance Review').subscribe({
+              next: () => this.loadCase(this.caseData!.caseId)
+            });
+            this.notificationService.show('Case approved! Moving to Compliance Review...', 'success');
+          },
+          error: () => this.notificationService.show('Failed to approve case', 'error')
+        });
+      }
     } else if (status === 'compliance_review' || status === 'compliance review') {
       // Compliance Review → Approved
       if (confirm('Are you sure you want to give final approval for this case?')) {
@@ -367,25 +383,6 @@ export class CaseDetailsComponent implements OnInit {
       });
     }
     this.showActionDropdown2 = false;
-  }
-
-  exportCase(): void {
-    this.showExportOptions = !this.showExportOptions;
-    this.showActionDropdown = false;
-  }
-
-  exportToCsv(): void {
-    if (!this.caseData) return;
-    this.notificationService.show('Exporting to CSV...', 'info');
-    this.exportService.exportCaseToCsv(this.caseData.caseId);
-    this.showExportOptions = false;
-  }
-
-  exportToPdf(): void {
-    if (!this.caseData) return;
-    this.notificationService.show('Generating PDF report...', 'info');
-    this.exportService.exportCaseToPdf(this.caseData.caseId);
-    this.showExportOptions = false;
   }
 
   assignCase(): void {
@@ -481,6 +478,11 @@ export class CaseDetailsComponent implements OnInit {
       next: (results) => {
         this.verificationResults = results;
         this.isLoadingVerifications = false;
+        // Auto-start polling if there are pending verifications
+        const hasPending = results.some(r => r.status === 'PENDING' || r.status === 'IN_PROGRESS');
+        if (hasPending) {
+          this.startVerificationPolling();
+        }
       },
       error: (error) => {
         console.error('Error loading verifications:', error);
@@ -501,43 +503,95 @@ export class CaseDetailsComponent implements OnInit {
   triggerAllVerifications(): void {
     if (!this.caseData) return;
 
-    if (confirm('This will trigger all verification checks for this case. Continue?')) {
-      this.isTriggering = true;
-      this.verificationService.triggerAllVerifications(this.caseData.caseId).subscribe({
-        next: (results) => {
-          this.notificationService.show('Verification checks initiated successfully!', 'success');
-          this.verificationResults = results;
-          this.isTriggering = false;
-          // Refresh after a delay to get updated results
-          setTimeout(() => this.loadVerifications(this.caseData!.caseId), 3000);
-        },
-        error: (error) => {
-          console.error('Error triggering verifications:', error);
-          this.notificationService.show('Failed to trigger verifications', 'error');
-          this.isTriggering = false;
-        }
-      });
+    // Check if there are BG verification documents uploaded
+    if (this.backgroundVerificationDocs.length === 0) {
+      this.notificationService.show('No background verification documents uploaded. Please upload documents first.', 'error');
+      return;
     }
+
+    this.isTriggering = true;
+    this.verificationService.triggerAllVerifications(this.caseData.caseId).subscribe({
+      next: (results) => {
+        this.notificationService.show('Verification checks initiated successfully!', 'success');
+        this.verificationResults = results;
+        this.isTriggering = false;
+        this.startVerificationPolling();
+      },
+      error: (error) => {
+        console.error('Error triggering verifications:', error);
+        this.notificationService.show('Failed to trigger verifications', 'error');
+        this.isTriggering = false;
+      }
+    });
   }
 
   triggerSingleVerification(verificationType: string): void {
     if (!this.caseData) return;
 
+    // Immediately show PENDING in UI
+    const idx = this.verificationResults.findIndex(r => r.verificationType === verificationType);
+    if (idx >= 0) {
+      this.verificationResults[idx] = { ...this.verificationResults[idx], status: 'PENDING', confidenceScore: 0, notes: '' };
+    }
+
     this.verificationService.triggerVerification(this.caseData.caseId, verificationType).subscribe({
       next: () => {
-        this.notificationService.show(`${this.verificationTypeLabels[verificationType]} check initiated`, 'success');
-        setTimeout(() => this.loadVerifications(this.caseData!.caseId), 3000);
+        this.notificationService.show(`${this.verificationTypeLabels[verificationType]} recheck initiated`, 'success');
+        this.loadVerifications(this.caseData!.caseId);
+        this.startVerificationPolling();
       },
       error: (error) => {
         console.error('Error triggering verification:', error);
         this.notificationService.show('Failed to trigger verification', 'error');
+        if (this.caseData) this.loadVerifications(this.caseData.caseId);
       }
     });
   }
 
+  private startVerificationPolling(): void {
+    this.stopVerificationPolling();
+    this.verificationPollingInterval = setInterval(() => {
+      if (!this.caseData) return;
+      this.verificationService.getVerificationResults(this.caseData.caseId).subscribe({
+        next: (results) => {
+          this.verificationResults = results;
+          const hasPending = results.some(r => r.status === 'PENDING' || r.status === 'IN_PROGRESS');
+          if (!hasPending) {
+            this.stopVerificationPolling();
+          }
+        }
+      });
+      this.verificationService.getVerificationSummary(this.caseData.caseId).subscribe({
+        next: (summary) => {
+          this.verificationSummary = summary;
+        }
+      });
+    }, 2000);
+  }
+
+  private stopVerificationPolling(): void {
+    if (this.verificationPollingInterval) {
+      clearInterval(this.verificationPollingInterval);
+      this.verificationPollingInterval = null;
+    }
+  }
+
+  get hasBgDocuments(): boolean {
+    return this.backgroundVerificationDocs.length > 0;
+  }
+
+  get allVerificationsPassed(): boolean {
+    if (!this.verificationSummary) return false;
+    return this.verificationSummary.overallStatus === 'ALL_PASSED';
+  }
+
+  get hasAnyPendingVerification(): boolean {
+    return this.verificationResults.some(r => r.status === 'PENDING' || r.status === 'IN_PROGRESS');
+  }
+
   getVerificationStatusClass(status: string): string {
     switch (status) {
-      case 'COMPLETED': return 'status-completed';
+      case 'PASSED': return 'status-passed';
       case 'PENDING': return 'status-pending';
       case 'IN_PROGRESS': return 'status-in-progress';
       case 'FAILED': return 'status-failed';
@@ -555,9 +609,7 @@ export class CaseDetailsComponent implements OnInit {
 
   getRecommendationClass(recommendation: string): string {
     switch (recommendation) {
-      case 'AUTO_APPROVE': return 'recommendation-approve';
-      case 'MANUAL_REVIEW': return 'recommendation-review';
-      case 'ENHANCED_DUE_DILIGENCE': return 'recommendation-enhanced';
+      case 'APPROVE': return 'recommendation-approve';
       case 'REJECTION_RECOMMENDED': return 'recommendation-reject';
       default: return 'recommendation-pending';
     }
@@ -565,16 +617,14 @@ export class CaseDetailsComponent implements OnInit {
 
   getRecommendationText(recommendation: string): string {
     switch (recommendation) {
-      case 'AUTO_APPROVE': return 'Auto-Approve Eligible';
-      case 'MANUAL_REVIEW': return 'Manual Review Required';
-      case 'ENHANCED_DUE_DILIGENCE': return 'Enhanced Due Diligence';
-      case 'REJECTION_RECOMMENDED': return 'Rejection Recommended';
+      case 'APPROVE': return 'All Verifications Passed';
+      case 'REJECTION_RECOMMENDED': return 'Verification Issues Found';
       default: return 'Pending Verification';
     }
   }
 
   get canTriggerVerification(): boolean {
-    return this.roleId === 'verifier' || this.roleId === 'compliance_reviewer' || this.roleId === 'admin';
+    return this.authService.hasAnyPermission(['background_check', 'compliance_check', 'all_modules']);
   }
 
   // ─── Edit Case Methods ────────────────────────────────────────
@@ -583,7 +633,7 @@ export class CaseDetailsComponent implements OnInit {
     if (!this.caseData) return false;
     const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
     if (status === 'rejected' || status === 'approved') return false;
-    return this.roleId === 'onboarding_officer' || this.roleId === 'admin';
+    return this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
   }
 
   openEditModal(): void {

@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
-import { tap, map, catchError, switchMap } from 'rxjs/operators';
-import { Role } from '../models/role.model';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface LoginRequest {
@@ -136,14 +135,10 @@ export class AuthService {
   }
 
   canViewCases(): boolean {
-    const roleId = this.getCurrentRoleId();
-    if (!roleId) return false;
-    return ['admin', 'onboarding_officer', 'compliance_reviewer', 'verifier'].includes(roleId);
+    return this.hasAnyPermission(['case_view', 'case_management', 'case_creation', 'all_modules']);
   }
 
   canEditCases(): boolean {
-    const roleId = this.getCurrentRoleId();
-    if (!roleId) return false;
-    return ['admin', 'onboarding_officer', 'compliance_reviewer'].includes(roleId);
+    return this.hasAnyPermission(['case_management', 'all_modules']);
   }
 }

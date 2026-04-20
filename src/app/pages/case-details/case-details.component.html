@@ -13,12 +13,6 @@
             <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
           </button>
           <div class="dropdown-menu" [class.show]="showActionDropdown">
-            <button class="dropdown-item" (click)="exportToCsv()">
-              <span class="dropdown-icon">📊</span>Export to CSV
-            </button>
-            <button class="dropdown-item" (click)="exportToPdf()">
-              <span class="dropdown-icon">📄</span>Export to PDF
-            </button>
             <button *ngIf="showReassign" class="dropdown-item" (click)="assignCase()">
               <span class="dropdown-icon">👥</span>Reassign Case
             </button>
@@ -144,6 +138,10 @@
             <label>Email:</label>
             <span>{{ caseData.directorEmail }}</span>
           </div>
+          <div class="info-item" *ngIf="caseData.ownershipPercentage !== null && caseData.ownershipPercentage !== undefined">
+            <label>Ownership Percentage:</label>
+            <span>{{ caseData.ownershipPercentage }}%</span>
+          </div>
         </div>
       </div>
 
@@ -200,28 +198,20 @@
       <div class="info-section verification-section" *ngIf="workflowStep >= 2">
         <div class="section-header">
           <h3>Background Verification</h3>
-          <button
-            *ngIf="canTriggerVerification"
-            class="btn-primary"
-            (click)="triggerAllVerifications()"
-            [disabled]="isTriggering"
-          >
-            {{ isTriggering ? 'Triggering...' : 'Trigger All Verifications' }}
-          </button>
         </div>
 
         <!-- Verification Summary -->
-        <div class="verification-summary" *ngIf="verificationSummary">
+        <div class="verification-summary" *ngIf="verificationSummary && verificationResults.length > 0">
           <div class="summary-stats">
-            <div class="summary-stat">
+            <div class="summary-stat stat-passed">
               <span class="stat-value">{{ verificationSummary.completedCount }}</span>
-              <span class="stat-label">Completed</span>
+              <span class="stat-label">Passed</span>
             </div>
-            <div class="summary-stat">
+            <div class="summary-stat stat-pending">
               <span class="stat-value">{{ verificationSummary.pendingCount }}</span>
               <span class="stat-label">Pending</span>
             </div>
-            <div class="summary-stat">
+            <div class="summary-stat stat-failed">
               <span class="stat-value">{{ verificationSummary.failedCount }}</span>
               <span class="stat-label">Failed</span>
             </div>
@@ -238,49 +228,57 @@
                 <span class="status-badge" [ngClass]="getVerificationStatusClass(result.status)">
                   {{ result.status }}
                 </span>
-                <span class="confidence-score" *ngIf="result.confidenceScore !== null" [ngClass]="getConfidenceClass(result.confidenceScore)">
-                  {{ result.confidenceScore }}%
-                </span>
               </div>
               <div class="verification-notes" *ngIf="result.notes">{{ result.notes }}</div>
             </div>
             <button
-              *ngIf="canTriggerVerification && (result.status === 'COMPLETED' || result.status === 'FAILED')"
+              *ngIf="canTriggerVerification && (result.status === 'PASSED' || result.status === 'FAILED')"
               class="btn-small btn-secondary"
               (click)="triggerSingleVerification(result.verificationType)"
             >
-              Re-run
+              Recheck
             </button>
           </div>
         </div>
 
-        <!-- Empty state -->
+        <!-- Empty state / Start Verification -->
         <div class="empty-verification" *ngIf="verificationResults.length === 0 && !isLoadingVerifications">
-          <p>No verification checks have been run for this case.</p>
-          <button *ngIf="canTriggerVerification" class="btn-primary" (click)="triggerAllVerifications()">
-            Start Verification Checks
-          </button>
+          <div *ngIf="!hasBgDocuments" class="no-docs-warning">
+            <p>⚠️ No background verification documents have been uploaded for this case.</p>
+            <p>Please upload the required documents (Business Registration Certificate, Director Government ID, Beneficial Ownership Declaration) before starting verification.</p>
+          </div>
+          <div *ngIf="hasBgDocuments">
+            <p>No verification checks have been run for this case.</p>
+            <button *ngIf="canTriggerVerification" class="btn-primary" (click)="triggerAllVerifications()" [disabled]="isTriggering">
+              {{ isTriggering ? 'Starting...' : 'Start Verification' }}
+            </button>
+          </div>
         </div>
 
         <!-- Loading state -->
         <div class="loading-verification" *ngIf="isLoadingVerifications">
           <p>Loading verification results...</p>
         </div>
+
+        <!-- Polling indicator -->
+        <div class="polling-indicator" *ngIf="hasAnyPendingVerification">
+          <span class="spinner"></span> Checking verification status...
+        </div>
       </div>
   </div>
 
   <!-- Available Actions Section at Bottom -->
-  <div class="available-actions-section">
+  <div class="available-actions-section" *ngIf="isComplianceOrAdmin && workflowStep !== 4 && workflowStep !== -1">
     <h3>Action</h3>
     <div class="actions-layout">
 
       <!-- Compliance Reviewer actions (only assigned reviewer) -->
       <ng-container *ngIf="canAuthorizeCase">
-        <button class="btn-success btn-large" (click)="approveStep()">
-          <span class="btn-icon">✅</span>Approve
+        <button class="btn-success btn-large" (click)="approveStep()" [disabled]="workflowStep === 2 && !allVerificationsPassed">
+          Approve
         </button>
         <button class="btn-danger btn-large" (click)="rejectCase()">
-          <span class="btn-icon">❌</span>Reject
+          Reject
         </button>
       </ng-container>
       <ng-container *ngIf="isComplianceOrAdmin && !canAuthorizeCase">
@@ -289,43 +287,8 @@
 
       <!-- Verifier actions -->
       <ng-container *ngIf="isVerifier">
-        <button class="btn-success btn-large" (click)="completeVerification()">
-          <span class="btn-icon">🔍</span>Complete Verification
-        </button>
-        <div class="center-actions">
-          <div class="action-dropdown-container">
-            <div class="dropdown">
-              <button class="btn-secondary dropdown-toggle" (click)="toggleActionDropdown2()">
-                <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
-              </button>
-              <div class="dropdown-menu" [class.show]="showActionDropdown2">
-                <button class="dropdown-item" (click)="requestReview()">
-                  <span class="dropdown-icon">📞</span>Request Review
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button class="btn-warning btn-large" (click)="flagForReview()">
-          <span class="btn-icon">🚩</span>Flag for Review
-        </button>
-      </ng-container>
-
-      <!-- Onboarding Officer actions -->
-      <ng-container *ngIf="isOnboardingOfficer">
-        <div class="center-actions full-width">
-          <div class="action-dropdown-container">
-            <div class="dropdown">
-              <button class="btn-secondary dropdown-toggle" (click)="toggleActionDropdown2()">
-                <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
-              </button>
-              <div class="dropdown-menu" [class.show]="showActionDropdown2">
-                <button class="dropdown-item" (click)="requestReview()">
-                  <span class="dropdown-icon">📞</span>Request Review
-                </button>
-              </div>
-            </div>
-          </div>
+        <div *ngIf="workflowStep === 2 && !allVerificationsPassed" class="approval-gate-message">
+          All background verifications must pass before completing verification. Use "Start Verification" in the Background Verification section above.
         </div>
       </ng-container>
 
