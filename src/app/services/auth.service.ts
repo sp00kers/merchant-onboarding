@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface LoginRequest {
@@ -26,6 +26,7 @@ export interface UserInfo {
     permissions: string[];
   };
   permissions: string[];
+  customPermissions?: string[];
 }
 
 export interface AuthResponse {
@@ -44,6 +45,11 @@ export class AuthService {
 
   private currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+
+  // Throttle: track last refresh time to avoid excessive API calls
+  private lastRefreshTime = 0;
+  private readonly REFRESH_INTERVAL_MS = 30000; // 30 seconds
+  private refreshInProgress = false;
 
   constructor(
     private http: HttpClient,
@@ -132,6 +138,47 @@ export class AuthService {
   getUserPermissions(): string[] {
     const user = this.getCurrentUser();
     return user?.user?.permissions || [];
+  }
+
+  /**
+   * Refresh current user data from backend (fetches fresh permissions).
+   * Throttled to max once per 30 seconds.
+   * Returns Observable<boolean> — true if refresh succeeded or was skipped (throttled).
+   */
+  refreshCurrentUser(): Observable<boolean> {
+    if (!this.isLoggedIn() || !this.getToken()) {
+      return of(false);
+    }
+
+    const now = Date.now();
+    if (this.refreshInProgress || (now - this.lastRefreshTime < this.REFRESH_INTERVAL_MS)) {
+      return of(true); // Skip — already refreshed recently or in progress
+    }
+
+    this.refreshInProgress = true;
+    return this.http.get<UserInfo>(`${environment.apiUrl}/users/me`).pipe(
+      map(freshUser => {
+        // Rebuild the AuthResponse with fresh user data but keep existing token
+        const currentAuth = this.getCurrentUser();
+        if (currentAuth) {
+          const updatedAuth: AuthResponse = {
+            token: currentAuth.token,
+            type: currentAuth.type,
+            user: freshUser
+          };
+          sessionStorage.setItem(this.USER_KEY, JSON.stringify(updatedAuth));
+          sessionStorage.setItem(this.USER_ROLE_KEY, freshUser.roleId);
+          this.currentUserSubject.next(updatedAuth);
+        }
+        this.lastRefreshTime = Date.now();
+        this.refreshInProgress = false;
+        return true;
+      }),
+      catchError(() => {
+        this.refreshInProgress = false;
+        return of(false);
+      })
+    );
   }
 
   canViewCases(): boolean {

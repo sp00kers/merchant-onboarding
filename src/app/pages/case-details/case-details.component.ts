@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { BusinessType, MerchantCategory } from '../../models/business-params.model';
 import { Case, RoleBanner } from '../../models/case.model';
@@ -60,6 +61,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   complianceTypeLabels = COMPLIANCE_TYPE_LABELS;
   complianceTypeIcons = COMPLIANCE_TYPE_ICONS;
   private compliancePollingInterval: any = null;
+  private permissionSub?: Subscription;
 
   // Edit case properties
   showEditModal = false;
@@ -129,11 +131,17 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
     this.showReassign = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
     this.loadBusinessTypes();
     this.loadMerchantCategories();
+
+    // Reactively update permission flags when user data changes
+    this.permissionSub = this.authService.currentUser$.subscribe(() => {
+      this.showReassign = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
+    });
   }
 
   ngOnDestroy(): void {
     this.stopVerificationPolling();
     this.stopCompliancePolling();
+    this.permissionSub?.unsubscribe();
   }
 
   loadBusinessTypes(): void {
@@ -703,7 +711,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   }
 
   get canTriggerVerification(): boolean {
-    return this.authService.hasAnyPermission(['background_check', 'compliance_check', 'all_modules']);
+    return this.authService.hasAnyPermission(['background_check', 'compliance_check', 'external_api_access', 'all_modules']);
   }
 
   // ─── Compliance Review Methods ────────────────────────────────
@@ -817,7 +825,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   }
 
   get canTriggerCompliance(): boolean {
-    return this.authService.hasAnyPermission(['compliance_check', 'case_management', 'all_modules']);
+    return this.authService.hasAnyPermission(['compliance_check', 'risk_assessment', 'case_management', 'all_modules']);
   }
 
   // ─── Edit Case Methods ────────────────────────────────────────

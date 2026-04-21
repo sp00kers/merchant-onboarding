@@ -1,11 +1,13 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { map } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
 /**
  * Role-based route guard factory.
- * Checks if the authenticated user has any of the required permissions
- * before allowing route access. Redirects to dashboard with a message if not.
+ * Refreshes user permissions from backend, then checks if the authenticated user
+ * has any of the required permissions before allowing route access.
+ * Redirects to dashboard with a message if not.
  *
  * @param requiredPermissions - Array of permission IDs (user needs at least one)
  */
@@ -20,16 +22,20 @@ export function roleGuard(requiredPermissions: string[]): CanActivateFn {
       return false;
     }
 
-    // Check if user has any of the required permissions
-    if (authService.hasAnyPermission(requiredPermissions)) {
-      return true;
-    }
+    // Refresh permissions from backend, then check access
+    return authService.refreshCurrentUser().pipe(
+      map(() => {
+        if (authService.hasAnyPermission(requiredPermissions)) {
+          return true;
+        }
 
-    // User lacks required permissions — redirect to dashboard
-    router.navigate(['/dashboard'], {
-      queryParams: { unauthorized: 'true' }
-    });
-    return false;
+        // User lacks required permissions — redirect to dashboard
+        router.navigate(['/dashboard'], {
+          queryParams: { unauthorized: 'true' }
+        });
+        return false;
+      })
+    );
   };
 }
 

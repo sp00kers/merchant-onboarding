@@ -14,9 +14,9 @@
     <div *ngIf="showAccountManagement" class="nav-dropdown">
       <a routerLink="/account-management" class="nav-dropdown-trigger">Account Management ▾</a>
       <div class="nav-dropdown-menu">
-        <a routerLink="/user-management" routerLinkActive="active">User Management</a>
-        <a routerLink="/role-management" routerLinkActive="active">Role Management</a>
-        <a routerLink="/permission-management" routerLinkActive="active">Permission Management</a>
+        <a *ngIf="showUserManagement" routerLink="/user-management" routerLinkActive="active">User Management</a>
+        <a *ngIf="showRoleManagement" routerLink="/role-management" routerLinkActive="active">Role Management</a>
+        <a *ngIf="showPermissionManagement" routerLink="/permission-management" routerLinkActive="active">Permission Management</a>
       </div>
     </div>
 

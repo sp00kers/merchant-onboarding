@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { BusinessType, MerchantCategory } from '../../models/business-params.model';
 import { Case, RoleBanner } from '../../models/case.model';
@@ -18,7 +19,7 @@ import { User, UserService } from '../../services/user.service';
   templateUrl: './cases.component.html',
   styleUrl: './cases.component.css'
 })
-export class CasesComponent implements OnInit {
+export class CasesComponent implements OnInit, OnDestroy {
   cases: Case[] = [];
   statusFilter = '';
   searchTerm = '';
@@ -27,8 +28,10 @@ export class CasesComponent implements OnInit {
   showCreateModal = false;
   canCreateCase = false;
   canEditCase = false;
+  canUploadDocuments = false;
   roleBanner: RoleBanner | null = null;
   isLoading = false;
+  private permissionSub?: Subscription;
 
   // Business types for dropdown
   businessTypes: BusinessType[] = [];
@@ -166,12 +169,26 @@ export class CasesComponent implements OnInit {
       return;
     }
 
-    this.canCreateCase = this.authService.hasAnyPermission(['case_creation', 'all_modules']);
-    this.canEditCase = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
+    this.updatePermissionFlags();
     this.roleBanner = this.caseService.getRoleBanner(roleId, 'list');
     this.loadCases();
     this.loadBusinessTypes();
     this.loadMerchantCategories();
+
+    // Reactively update permission flags when user data changes
+    this.permissionSub = this.authService.currentUser$.subscribe(() => {
+      this.updatePermissionFlags();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.permissionSub?.unsubscribe();
+  }
+
+  private updatePermissionFlags(): void {
+    this.canCreateCase = this.authService.hasAnyPermission(['case_creation', 'all_modules']);
+    this.canEditCase = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
+    this.canUploadDocuments = this.authService.hasAnyPermission(['document_upload', 'case_creation', 'all_modules']);
   }
 
   loadBusinessTypes(): void {
@@ -253,6 +270,16 @@ export class CasesComponent implements OnInit {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     this.cases = this.filteredCases.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+  }
+
+  get pageNumbers(): number[] {
+    const pages: number[] = [];
+    const start = Math.max(1, this.currentPage - 2);
+    const end = Math.min(this.totalPages, start + 4);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   /**

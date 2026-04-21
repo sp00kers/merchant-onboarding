@@ -26,6 +26,18 @@ export class NavbarComponent {
     return this.authService.hasAnyPermission(['user_management', 'role_management', 'permission_management', 'all_modules']);
   }
 
+  get showUserManagement(): boolean {
+    return this.authService.hasAnyPermission(['user_management', 'all_modules']);
+  }
+
+  get showRoleManagement(): boolean {
+    return this.authService.hasAnyPermission(['role_management', 'all_modules']);
+  }
+
+  get showPermissionManagement(): boolean {
+    return this.authService.hasAnyPermission(['permission_management', 'all_modules']);
+  }
+
   get showAuditTrail(): boolean {
     return this.authService.hasAnyPermission(['audit_view', 'all_modules']);
   }
