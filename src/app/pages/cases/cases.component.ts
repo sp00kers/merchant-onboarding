@@ -3,8 +3,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { BusinessType, MerchantCategory } from '../../models/business-params.model';
 import { Case, RoleBanner } from '../../models/case.model';
 import { AuthService } from '../../services/auth.service';
+import { BusinessParamsService } from '../../services/business-params.service';
 import { CaseService } from '../../services/case.service';
 import { NotificationService } from '../../services/notification.service';
 import { User, UserService } from '../../services/user.service';
@@ -27,6 +29,10 @@ export class CasesComponent implements OnInit {
   canEditCase = false;
   roleBanner: RoleBanner | null = null;
   isLoading = false;
+
+  // Business types for dropdown
+  businessTypes: BusinessType[] = [];
+  merchantCategories: MerchantCategory[] = [];
 
   // Compliance reviewers for assignment
   complianceReviewers: User[] = [];
@@ -145,6 +151,7 @@ export class CasesComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private businessParamsService: BusinessParamsService,
     private caseService: CaseService,
     private notificationService: NotificationService,
     private router: Router,
@@ -163,6 +170,36 @@ export class CasesComponent implements OnInit {
     this.canEditCase = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
     this.roleBanner = this.caseService.getRoleBanner(roleId, 'list');
     this.loadCases();
+    this.loadBusinessTypes();
+    this.loadMerchantCategories();
+  }
+
+  loadBusinessTypes(): void {
+    this.businessParamsService.filterBusinessTypes('', 'active').subscribe({
+      next: (types) => this.businessTypes = types,
+      error: (error) => console.error('Error loading business types:', error)
+    });
+  }
+
+  loadMerchantCategories(): void {
+    this.businessParamsService.filterMerchantCategories('', 'active').subscribe({
+      next: (categories) => this.merchantCategories = categories,
+      error: (error) => console.error('Error loading merchant categories:', error)
+    });
+  }
+
+  expandSelect(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    if (select.options.length > 6) {
+      select.size = 6;
+      select.classList.add('select-expanded');
+    }
+  }
+
+  collapseSelect(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    select.size = 1;
+    select.classList.remove('select-expanded');
   }
 
   loadCases(): void {

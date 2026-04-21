@@ -3,6 +3,7 @@ import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavbarComponent } from '../../components/navbar/navbar.component';
+import { BusinessType, MerchantCategory } from '../../models/business-params.model';
 import { Case, RoleBanner } from '../../models/case.model';
 import {
     COMPLIANCE_TYPE_ICONS,
@@ -11,6 +12,7 @@ import {
     VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary
 } from '../../models/verification.model';
 import { AuthService } from '../../services/auth.service';
+import { BusinessParamsService } from '../../services/business-params.service';
 import { CaseService } from '../../services/case.service';
 import { ComplianceService } from '../../services/compliance.service';
 
@@ -61,6 +63,8 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
 
   // Edit case properties
   showEditModal = false;
+  businessTypes: BusinessType[] = [];
+  merchantCategories: MerchantCategory[] = [];
   editCaseData = {
     businessName: '',
     registrationNumber: '',
@@ -96,6 +100,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
+    private businessParamsService: BusinessParamsService,
     private caseService: CaseService,
     private complianceService: ComplianceService,
     private notificationService: NotificationService,
@@ -122,11 +127,41 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
 
     this.roleBanner = this.caseService.getRoleBanner(this.roleId, 'detail');
     this.showReassign = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
+    this.loadBusinessTypes();
+    this.loadMerchantCategories();
   }
 
   ngOnDestroy(): void {
     this.stopVerificationPolling();
     this.stopCompliancePolling();
+  }
+
+  loadBusinessTypes(): void {
+    this.businessParamsService.filterBusinessTypes('', 'active').subscribe({
+      next: (types) => this.businessTypes = types,
+      error: (error) => console.error('Error loading business types:', error)
+    });
+  }
+
+  loadMerchantCategories(): void {
+    this.businessParamsService.filterMerchantCategories('', 'active').subscribe({
+      next: (categories) => this.merchantCategories = categories,
+      error: (error) => console.error('Error loading merchant categories:', error)
+    });
+  }
+
+  expandSelect(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    if (select.options.length > 6) {
+      select.size = 6;
+      select.classList.add('select-expanded');
+    }
+  }
+
+  collapseSelect(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    select.size = 1;
+    select.classList.remove('select-expanded');
   }
 
   loadCase(caseId: string): void {
@@ -279,7 +314,6 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
       return '';
     }
     if (stepIndex < current) return 'completed';
-    if (stepIndex === current) return current === 4 ? 'completed' : 'active';
     return '';
   }
 

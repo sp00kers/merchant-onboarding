@@ -92,6 +92,7 @@ body {
 /* Forms */
 .form-group {
     margin-bottom: 1rem;
+    position: relative;
 }
 
 .form-group label {
@@ -109,6 +110,13 @@ body {
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 1rem;
+}
+
+.form-group select.select-expanded {
+    position: absolute;
+    z-index: 100;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .form-group input:focus,

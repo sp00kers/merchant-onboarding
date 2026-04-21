@@ -125,28 +125,26 @@
             <div class="form-group">
               <label for="businessType">Business Type <span class="required-asterisk">*</span></label>
               <select id="businessType" [(ngModel)]="newCase.businessType" name="businessType" required
-                      (focus)="businessTypeTouched = true"
+                      (focus)="businessTypeTouched = true; expandSelect($event)"
+                      (change)="collapseSelect($event)"
+                      (blur)="collapseSelect($event)"
                       (ngModelChange)="validateBusinessType()"
                       [class.input-error]="businessTypeError">
                 <option value="">Select Business Type</option>
-                <option value="Sole Proprietorship">Sole Proprietorship</option>
-                <option value="Partnership">Partnership</option>
-                <option value="Sdn Bhd">Sdn Bhd</option>
-                <option value="Bhd">Bhd</option>
+                <option *ngFor="let bt of businessTypes" [value]="bt.name">{{ bt.name }}</option>
               </select>
               <small class="error-text" *ngIf="businessTypeError">{{ businessTypeError }}</small>
             </div>
             <div class="form-group">
               <label for="merchantCategory">Merchant Category <span class="required-asterisk">*</span></label>
               <select id="merchantCategory" [(ngModel)]="newCase.merchantCategory" name="merchantCategory" required
-                      (focus)="merchantCategoryTouched = true"
+                      (focus)="merchantCategoryTouched = true; expandSelect($event)"
+                      (change)="collapseSelect($event)"
+                      (blur)="collapseSelect($event)"
                       (ngModelChange)="validateMerchantCategory()"
                       [class.input-error]="merchantCategoryError">
                 <option value="">Select Category</option>
-                <option value="retail">Retail</option>
-                <option value="restaurant">Restaurant</option>
-                <option value="ecommerce">E-commerce</option>
-                <option value="services">Services</option>
+                <option *ngFor="let mc of merchantCategories" [value]="mc.name">{{ mc.name }}</option>
               </select>
               <small class="error-text" *ngIf="merchantCategoryError">{{ merchantCategoryError }}</small>
             </div>
@@ -218,7 +216,9 @@
               <label for="assignedTo">Assign to Compliance Reviewer <span class="required-asterisk">*</span></label>
               <select id="assignedTo" [(ngModel)]="newCase.assignedTo" name="assignedTo" required
                       [disabled]="isLoadingReviewers"
-                      (focus)="assignedToTouched = true"
+                      (focus)="assignedToTouched = true; expandSelect($event)"
+                      (change)="collapseSelect($event)"
+                      (blur)="collapseSelect($event)"
                       (ngModelChange)="validateAssignedTo()"
                       [class.input-error]="assignedToError">
                 <option value="">-- Select a Reviewer --</option>
@@ -338,28 +338,26 @@
             <div class="form-group">
               <label for="editBusinessType">Business Type <span class="required-asterisk">*</span></label>
               <select id="editBusinessType" [(ngModel)]="editCase.businessType" name="editBusinessType" required
-                      (focus)="businessTypeTouched = true"
+                      (focus)="businessTypeTouched = true; expandSelect($event)"
+                      (change)="collapseSelect($event)"
+                      (blur)="collapseSelect($event)"
                       (ngModelChange)="validateEditBusinessType()"
                       [class.input-error]="editBusinessTypeError">
                 <option value="">Select Business Type</option>
-                <option value="Sole Proprietorship">Sole Proprietorship</option>
-                <option value="Partnership">Partnership</option>
-                <option value="Sdn Bhd">Sdn Bhd</option>
-                <option value="Bhd">Bhd</option>
+                <option *ngFor="let bt of businessTypes" [value]="bt.name">{{ bt.name }}</option>
               </select>
               <small class="error-text" *ngIf="editBusinessTypeError">{{ editBusinessTypeError }}</small>
             </div>
             <div class="form-group">
               <label for="editMerchantCategory">Merchant Category <span class="required-asterisk">*</span></label>
               <select id="editMerchantCategory" [(ngModel)]="editCase.merchantCategory" name="editMerchantCategory" required
-                      (focus)="merchantCategoryTouched = true"
+                      (focus)="merchantCategoryTouched = true; expandSelect($event)"
+                      (change)="collapseSelect($event)"
+                      (blur)="collapseSelect($event)"
                       (ngModelChange)="validateEditMerchantCategory()"
                       [class.input-error]="editMerchantCategoryError">
                 <option value="">Select Category</option>
-                <option value="retail">Retail</option>
-                <option value="restaurant">Restaurant</option>
-                <option value="ecommerce">E-commerce</option>
-                <option value="services">Services</option>
+                <option *ngFor="let mc of merchantCategories" [value]="mc.name">{{ mc.name }}</option>
               </select>
               <small class="error-text" *ngIf="editMerchantCategoryError">{{ editMerchantCategoryError }}</small>
             </div>
@@ -431,7 +429,9 @@
               <label for="editAssignedTo">Assign to Compliance Reviewer <span class="required-asterisk">*</span></label>
               <select id="editAssignedTo" [(ngModel)]="editCase.assignedTo" name="editAssignedTo" required
                       [disabled]="isLoadingReviewers"
-                      (focus)="assignedToTouched = true"
+                      (focus)="assignedToTouched = true; expandSelect($event)"
+                      (change)="collapseSelect($event)"
+                      (blur)="collapseSelect($event)"
                       (ngModelChange)="validateEditAssignedTo()"
                       [class.input-error]="editAssignedToError">
                 <option value="">-- Select a Reviewer --</option>
