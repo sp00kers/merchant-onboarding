@@ -7,10 +7,10 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { BusinessType, MerchantCategory } from '../../models/business-params.model';
 import { Case, RoleBanner } from '../../models/case.model';
 import {
-    COMPLIANCE_TYPE_ICONS,
-    COMPLIANCE_TYPE_LABELS,
-    ComplianceReviewResult, ComplianceReviewSummary,
-    VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary
+  COMPLIANCE_TYPE_ICONS,
+  COMPLIANCE_TYPE_LABELS,
+  ComplianceReviewResult, ComplianceReviewSummary,
+  VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary
 } from '../../models/verification.model';
 import { AuthService } from '../../services/auth.service';
 import { BusinessParamsService } from '../../services/business-params.service';
@@ -358,7 +358,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
     const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
 
     if (status === 'pending_review' || status === 'pending review') {
-      // Pending Review → Background Verification
+      // Pending Review to Background Verification
       if (confirm('Approve this case to proceed to Background Verification?')) {
         this.caseService.updateCaseStatus(this.caseData.caseId, 'Background Verification').subscribe({
           next: () => {
@@ -371,7 +371,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
         });
       }
     } else if (status === 'background_verification' || status === 'background verification') {
-      // Background Verification → Compliance Review (only if all verifications passed)
+      // Background Verification to Compliance Review (only if all verifications passed)
       if (confirm('All verifications passed. Approve this case to proceed to Compliance Review?')) {
         this.caseService.updateCaseStatus(this.caseData.caseId, 'Compliance Review').subscribe({
           next: () => {
@@ -384,7 +384,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
         });
       }
     } else if (status === 'compliance_review' || status === 'compliance review') {
-      // Compliance Review → Approved
+      // Compliance Review to Approved
       if (confirm('Are you sure you want to give final approval for this case?')) {
         this.caseService.updateCaseStatus(this.caseData.caseId, 'Approved').subscribe({
           next: () => {
