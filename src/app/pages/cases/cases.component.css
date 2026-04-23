@@ -54,9 +54,12 @@
   color: #333;
 }
 
-.filters-row .filter-group select.ng-pristine:not(:focus),
 .filters-row .filter-group select option[value=""] {
   color: #999;
+}
+
+.filters-row .filter-group select option:not([value=""]) {
+  color: #000;
 }
 
 .filter-actions {

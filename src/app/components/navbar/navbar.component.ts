@@ -46,6 +46,10 @@ export class NavbarComponent {
     return this.authService.getCurrentUser()?.user?.name || '';
   }
 
+  get userRole(): string {
+    return this.authService.getCurrentUser()?.user?.role?.name || '';
+  }
+
   logout(): void {
     if (confirm('Are you sure you want to logout?')) {
       this.authService.logout();

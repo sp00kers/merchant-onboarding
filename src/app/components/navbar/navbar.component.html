@@ -22,7 +22,7 @@
 
     <a *ngIf="showAuditTrail" routerLink="/audit-trail" routerLinkActive="active">Audit Trail</a>
     <app-notification-bell></app-notification-bell>
-    <span *ngIf="userName" class="nav-greeting">Hello, {{ userName }}!</span>
+    <span *ngIf="userName" class="nav-greeting">Hello, {{ userName }}!<br *ngIf="userRole"><span *ngIf="userRole" class="nav-role">{{ userRole }}</span></span>
     <a href="javascript:void(0)" (click)="logout()">Logout</a>
   </div>
 </nav>

@@ -207,8 +207,8 @@ export class CasesComponent implements OnInit, OnDestroy {
 
   expandSelect(event: Event): void {
     const select = event.target as HTMLSelectElement;
-    if (select.options.length > 6) {
-      select.size = 6;
+    if (select.options.length > 4) {
+      select.size = 4;
       select.classList.add('select-expanded');
     }
   }

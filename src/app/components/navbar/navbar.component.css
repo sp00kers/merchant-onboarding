@@ -54,4 +54,13 @@
   padding: 0.5rem 0.75rem;
   font-size: 0.9rem;
   white-space: nowrap;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.nav-role {
+  color: #bdc3c7;
+  font-size: 0.75rem;
+  font-style: italic;
+  display: block;
 }
