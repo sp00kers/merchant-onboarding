@@ -102,7 +102,7 @@ export class UserManagementComponent implements OnInit {
     }).subscribe({
       next: ({ users, roles, permissions }) => {
         this.allUsers = users;
-        this.roles = roles;
+        this.roles = roles.filter(r => r.id !== 'verifier');
         this.allPermissions = permissions;
         this.applyFilters();
         this.isLoading = false;
