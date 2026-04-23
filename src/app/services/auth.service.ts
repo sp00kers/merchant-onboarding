@@ -81,6 +81,13 @@ export class AuthService {
   }
 
   logout(): void {
+    // Notify backend to clear active session token
+    const token = this.getToken();
+    if (token) {
+      this.http.post(`${environment.apiUrl}/auth/logout`, {}).subscribe({
+        error: () => {} // Ignore errors — still proceed with client-side logout
+      });
+    }
     sessionStorage.removeItem(this.TOKEN_KEY);
     sessionStorage.removeItem(this.USER_KEY);
     sessionStorage.removeItem(this.USER_ROLE_KEY);
