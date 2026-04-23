@@ -160,8 +160,7 @@ export class RoleService {
   }
 
   canViewCases(roleId: string): boolean {
-    return this.userHasPermissionSync(roleId, 'case_view') ||
-            this.userHasPermissionSync(roleId, 'case_management') ||
+    return this.userHasPermissionSync(roleId, 'case_management') ||
             this.userHasPermissionSync(roleId, 'all_modules');
   }
 

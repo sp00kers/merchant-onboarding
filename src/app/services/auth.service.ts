@@ -189,7 +189,7 @@ export class AuthService {
   }
 
   canViewCases(): boolean {
-    return this.hasAnyPermission(['case_view', 'case_management', 'case_creation', 'all_modules']);
+    return this.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
   }
 
   canEditCases(): boolean {

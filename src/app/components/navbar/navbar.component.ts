@@ -15,7 +15,7 @@ export class NavbarComponent {
   constructor(public authService: AuthService) {}
 
   get showCases(): boolean {
-    return this.authService.hasAnyPermission(['case_view', 'case_management', 'case_creation', 'all_modules']);
+    return this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
   }
 
   get showBusinessParams(): boolean {

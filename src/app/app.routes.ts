@@ -22,8 +22,8 @@ export const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
 
   // Cases — require case-related permissions
-  { path: 'cases', component: CasesComponent, canActivate: [authGuard, roleGuard(['case_view', 'case_management', 'case_creation', 'all_modules'])] },
-  { path: 'cases/:id', component: CaseDetailsComponent, canActivate: [authGuard, roleGuard(['case_view', 'case_management', 'case_creation', 'all_modules'])] },
+  { path: 'cases', component: CasesComponent, canActivate: [authGuard, roleGuard(['case_management', 'case_creation', 'all_modules'])] },
+  { path: 'cases/:id', component: CaseDetailsComponent, canActivate: [authGuard, roleGuard(['case_management', 'case_creation', 'all_modules'])] },
 
   // Business Parameters — require system_configuration or all_modules
   { path: 'business-params', component: BusinessParamsComponent, canActivate: [authGuard, roleGuard(['system_configuration', 'all_modules'])] },
