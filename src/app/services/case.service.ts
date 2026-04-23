@@ -98,7 +98,7 @@ export class CaseService {
         list: {
           icon: '👁️',
           title: 'Onboarding Officer Mode',
-          message: 'You can view all cases and create new ones. Click "View" to review case details and take actions where permitted.',
+          message: 'You can view, create, edit, and draft cases. Click "View" to review case details.',
           bannerClass: 'info-banner'
         },
         detail: {
