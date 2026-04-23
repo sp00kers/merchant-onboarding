@@ -547,10 +547,13 @@ export class CasesComponent implements OnInit, OnDestroy {
   validateDirectorPhone(): void {
     if (!this.directorPhoneTouched) return;
     const phone = this.newCase.directorPhone.trim();
+    const digitsOnly = phone.replace(/^\+/, '');
     if (!phone) {
       this.directorPhoneError = 'Phone number is required';
     } else if (!/^\+?[0-9]+$/.test(phone)) {
       this.directorPhoneError = 'Phone number must contain only numbers';
+    } else if (digitsOnly.length < 8 || digitsOnly.length > 11) {
+      this.directorPhoneError = "The phone number's length should be between 8 to 11.";
     } else {
       this.directorPhoneError = '';
     }
@@ -1025,10 +1028,13 @@ export class CasesComponent implements OnInit, OnDestroy {
   validateEditDirectorPhone(): void {
     if (!this.directorPhoneTouched) return;
     const phone = this.editCase.directorPhone.trim();
+    const digitsOnly = phone.replace(/^\+/, '');
     if (!phone) {
       this.editDirectorPhoneError = 'Phone number is required';
     } else if (!/^\+?[0-9]+$/.test(phone)) {
       this.editDirectorPhoneError = 'Phone number must contain only numbers';
+    } else if (digitsOnly.length < 8 || digitsOnly.length > 11) {
+      this.editDirectorPhoneError = "The phone number's length should be between 8 to 11.";
     } else {
       this.editDirectorPhoneError = '';
     }

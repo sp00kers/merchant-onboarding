@@ -950,7 +950,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
       case 'directorPhone':
         if (!val) this.editErrors[field] = 'Phone number is required';
         else if (!/^\+?[0-9]+$/.test(val)) this.editErrors[field] = 'Phone number must contain only numbers';
-        else this.editErrors[field] = '';
+        else { const digits = val.replace(/^\+/, ''); this.editErrors[field] = (digits.length < 8 || digits.length > 11) ? "The phone number's length should be between 8 to 11." : ''; }
         break;
       case 'directorEmail':
         if (!val) this.editErrors[field] = 'Email address is required';

@@ -6,14 +6,14 @@
       <h1>View Case Details</h1>
       <button class="btn-secondary" (click)="goBackToCases()" style="margin-top: 1rem;">Back to Cases</button>
     </div>
-    <div class="header-actions">
+    <div class="header-actions" *ngIf="workflowStep !== -1 && workflowStep !== 4">
       <div class="action-dropdown-container">
         <div class="dropdown">
           <button class="btn-primary dropdown-toggle" (click)="toggleActionDropdown()">
             <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
           </button>
           <div class="dropdown-menu" [class.show]="showActionDropdown">
-            <button *ngIf="showReassign" class="dropdown-item" (click)="assignCase()">
+            <button *ngIf="showReassign && workflowStep !== -1" class="dropdown-item" (click)="assignCase()">
               <span class="dropdown-icon">👥</span>Reassign Case
             </button>
             <button *ngIf="canEditCase" class="dropdown-item" (click)="openEditModal()">
@@ -137,7 +137,7 @@
           </div>
         </div>
 
-        <div class="add-comment-form">
+        <div class="add-comment-form" *ngIf="workflowStep !== -1 && workflowStep !== 4">
           <h4>Add Comment</h4>
           <div class="comment-form">
             <textarea [(ngModel)]="commentText" placeholder="Enter your comment here..." rows="4"></textarea>
@@ -157,7 +157,7 @@
               <span class="doc-type">{{ doc.type }}</span>
               <span class="doc-name">{{ doc.name }}</span>
             </div>
-            <button *ngIf="workflowStep < 2" class="btn-small" (click)="downloadDocument(doc)">Download</button>
+            <button *ngIf="workflowStep >= 0 && workflowStep < 2" class="btn-small" (click)="downloadDocument(doc)">Download</button>
           </div>
           <p *ngIf="backgroundVerificationDocs.length === 0" class="no-documents">No background verification documents uploaded.</p>
         </div>
@@ -171,14 +171,14 @@
               <span class="doc-type">{{ doc.type }}</span>
               <span class="doc-name">{{ doc.name }}</span>
             </div>
-            <button *ngIf="workflowStep < 2" class="btn-small" (click)="downloadDocument(doc)">Download</button>
+            <button *ngIf="workflowStep >= 0 && workflowStep < 2" class="btn-small" (click)="downloadDocument(doc)">Download</button>
           </div>
           <p *ngIf="complianceReviewDocs.length === 0" class="no-documents">No compliance review documents uploaded.</p>
         </div>
       </div>
 
       <!-- Verification Section (visible from Background Verification stage onward) -->
-      <div class="info-section verification-section" *ngIf="workflowStep >= 2">
+      <div class="info-section verification-section" *ngIf="workflowStep >= 2 || (workflowStep === -1 && rejectedAtStep >= 2)">
         <div class="section-header">
           <h3>Background Verification</h3>
         </div>
@@ -215,7 +215,7 @@
               <div class="verification-notes" *ngIf="result.notes">{{ result.notes }}</div>
             </div>
             <button
-              *ngIf="canTriggerVerification && result.status === 'FAILED'"
+              *ngIf="canTriggerVerification && result.status === 'FAILED' && workflowStep !== -1"
               class="btn-small btn-secondary"
               (click)="triggerSingleVerification(result.verificationType)"
             >
@@ -250,7 +250,7 @@
       </div>
 
       <!-- Compliance Review Section (visible from Compliance Review stage onward) -->
-      <div class="info-section verification-section" *ngIf="workflowStep >= 3">
+      <div class="info-section verification-section" *ngIf="workflowStep >= 3 || (workflowStep === -1 && rejectedAtStep >= 3)">
         <div class="section-header">
           <h3>Compliance Review</h3>
         </div>
@@ -287,7 +287,7 @@
               <div class="verification-notes" *ngIf="result.reason">{{ result.reason }}</div>
             </div>
             <button
-              *ngIf="canTriggerCompliance && result.status === 'FAILED'"
+              *ngIf="canTriggerCompliance && result.status === 'FAILED' && workflowStep !== -1"
               class="btn-small btn-secondary"
               (click)="triggerSingleComplianceReview(result.documentType)"
             >
