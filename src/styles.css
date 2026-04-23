@@ -23,25 +23,47 @@ body {
 }
 
 .nav-brand {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: bold;
 }
 
-.nav-menu {
+.nav-menu,
+.nav-links {
     display: flex;
-    gap: 2rem;
+    gap: 1.5rem;
+    align-items: center;
 }
 
-.nav-menu a {
+.nav-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.nav-menu a,
+.nav-links a,
+.nav-actions a {
     color: white;
     text-decoration: none;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem;
     border-radius: 4px;
     transition: background-color 0.3s;
+    font-size: 0.9rem;
+}
+
+.nav-links a,
+.nav-links .nav-dropdown-trigger {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
 }
 
 .nav-menu a:hover,
-.nav-menu a.active {
+.nav-menu a.active,
+.nav-links a:hover,
+.nav-links a.active,
+.nav-actions a:hover,
+.nav-actions a.active {
     background-color: #34495e;
 }
 
@@ -86,7 +108,7 @@ body {
 .login-form p {
     text-align: center;
     margin-bottom: 2rem;
-    color: #7f8c8d;
+    color: #000000;
 }
 
 /* Forms */
@@ -679,7 +701,14 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .nav-menu {
+    .navbar {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .nav-menu,
+    .nav-links,
+    .nav-actions {
         flex-direction: column;
         gap: 0.5rem;
     }
@@ -1555,15 +1584,18 @@ body {
 /* Horizontal Workflow Progress */
 .workflow-progress-section {
     background: white;
-    padding: 2rem;
+    padding: 0.6rem 2rem;
     border-radius: 8px;
     margin-bottom: 2rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 40;
 }
 
 .workflow-progress-section h3 {
     margin-top: 0;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.4rem;
     color: #2c3e50;
 }
 
@@ -1571,7 +1603,7 @@ body {
     display: flex;
     justify-content: space-between;
     position: relative;
-    max-width: 600px;
+    max-width: 500px;
     margin: 0 auto;
 }
 
@@ -1584,8 +1616,8 @@ body {
 }
 
 .progress-steps-horizontal .step-circle {
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background: #ecf0f1;
     color: #7f8c8d;
@@ -1593,7 +1625,8 @@ body {
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
     z-index: 2;
     position: relative;
 }
@@ -1611,7 +1644,7 @@ body {
 
 .progress-steps-horizontal .step-label {
     text-align: center;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: #2c3e50;
     font-weight: 500;
     max-width: 100px;
@@ -1619,7 +1652,7 @@ body {
 
 .progress-steps-horizontal .step-line {
     position: absolute;
-    top: 20px;
+    top: 15px;
     left: 50%;
     width: 100%;
     height: 2px;
@@ -2117,7 +2150,9 @@ body {
 }
 
 /* Table Actions Column */
-.param-table td:last-child {
+.param-table td:last-child,
+.users-table td:last-child,
+.cases-table td:last-child {
     white-space: nowrap;
 }
 

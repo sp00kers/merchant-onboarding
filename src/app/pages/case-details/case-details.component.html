@@ -25,15 +25,6 @@
     </div>
   </div>
 
-  <!-- Role Access Banner -->
-  <div *ngIf="roleBanner" class="access-info-banner" [ngClass]="roleBanner.bannerClass">
-    <div class="banner-icon">{{ roleBanner.icon }}</div>
-    <div class="banner-text">
-      <strong>{{ roleBanner.title }}</strong>
-      <p>{{ roleBanner.message }}</p>
-    </div>
-  </div>
-
   <!-- Workflow Progress -->
   <div class="workflow-progress-section">
     <h3>Workflow Progress</h3>
@@ -166,7 +157,7 @@
               <span class="doc-type">{{ doc.type }}</span>
               <span class="doc-name">{{ doc.name }}</span>
             </div>
-            <button class="btn-small" (click)="downloadDocument(doc)">Download</button>
+            <button *ngIf="workflowStep < 2" class="btn-small" (click)="downloadDocument(doc)">Download</button>
           </div>
           <p *ngIf="backgroundVerificationDocs.length === 0" class="no-documents">No background verification documents uploaded.</p>
         </div>
@@ -180,7 +171,7 @@
               <span class="doc-type">{{ doc.type }}</span>
               <span class="doc-name">{{ doc.name }}</span>
             </div>
-            <button class="btn-small" (click)="downloadDocument(doc)">Download</button>
+            <button *ngIf="workflowStep < 2" class="btn-small" (click)="downloadDocument(doc)">Download</button>
           </div>
           <p *ngIf="complianceReviewDocs.length === 0" class="no-documents">No compliance review documents uploaded.</p>
         </div>
@@ -224,7 +215,7 @@
               <div class="verification-notes" *ngIf="result.notes">{{ result.notes }}</div>
             </div>
             <button
-              *ngIf="canTriggerVerification && (result.status === 'PASSED' || result.status === 'FAILED')"
+              *ngIf="canTriggerVerification && result.status === 'FAILED'"
               class="btn-small btn-secondary"
               (click)="triggerSingleVerification(result.verificationType)"
             >
@@ -296,7 +287,7 @@
               <div class="verification-notes" *ngIf="result.reason">{{ result.reason }}</div>
             </div>
             <button
-              *ngIf="canTriggerCompliance && (result.status === 'PASSED' || result.status === 'FAILED')"
+              *ngIf="canTriggerCompliance && result.status === 'FAILED'"
               class="btn-small btn-secondary"
               (click)="triggerSingleComplianceReview(result.documentType)"
             >
@@ -333,7 +324,6 @@
 
   <!-- Available Actions Section at Bottom -->
   <div class="available-actions-section" *ngIf="isComplianceOrAdmin && workflowStep !== 4 && workflowStep !== -1">
-    <h3>Action</h3>
     <div class="actions-layout">
 
       <!-- Compliance Reviewer actions (only assigned reviewer) -->
@@ -348,20 +338,6 @@
       </ng-container>
       <ng-container *ngIf="isComplianceOrAdmin && !canAuthorizeCase">
         <p class="info-text">You can only view this case. Approve/reject is reserved for the assigned compliance reviewer.</p>
-      </ng-container>
-
-      <!-- Verifier actions -->
-      <ng-container *ngIf="isVerifier">
-        <div *ngIf="workflowStep === 2 && !allVerificationsPassed" class="approval-gate-message">
-          All background verifications must pass before completing verification. Use "Start Verification" in the Background Verification section above.
-        </div>
-      </ng-container>
-
-      <!-- Compliance gate message -->
-      <ng-container *ngIf="canAuthorizeCase && workflowStep === 3 && !allComplianceReviewsPassed">
-        <div class="approval-gate-message">
-          All compliance reviews must pass before approving. Use "Start Review" in the Compliance Review section above.
-        </div>
       </ng-container>
 
     </div>

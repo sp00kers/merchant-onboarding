@@ -2,17 +2,8 @@
 
 <div class="container">
   <div class="page-header">
-    <h1>Merchant Onboarding Cases</h1>
+    <h1>Onboarding Case List</h1>
     <button *ngIf="canCreateCase" class="btn-primary" (click)="openCreateModal()">Add New</button>
-  </div>
-
-  <!-- Role Information Banner -->
-  <div *ngIf="roleBanner" class="role-info-banner" [ngClass]="roleBanner.bannerClass">
-    <div class="banner-icon">{{ roleBanner.icon }}</div>
-    <div class="banner-text">
-      <strong>{{ roleBanner.title }}</strong>
-      <p>{{ roleBanner.message }}</p>
-    </div>
   </div>
 
   <div class="filters">

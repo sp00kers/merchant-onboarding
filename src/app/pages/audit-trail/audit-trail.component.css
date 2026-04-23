@@ -21,37 +21,60 @@
 }
 
 /* Stats Cards */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+/* Metrics Card (matching dashboard style) */
+.analytics-row {
   margin-bottom: 24px;
 }
 
-.stat-card {
+.analytics-card {
   background: white;
   border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.stat-card.warning .stat-value {
+.analytics-card h3 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+.metrics-card {
+  width: 100%;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.metric-item.warning .metric-value {
   color: #dc2626;
 }
 
-.stat-value {
-  font-size: 32px;
-  font-weight: 700;
-  color: #1a1a2e;
-}
-
-.stat-label {
-  font-size: 14px;
+.metric-label {
+  font-size: 0.85rem;
   color: #666;
-  margin-top: 4px;
+  margin-top: 0.25rem;
 }
 
 /* Filters */

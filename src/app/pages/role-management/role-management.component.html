@@ -33,7 +33,6 @@
           <th>Role ID</th>
           <th>Name</th>
           <th>Description</th>
-          <th>Permissions</th>
           <th>Status</th>
           <th>Created</th>
           <th>Actions</th>
@@ -44,13 +43,6 @@
           <td>{{ role.id }}</td>
           <td>{{ role.name }}</td>
           <td>{{ role.description }}</td>
-          <td>
-            <span class="permission-count">{{ role.permissions.length }} permissions</span>
-            <div class="permission-preview">
-              <span class="permission-tag" *ngFor="let name of getPermissionNames(role)">{{ name }}</span>
-              <span class="permission-more" *ngIf="getRemainingCount(role) > 0">+{{ getRemainingCount(role) }} more</span>
-            </div>
-          </td>
           <td><span [class]="'status-' + (role.isActive ? 'active' : 'inactive')">{{ role.isActive ? 'Active' : 'Inactive' }}</span></td>
           <td>{{ formatDate(role.createdAt) }}</td>
           <td>
@@ -66,7 +58,7 @@
           </td>
         </tr>
         <tr *ngIf="filteredRoles.length === 0">
-          <td colspan="7" style="text-align: center; padding: 20px;">No roles found</td>
+          <td colspan="6" style="text-align: center; padding: 20px;">No roles found</td>
         </tr>
       </tbody>
     </table>

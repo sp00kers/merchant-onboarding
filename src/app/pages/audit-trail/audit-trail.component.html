@@ -7,18 +7,23 @@
   </div>
 
   <!-- Stats Cards -->
-  <div class="stats-grid" *ngIf="stats">
-    <div class="stat-card">
-      <div class="stat-value">{{ stats.actionsLast24Hours }}</div>
-      <div class="stat-label">Actions (24h)</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">{{ stats.actionsLast7Days }}</div>
-      <div class="stat-label">Actions (7 days)</div>
-    </div>
-    <div class="stat-card warning">
-      <div class="stat-value">{{ stats.loginFailuresLast24Hours }}</div>
-      <div class="stat-label">Failed Logins (24h)</div>
+  <div class="analytics-row" *ngIf="stats">
+    <div class="analytics-card metrics-card">
+      <h3>Audit Metrics</h3>
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <span class="metric-value">{{ stats.actionsLast24Hours }}</span>
+          <span class="metric-label">Actions (24h)</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-value">{{ stats.actionsLast7Days }}</span>
+          <span class="metric-label">Actions (7 days)</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-value">{{ stats.loginFailuresLast24Hours }}</span>
+          <span class="metric-label">Failed Logins (24h)</span>
+        </div>
+      </div>
     </div>
   </div>
 
