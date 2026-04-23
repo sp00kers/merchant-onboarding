@@ -48,3 +48,10 @@
 .nav-dropdown-menu a.active {
   background-color: #34495e;
 }
+
+.nav-greeting {
+  color: #ecf0f1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}

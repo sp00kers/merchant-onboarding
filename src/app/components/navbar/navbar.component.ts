@@ -42,6 +42,10 @@ export class NavbarComponent {
     return this.authService.hasAnyPermission(['audit_view', 'all_modules']);
   }
 
+  get userName(): string {
+    return this.authService.getCurrentUser()?.user?.name || '';
+  }
+
   logout(): void {
     if (confirm('Are you sure you want to logout?')) {
       this.authService.logout();

@@ -34,7 +34,7 @@ export interface TrendData {
 
 export interface VerificationStats {
   totalVerifications: number;
-  completedVerifications: number;
+  passedVerifications: number;
   failedVerifications: number;
   averageConfidenceScore: number;
   verificationTypeDistribution: Record<string, number>;

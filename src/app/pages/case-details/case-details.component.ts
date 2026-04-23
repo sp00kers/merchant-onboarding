@@ -7,10 +7,10 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { BusinessType, MerchantCategory } from '../../models/business-params.model';
 import { Case, RoleBanner } from '../../models/case.model';
 import {
-  COMPLIANCE_TYPE_ICONS,
-  COMPLIANCE_TYPE_LABELS,
-  ComplianceReviewResult, ComplianceReviewSummary,
-  VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary
+    COMPLIANCE_TYPE_ICONS,
+    COMPLIANCE_TYPE_LABELS,
+    ComplianceReviewResult, ComplianceReviewSummary,
+    VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary
 } from '../../models/verification.model';
 import { AuthService } from '../../services/auth.service';
 import { BusinessParamsService } from '../../services/business-params.service';
@@ -62,6 +62,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   complianceTypeIcons = COMPLIANCE_TYPE_ICONS;
   private compliancePollingInterval: any = null;
   private permissionSub?: Subscription;
+  private routeSub?: Subscription;
 
   // Edit case properties
   showEditModal = false;
@@ -119,13 +120,17 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const caseId = this.route.snapshot.paramMap.get('id');
-    if (caseId) {
-      this.loadCase(caseId);
-    } else {
-      this.notificationService.show('Case not found', 'error');
-      setTimeout(() => this.router.navigate(['/cases']), 2000);
-    }
+    this.routeSub = this.route.paramMap.subscribe(paramMap => {
+      const caseId = paramMap.get('id');
+      if (caseId) {
+        this.stopVerificationPolling();
+        this.stopCompliancePolling();
+        this.loadCase(caseId);
+      } else {
+        this.notificationService.show('Case not found', 'error');
+        setTimeout(() => this.router.navigate(['/cases']), 2000);
+      }
+    });
 
     this.roleBanner = this.caseService.getRoleBanner(this.roleId, 'detail');
     this.showReassign = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
@@ -142,6 +147,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
     this.stopVerificationPolling();
     this.stopCompliancePolling();
     this.permissionSub?.unsubscribe();
+    this.routeSub?.unsubscribe();
   }
 
   loadBusinessTypes(): void {
