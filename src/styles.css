@@ -1984,6 +1984,39 @@ body {
     margin-right: 0.5rem;
 }
 
+/* Icon action buttons */
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.35rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+.btn-icon:not(:last-child) {
+    margin-right: 0.25rem;
+}
+
+.btn-view-icon {
+    color: #3498db;
+}
+
+.btn-edit-icon {
+    color: #2ecc71;
+}
+
+.btn-delete-icon {
+    color: #e74c3c;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .params-tabs {

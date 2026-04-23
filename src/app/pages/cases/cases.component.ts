@@ -28,6 +28,7 @@ export class CasesComponent implements OnInit, OnDestroy {
   showCreateModal = false;
   canCreateCase = false;
   canEditCase = false;
+  canDeleteCase = false;
   canUploadDocuments = false;
   roleBanner: RoleBanner | null = null;
   isLoading = false;
@@ -188,6 +189,7 @@ export class CasesComponent implements OnInit, OnDestroy {
   private updatePermissionFlags(): void {
     this.canCreateCase = this.authService.hasAnyPermission(['case_creation', 'all_modules']);
     this.canEditCase = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
+    this.canDeleteCase = this.authService.hasAnyPermission(['case_creation', 'case_management', 'all_modules']);
     this.canUploadDocuments = this.authService.hasAnyPermission(['document_upload', 'case_creation', 'all_modules']);
   }
 
@@ -687,6 +689,31 @@ export class CasesComponent implements OnInit, OnDestroy {
     if (!this.canEditCase) return false;
     const status = c.status?.toLowerCase().replace(/[\s_]+/g, '_');
     return status === 'draft' || status === 'pending_review';
+  }
+
+  //  Delete Case Methods
+
+  canDeleteCaseByStatus(c: Case): boolean {
+    if (!this.canDeleteCase) return false;
+    const status = c.status?.toLowerCase().replace(/[\s_]+/g, '_');
+    return status !== 'approved' && status !== 'rejected';
+  }
+
+  deleteCase(caseId: string, businessName: string): void {
+    if (!confirm(`Are you sure you want to delete case "${caseId}" (${businessName})? This action cannot be undone.`)) {
+      return;
+    }
+    this.caseService.deleteCase(caseId).subscribe({
+      next: () => {
+        this.notificationService.show(`Case ${caseId} deleted successfully`, 'success');
+        this.loadCases();
+      },
+      error: (error) => {
+        console.error('Error deleting case:', error);
+        const msg = error.error?.message || 'Failed to delete case';
+        this.notificationService.show(msg, 'error');
+      }
+    });
   }
 
   openEditModal(caseId: string): void {

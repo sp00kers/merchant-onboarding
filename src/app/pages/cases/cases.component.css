@@ -182,6 +182,43 @@ input[type="file"].input-error {
   background-color: #27ae60;
 }
 
+.btn-delete {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-delete:hover {
+  background-color: #c0392b;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.btn-view-icon {
+  color: #3498db;
+}
+
+.btn-edit-icon {
+  color: #2ecc71;
+}
+
+.btn-delete-icon {
+  color: #e74c3c;
+}
+
 .loading-text {
   color: #7f8c8d;
   font-style: italic;
