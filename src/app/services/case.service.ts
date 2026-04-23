@@ -122,20 +122,6 @@ export class CaseService {
           bannerClass: 'success-banner'
         }
       },
-      verifier: {
-        list: {
-          icon: '🔍',
-          title: 'Verifier Mode',
-          message: 'You can view cases for verification purposes. Click "View" to review case details and perform background verification tasks.',
-          bannerClass: 'warning-banner'
-        },
-        detail: {
-          icon: '🔍',
-          title: 'Verifier Access',
-          message: 'You can view case details and perform background verification tasks. Contact Compliance Reviewers for case status changes.',
-          bannerClass: 'warning-banner'
-        }
-      },
       admin: {
         list: {
           icon: '⚙️',
