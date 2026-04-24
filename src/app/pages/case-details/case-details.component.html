@@ -19,6 +19,9 @@
             <button *ngIf="canEditCase" class="dropdown-item" (click)="openEditModal()">
               <span class="dropdown-icon">✏️</span>Edit Case
             </button>
+            <button *ngIf="canDeleteCase" class="dropdown-item" (click)="deleteCase()">
+              <span class="dropdown-icon">🗑️</span>Delete Case
+            </button>
           </div>
         </div>
       </div>

@@ -836,6 +836,34 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
 
   // ─── Edit Case Methods ────────────────────────────────────────
 
+  get canDeleteCase(): boolean {
+    if (!this.caseData) return false;
+    const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
+    if (status === 'approved' || status === 'rejected') return false;
+    return this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
+  }
+
+  deleteCase(): void {
+    if (!this.caseData) return;
+    this.showActionDropdown = false;
+    const caseId = this.caseData.caseId;
+    const businessName = this.caseData.businessName;
+    if (!confirm(`Are you sure you want to delete case "${caseId}" (${businessName})? This action cannot be undone.`)) {
+      return;
+    }
+    this.caseService.deleteCase(caseId).subscribe({
+      next: () => {
+        this.notificationService.show(`Case ${caseId} deleted successfully`, 'success');
+        this.router.navigate(['/cases']);
+      },
+      error: (error) => {
+        console.error('Error deleting case:', error);
+        const msg = error.error?.message || 'Failed to delete case';
+        this.notificationService.show(msg, 'error');
+      }
+    });
+  }
+
   get canEditCase(): boolean {
     if (!this.caseData) return false;
     const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');

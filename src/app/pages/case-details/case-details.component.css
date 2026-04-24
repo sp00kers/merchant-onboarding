@@ -97,6 +97,14 @@
   background-color: #f5f5f5;
 }
 
+.dropdown-item-danger {
+  color: #e74c3c;
+}
+
+.dropdown-item-danger:hover {
+  background-color: #fdecea;
+}
+
 .dropdown-toggle {
   display: flex;
   align-items: center;
