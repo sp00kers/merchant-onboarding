@@ -4,6 +4,51 @@
   padding-bottom: 80px;
 }
 
+/* Clickable stepper steps */
+.step.clickable {
+  cursor: pointer;
+}
+
+.step.clickable:hover .step-circle {
+  transform: scale(1.15);
+  transition: transform 0.15s ease;
+}
+
+.step.clickable:hover .step-label {
+  color: #3498db;
+}
+
+/* Previous / Next navigation */
+.step-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #ecf0f1;
+}
+
+.step-nav-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 180px;
+  text-align: center;
+}
+
+.btn-nav {
+  padding: 0.4rem 1rem;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  min-width: 100px;
+}
+
+.btn-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .comment-form textarea {
   width: 100%;
   padding: 0.75rem;

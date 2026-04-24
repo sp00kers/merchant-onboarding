@@ -13,10 +13,10 @@
             <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
           </button>
           <div class="dropdown-menu" [class.show]="showActionDropdown">
-            <button *ngIf="showReassign && workflowStep !== -1" class="dropdown-item" (click)="assignCase()">
+            <button *ngIf="workflowStep < 2 && showReassign" class="dropdown-item" (click)="assignCase()">
               <span class="dropdown-icon">👥</span>Reassign Case
             </button>
-            <button *ngIf="canEditCase" class="dropdown-item" (click)="openEditModal()">
+            <button *ngIf="workflowStep < 2 && canEditCase" class="dropdown-item" (click)="openEditModal()">
               <span class="dropdown-icon">✏️</span>Edit Case
             </button>
             <button *ngIf="canDeleteCase" class="dropdown-item" (click)="deleteCase()">
@@ -37,25 +37,39 @@
         <div class="step-label">Data Entry</div>
         <div class="step-line" [ngClass]="getStepLineClass(0)"></div>
       </div>
-      <div class="step" [ngClass]="getStepClass(1)">
+      <div class="step" [ngClass]="getStepClass(1)" [class.clickable]="isStepClickable(1)" (click)="navigateToStep(1)">
         <div class="step-circle">{{ getStepCircle(1) }}</div>
         <div class="step-label">Pending Review</div>
         <div class="step-line" [ngClass]="getStepLineClass(1)"></div>
       </div>
-      <div class="step" [ngClass]="getStepClass(2)">
+      <div class="step" [ngClass]="getStepClass(2)" [class.clickable]="isStepClickable(2)" (click)="navigateToStep(2)">
         <div class="step-circle">{{ getStepCircle(2) }}</div>
         <div class="step-label">Background Verification</div>
         <div class="step-line" [ngClass]="getStepLineClass(2)"></div>
       </div>
-      <div class="step" [ngClass]="getStepClass(3)">
+      <div class="step" [ngClass]="getStepClass(3)" [class.clickable]="isStepClickable(3)" (click)="navigateToStep(3)">
         <div class="step-circle">{{ getStepCircle(3) }}</div>
         <div class="step-label">Compliance Review</div>
         <div class="step-line" [ngClass]="getStepLineClass(3)"></div>
       </div>
     </div>
+
+    <!-- Previous / Next Navigation -->
+    <div class="step-navigation" *ngIf="maxViewableStep > 1">
+      <button class="btn-secondary btn-nav" (click)="previousStep()" [disabled]="viewStep <= 1">
+        ← Previous
+      </button>
+      <span class="step-nav-label">{{ viewStep === 1 ? 'Pending Review' : viewStep === 2 ? 'Background Verification' : 'Compliance Review' }}</span>
+      <button class="btn-secondary btn-nav" (click)="nextStep()" [disabled]="viewStep >= maxViewableStep">
+        Next →
+      </button>
+    </div>
   </div>
 
   <div class="case-content">
+
+    <!-- ═══ VIEW STEP 1: Pending Review ═══ -->
+    <ng-container *ngIf="viewStep === 1">
       <div class="info-section">
         <h3>Business Information</h3>
         <div class="info-grid">
@@ -160,7 +174,7 @@
               <span class="doc-type">{{ doc.type }}</span>
               <span class="doc-name">{{ doc.name }}</span>
             </div>
-            <button *ngIf="workflowStep >= 0 && workflowStep < 2" class="btn-small" (click)="downloadDocument(doc)">Download</button>
+            <button *ngIf="workflowStep !== 4 && workflowStep !== -1" class="btn-small" (click)="downloadDocument(doc)">Download</button>
           </div>
           <p *ngIf="backgroundVerificationDocs.length === 0" class="no-documents">No background verification documents uploaded.</p>
         </div>
@@ -174,14 +188,31 @@
               <span class="doc-type">{{ doc.type }}</span>
               <span class="doc-name">{{ doc.name }}</span>
             </div>
-            <button *ngIf="workflowStep >= 0 && workflowStep < 2" class="btn-small" (click)="downloadDocument(doc)">Download</button>
+            <button *ngIf="workflowStep !== 4 && workflowStep !== -1" class="btn-small" (click)="downloadDocument(doc)">Download</button>
           </div>
           <p *ngIf="complianceReviewDocs.length === 0" class="no-documents">No compliance review documents uploaded.</p>
         </div>
       </div>
+    </ng-container>
 
-      <!-- Verification Section (visible from Background Verification stage onward) -->
-      <div class="info-section verification-section" *ngIf="workflowStep >= 2 || (workflowStep === -1 && rejectedAtStep >= 2)">
+    <!-- ═══ VIEW STEP 2: Background Verification ═══ -->
+    <ng-container *ngIf="viewStep === 2">
+      <div class="info-section">
+        <h3>Documents — Background Verification</h3>
+        <div class="documents-list">
+          <div class="document-item" *ngFor="let doc of backgroundVerificationDocs">
+            <div class="doc-info">
+              <span class="doc-type">{{ doc.type }}</span>
+              <span class="doc-name">{{ doc.name }}</span>
+            </div>
+            <button *ngIf="workflowStep !== 4 && workflowStep !== -1" class="btn-small" (click)="downloadDocument(doc)">Download</button>
+          </div>
+          <p *ngIf="backgroundVerificationDocs.length === 0" class="no-documents">No background verification documents uploaded.</p>
+        </div>
+      </div>
+
+      <!-- Verification Section -->
+      <div class="info-section verification-section">
         <div class="section-header">
           <h3>Background Verification</h3>
         </div>
@@ -251,9 +282,26 @@
           <span class="spinner"></span> Checking verification status...
         </div>
       </div>
+    </ng-container>
 
-      <!-- Compliance Review Section (visible from Compliance Review stage onward) -->
-      <div class="info-section verification-section" *ngIf="workflowStep >= 3 || (workflowStep === -1 && rejectedAtStep >= 3)">
+    <!-- ═══ VIEW STEP 3: Compliance Review ═══ -->
+    <ng-container *ngIf="viewStep === 3">
+      <div class="info-section">
+        <h3>Documents — Compliance Review</h3>
+        <div class="documents-list">
+          <div class="document-item" *ngFor="let doc of complianceReviewDocs">
+            <div class="doc-info">
+              <span class="doc-type">{{ doc.type }}</span>
+              <span class="doc-name">{{ doc.name }}</span>
+            </div>
+            <button *ngIf="workflowStep !== 4 && workflowStep !== -1" class="btn-small" (click)="downloadDocument(doc)">Download</button>
+          </div>
+          <p *ngIf="complianceReviewDocs.length === 0" class="no-documents">No compliance review documents uploaded.</p>
+        </div>
+      </div>
+
+      <!-- Compliance Review Section -->
+      <div class="info-section verification-section">
         <div class="section-header">
           <h3>Compliance Review</h3>
         </div>
@@ -323,10 +371,11 @@
           <span class="spinner"></span> Checking compliance review status...
         </div>
       </div>
+    </ng-container>
   </div>
 
   <!-- Available Actions Section at Bottom -->
-  <div class="available-actions-section" *ngIf="isComplianceOrAdmin && workflowStep !== 4 && workflowStep !== -1">
+  <div class="available-actions-section" *ngIf="isComplianceOrAdmin && viewStep === workflowStep && workflowStep !== 4 && workflowStep !== -1">
     <div class="actions-layout">
 
       <!-- Compliance Reviewer actions (only assigned reviewer) -->

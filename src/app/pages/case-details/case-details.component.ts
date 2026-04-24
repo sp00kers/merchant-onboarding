@@ -38,6 +38,9 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   showReassign = false;
   isLoading = false;
 
+  // Stage-based page navigation
+  viewStep = 1;
+
   // Assign modal properties
   showAssignModal = false;
   complianceReviewers: User[] = [];
@@ -188,6 +191,15 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
           this.notificationService.show('Case not found', 'error');
           setTimeout(() => this.router.navigate(['/cases']), 2000);
         } else {
+          // Set viewStep to the current workflow stage (clamped to 1-3)
+          const ws = this.workflowStep;
+          if (ws === 4) {
+            this.viewStep = 3; // Approved: default to last step
+          } else if (ws === -1) {
+            this.viewStep = this.rejectedAtStep; // Rejected: show the rejected stage
+          } else {
+            this.viewStep = Math.max(1, Math.min(ws, 3));
+          }
           // Load verifications
           this.loadVerifications(caseId);
           // Load compliance reviews
@@ -307,6 +319,35 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
+  get maxViewableStep(): number {
+    const ws = this.workflowStep;
+    if (ws === 4) return 3; // Approved: can view all steps
+    if (ws === -1) return this.rejectedAtStep; // Rejected: up to rejected stage
+    return Math.min(ws, 3);
+  }
+
+  navigateToStep(step: number): void {
+    if (step >= 1 && step <= this.maxViewableStep) {
+      this.viewStep = step;
+    }
+  }
+
+  previousStep(): void {
+    if (this.viewStep > 1) {
+      this.viewStep--;
+    }
+  }
+
+  nextStep(): void {
+    if (this.viewStep < this.maxViewableStep) {
+      this.viewStep++;
+    }
+  }
+
+  isStepClickable(stepIndex: number): boolean {
+    return stepIndex >= 1 && stepIndex <= this.maxViewableStep;
+  }
+
   getStepClass(stepIndex: number): string {
     const current = this.workflowStep;
     if (current === -1) {
@@ -363,57 +404,36 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
     if (!this.caseData) return;
     const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
 
+    const advanceAndReload = (newStatus: string, historyMsg: string, successMsg: string) => {
+      this.caseService.updateCaseStatus(this.caseData!.caseId, newStatus).subscribe({
+        next: () => {
+          this.caseService.addHistoryItem(this.caseData!.caseId, historyMsg).subscribe({
+            next: () => {
+              this.loadCase(this.caseData!.caseId);
+              // viewStep will be auto-set in loadCase based on new workflowStep
+            }
+          });
+          this.notificationService.show(successMsg, 'success');
+        },
+        error: () => this.notificationService.show('Failed to approve case', 'error')
+      });
+    };
+
     if (status === 'pending_review' || status === 'pending review') {
-      // Pending Review to Background Verification
       if (confirm('Approve this case to proceed to Background Verification?')) {
-        this.caseService.updateCaseStatus(this.caseData.caseId, 'Background Verification').subscribe({
-          next: () => {
-            this.caseService.addHistoryItem(this.caseData!.caseId, 'Case approved for background verification').subscribe({
-              next: () => this.loadCase(this.caseData!.caseId)
-            });
-            this.notificationService.show('Case approved! Moving to Background Verification...', 'success');
-          },
-          error: () => this.notificationService.show('Failed to approve case', 'error')
-        });
+        advanceAndReload('Background Verification', 'Case approved for background verification', 'Case approved! Moving to Background Verification...');
       }
     } else if (status === 'background_verification' || status === 'background verification') {
-      // Background Verification to Compliance Review (only if all verifications passed)
       if (confirm('All verifications passed. Approve this case to proceed to Compliance Review?')) {
-        this.caseService.updateCaseStatus(this.caseData.caseId, 'Compliance Review').subscribe({
-          next: () => {
-            this.caseService.addHistoryItem(this.caseData!.caseId, 'Background verification completed — moving to Compliance Review').subscribe({
-              next: () => this.loadCase(this.caseData!.caseId)
-            });
-            this.notificationService.show('Case approved! Moving to Compliance Review...', 'success');
-          },
-          error: () => this.notificationService.show('Failed to approve case', 'error')
-        });
+        advanceAndReload('Compliance Review', 'Background verification completed — moving to Compliance Review', 'Case approved! Moving to Compliance Review...');
       }
     } else if (status === 'compliance_review' || status === 'compliance review') {
-      // Compliance Review to Approved
       if (confirm('Are you sure you want to give final approval for this case?')) {
-        this.caseService.updateCaseStatus(this.caseData.caseId, 'Approved').subscribe({
-          next: () => {
-            this.caseService.addHistoryItem(this.caseData!.caseId, 'Case approved — final approval granted').subscribe({
-              next: () => this.loadCase(this.caseData!.caseId)
-            });
-            this.notificationService.show('Case approved successfully!', 'success');
-          },
-          error: () => this.notificationService.show('Failed to approve case', 'error')
-        });
+        advanceAndReload('Approved', 'Case approved — final approval granted', 'Case approved successfully!');
       }
     } else {
-      // Default fallback
       if (confirm('Are you sure you want to approve this case?')) {
-        this.caseService.updateCaseStatus(this.caseData.caseId, 'Approved').subscribe({
-          next: () => {
-            this.caseService.addHistoryItem(this.caseData!.caseId, 'Case approved').subscribe({
-              next: () => this.loadCase(this.caseData!.caseId)
-            });
-            this.notificationService.show('Case approved successfully!', 'success');
-          },
-          error: () => this.notificationService.show('Failed to approve case', 'error')
-        });
+        advanceAndReload('Approved', 'Case approved', 'Case approved successfully!');
       }
     }
   }
