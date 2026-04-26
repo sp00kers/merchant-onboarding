@@ -75,7 +75,7 @@
     <div class="modal-body">
       <form>
         <div class="form-group">
-          <label>Role Name:</label>
+          <label>Role Name <span class="required-asterisk">*</span></label>
           <input type="text" [(ngModel)]="roleName" name="roleName" required
                  (focus)="nameTouched = true"
                  (ngModelChange)="validateName()"
@@ -83,7 +83,7 @@
           <small class="error-text" *ngIf="nameError">{{ nameError }}</small>
         </div>
         <div class="form-group">
-          <label>Description:</label>
+          <label>Description <span class="required-asterisk">*</span></label>
           <textarea [(ngModel)]="roleDescription" name="roleDescription" rows="3"
                     placeholder="Describe the purpose and responsibilities of this role..."
                     (focus)="descriptionTouched = true"
@@ -92,14 +92,14 @@
           <small class="error-text" *ngIf="descriptionError">{{ descriptionError }}</small>
         </div>
         <div class="form-group">
-          <label>Status:</label>
+          <label>Status <span class="required-asterisk">*</span></label>
           <select [(ngModel)]="roleStatus" name="roleStatus" required>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Permissions:</label>
+          <label>Permissions <span class="required-asterisk">*</span></label>
           <div class="permissions-search">
             <input type="text" [(ngModel)]="permissionSearch" name="permissionSearch" placeholder="Search permissions...">
           </div>

@@ -82,7 +82,7 @@
       <form>
         <div class="form-row">
           <div class="form-group">
-            <label for="mcCode">Code *</label>
+            <label for="mcCode">Code <span class="required-asterisk">*</span></label>
             <input type="text" id="mcCode" [(ngModel)]="form.code" name="code"
                    required maxlength="10" style="text-transform: uppercase;" placeholder="e.g., RET, ECM, SRV"
                    [disabled]="codeDisabled"
@@ -101,7 +101,7 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label for="mcName">Name *</label>
+            <label for="mcName">Name <span class="required-asterisk">*</span></label>
             <input type="text" id="mcName" [(ngModel)]="form.name" name="name"
                    required placeholder="e.g., Retail, E-commerce"
                    (focus)="nameTouched = true"
@@ -110,7 +110,7 @@
             <small class="error-text" *ngIf="nameError">{{ nameError }}</small>
           </div>
           <div class="form-group">
-            <label for="mcRisk">Risk Level *</label>
+            <label for="mcRisk">Risk Level <span class="required-asterisk">*</span></label>
             <select id="mcRisk" [(ngModel)]="form.riskLevel" name="riskLevel" required
                     (focus)="riskLevelTouched = true"
                     (ngModelChange)="validateRiskLevel()"
@@ -124,7 +124,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label for="mcDescription">Description *</label>
+          <label for="mcDescription">Description <span class="required-asterisk">*</span></label>
           <textarea id="mcDescription" [(ngModel)]="form.description" name="description"
                     rows="3" placeholder="Describe this merchant category..."
                     (focus)="descriptionTouched = true"

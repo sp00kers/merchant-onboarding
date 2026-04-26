@@ -405,7 +405,7 @@
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label for="reviewerSelect">Select Compliance Reviewer *</label>
+        <label for="reviewerSelect">Select Compliance Reviewer <span class="required-asterisk">*</span></label>
         <select id="reviewerSelect" [(ngModel)]="selectedReviewerId" [disabled]="isLoadingReviewers"
                 (focus)="expandSelect($event)"
                 (change)="collapseSelect($event)"
@@ -448,7 +448,7 @@
           <h4>Business Information</h4>
           <div class="form-row">
             <div class="form-group">
-              <label for="editBusinessName">Business Name *</label>
+              <label for="editBusinessName">Business Name <span class="required-asterisk">*</span></label>
               <input type="text" id="editBusinessName" [(ngModel)]="editCaseData.businessName" name="editBusinessName" required
                      (focus)="editTouched.businessName = true"
                      (ngModelChange)="validateEditField('businessName')"
@@ -456,7 +456,7 @@
               <small class="error-text" *ngIf="editErrors.businessName">{{ editErrors.businessName }}</small>
             </div>
             <div class="form-group">
-              <label for="editRegistrationNumber">Registration Number *</label>
+              <label for="editRegistrationNumber">Registration Number <span class="required-asterisk">*</span></label>
               <input type="text" id="editRegistrationNumber" [(ngModel)]="editCaseData.registrationNumber" name="editRegistrationNumber" required
                      maxlength="12"
                      (focus)="editTouched.registrationNumber = true"
@@ -468,7 +468,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="editBusinessType">Business Type *</label>
+              <label for="editBusinessType">Business Type <span class="required-asterisk">*</span></label>
               <select id="editBusinessType" [(ngModel)]="editCaseData.businessType" name="editBusinessType" required
                       (focus)="editTouched.businessType = true; expandSelect($event)"
                       (change)="collapseSelect($event)"
@@ -481,7 +481,7 @@
               <small class="error-text" *ngIf="editErrors.businessType">{{ editErrors.businessType }}</small>
             </div>
             <div class="form-group">
-              <label for="editMerchantCategory">Merchant Category *</label>
+              <label for="editMerchantCategory">Merchant Category <span class="required-asterisk">*</span></label>
               <select id="editMerchantCategory" [(ngModel)]="editCaseData.merchantCategory" name="editMerchantCategory" required
                       (focus)="editTouched.merchantCategory = true; expandSelect($event)"
                       (change)="collapseSelect($event)"
@@ -496,7 +496,7 @@
           </div>
 
           <div class="form-group">
-            <label for="editBusinessAddress">Business Address *</label>
+            <label for="editBusinessAddress">Business Address <span class="required-asterisk">*</span></label>
             <textarea id="editBusinessAddress" [(ngModel)]="editCaseData.businessAddress" name="editBusinessAddress" rows="3" required
                       (focus)="editTouched.businessAddress = true"
                       (ngModelChange)="validateEditField('businessAddress')"
@@ -509,7 +509,7 @@
           <h4>Director Information</h4>
           <div class="form-row">
             <div class="form-group">
-              <label for="editDirectorName">Director Name *</label>
+              <label for="editDirectorName">Director Name <span class="required-asterisk">*</span></label>
               <input type="text" id="editDirectorName" [(ngModel)]="editCaseData.directorName" name="editDirectorName" required
                      (focus)="editTouched.directorName = true"
                      (ngModelChange)="validateEditField('directorName')"
@@ -517,7 +517,7 @@
               <small class="error-text" *ngIf="editErrors.directorName">{{ editErrors.directorName }}</small>
             </div>
             <div class="form-group">
-              <label for="editDirectorIC">Director IC Number *</label>
+              <label for="editDirectorIC">Director IC Number <span class="required-asterisk">*</span></label>
               <input type="text" id="editDirectorIC" [(ngModel)]="editCaseData.directorIC" name="editDirectorIC" required
                      (focus)="editTouched.directorIC = true"
                      (ngModelChange)="validateEditField('directorIC')"
@@ -528,7 +528,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="editDirectorPhone">Phone Number *</label>
+              <label for="editDirectorPhone">Phone Number <span class="required-asterisk">*</span></label>
               <input type="tel" id="editDirectorPhone" [(ngModel)]="editCaseData.directorPhone" name="editDirectorPhone" required
                      (focus)="editTouched.directorPhone = true"
                      (ngModelChange)="validateEditField('directorPhone')"
@@ -536,7 +536,7 @@
               <small class="error-text" *ngIf="editErrors.directorPhone">{{ editErrors.directorPhone }}</small>
             </div>
             <div class="form-group">
-              <label for="editDirectorEmail">Email Address *</label>
+              <label for="editDirectorEmail">Email Address <span class="required-asterisk">*</span></label>
               <input type="email" id="editDirectorEmail" [(ngModel)]="editCaseData.directorEmail" name="editDirectorEmail" required
                      (focus)="editTouched.directorEmail = true"
                      (ngModelChange)="validateEditField('directorEmail')"
@@ -550,7 +550,7 @@
           <h4>Case Assignment</h4>
           <div class="form-row">
             <div class="form-group" style="flex: 1;">
-              <label for="editAssignedTo">Assign to Compliance Reviewer *</label>
+              <label for="editAssignedTo">Assign to Compliance Reviewer <span class="required-asterisk">*</span></label>
               <select id="editAssignedTo" [(ngModel)]="editCaseData.assignedTo" name="editAssignedTo" required
                       [disabled]="isLoadingReviewers"
                       (focus)="editTouched.assignedTo = true; expandSelect($event)"

@@ -67,7 +67,7 @@
       <form>
         <div class="form-row">
           <div class="form-group">
-            <label for="rcLevel">Level *</label>
+            <label for="rcLevel">Level <span class="required-asterisk">*</span></label>
             <input type="number" id="rcLevel" [(ngModel)]="form.level" name="level"
                    required min="1" max="10" placeholder="1-10" [disabled]="levelDisabled"
                    (focus)="levelTouched = true"
@@ -76,7 +76,7 @@
             <small class="error-text" *ngIf="levelError">{{ levelError }}</small>
           </div>
           <div class="form-group">
-            <label for="rcName">Name *</label>
+            <label for="rcName">Name <span class="required-asterisk">*</span></label>
             <input type="text" id="rcName" [(ngModel)]="form.name" name="name"
                    required placeholder="e.g., Low Risk, High Risk"
                    (focus)="nameTouched = true"
@@ -86,7 +86,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Score Range *</label>
+          <label>Score Range <span class="required-asterisk">*</span></label>
           <div class="score-range-row">
             <input type="number" id="rcScoreMin" [(ngModel)]="form.scoreMin" name="scoreMin"
                    required placeholder="Min" min="0"
@@ -103,7 +103,7 @@
           <small class="error-text" *ngIf="scoreRangeError">{{ scoreRangeError }}</small>
         </div>
         <div class="form-group">
-          <label for="rcDescription">Description *</label>
+          <label for="rcDescription">Description <span class="required-asterisk">*</span></label>
           <textarea id="rcDescription" [(ngModel)]="form.description" name="description"
                     rows="3" placeholder="Describe this risk category..."
                     (focus)="descriptionTouched = true"
@@ -112,7 +112,7 @@
           <small class="error-text" *ngIf="descriptionError">{{ descriptionError }}</small>
         </div>
         <div class="form-group">
-          <label for="rcActions">Actions Required *</label>
+          <label for="rcActions">Actions Required <span class="required-asterisk">*</span></label>
           <textarea id="rcActions" [(ngModel)]="form.actionsRequired" name="actionsRequired"
                     rows="3" placeholder="Describe required actions for this risk level"
                     (focus)="actionsRequiredTouched = true"

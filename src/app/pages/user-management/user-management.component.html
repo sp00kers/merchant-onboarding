@@ -97,7 +97,7 @@
         <form>
            <div class="form-row">
             <div class="form-group">
-              <label>Full Name:</label>
+              <label>Full Name <span class="required-asterisk">*</span></label>
               <input type="text" [(ngModel)]="userName" name="userName" required
                      (focus)="nameTouched = true"
                      (ngModelChange)="validateName()"
@@ -105,7 +105,7 @@
               <small class="error-text" *ngIf="nameError">{{ nameError }}</small>
             </div>
             <div class="form-group">
-              <label>Email:</label>
+              <label>Email <span class="required-asterisk">*</span></label>
               <input type="email" [(ngModel)]="userEmail" name="userEmail" required
                      placeholder="username&#64;bank.com"
                      [pattern]="emailPattern"
@@ -119,7 +119,7 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Role:</label>
+              <label>Role <span class="required-asterisk">*</span></label>
               <select [(ngModel)]="userRole" name="userRole" required
                       (focus)="roleTouched = true"
                       (ngModelChange)="validateRole()"
@@ -130,7 +130,7 @@
               <small class="error-text" *ngIf="roleError">{{ roleError }}</small>
             </div>
             <div class="form-group">
-              <label>Department:</label>
+              <label>Department <span class="required-asterisk">*</span></label>
               <select [(ngModel)]="userDepartment" name="userDepartment" required
                       (focus)="departmentTouched = true"
                       (ngModelChange)="validateDepartment()"
@@ -143,7 +143,7 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Phone Number:</label>
+              <label>Phone Number <span class="required-asterisk">*</span></label>
               <input type="tel" [(ngModel)]="userPhone" name="userPhone"
                      (focus)="phoneTouched = true"
                      (ngModelChange)="validatePhone()"
@@ -151,7 +151,7 @@
               <small class="error-text" *ngIf="phoneError">{{ phoneError }}</small>
             </div>
             <div class="form-group">
-              <label>Status:</label>
+              <label>Status <span class="required-asterisk">*</span></label>
               <select [(ngModel)]="userStatus" name="userStatus" required>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -161,7 +161,7 @@
           <!-- Password fields - only shown when adding a new user -->
           <div class="form-row" *ngIf="!currentEditingId">
             <div class="form-group">
-              <label>Password:</label>
+              <label>Password <span class="required-asterisk">*</span></label>
               <div class="password-wrapper">
                 <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="userPassword" name="userPassword" required
                        placeholder="Password"
@@ -176,7 +176,7 @@
               <small class="error-text" *ngIf="passwordError">{{ passwordError }}</small>
             </div>
             <div class="form-group">
-              <label>Re-enter Password:</label>
+              <label>Re-enter Password <span class="required-asterisk">*</span></label>
               <div class="password-wrapper">
                 <input [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="userConfirmPassword" name="userConfirmPassword" required
                        placeholder="Re-enter Password"

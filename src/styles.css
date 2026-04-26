@@ -124,6 +124,11 @@ body {
     color: #2c3e50;
 }
 
+.required-asterisk {
+    color: #dc3545;
+    margin-left: 2px;
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {

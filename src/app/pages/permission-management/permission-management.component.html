@@ -82,7 +82,7 @@
       <form>
         <div class="form-row">
           <div class="form-group">
-            <label>Permission ID:</label>
+            <label>Permission ID <span class="required-asterisk">*</span></label>
             <input type="text" [(ngModel)]="permissionId" name="permissionId" required [disabled]="isIdDisabled"
                    (focus)="idTouched = true"
                    (ngModelChange)="validateId()"
@@ -90,7 +90,7 @@
             <small class="error-text" *ngIf="idError">{{ idError }}</small>
           </div>
           <div class="form-group">
-            <label>Permission Name:</label>
+            <label>Permission Name <span class="required-asterisk">*</span></label>
             <input type="text" [(ngModel)]="permissionName" name="permissionName" required
                    (focus)="nameTouched = true"
                    (ngModelChange)="validateName()"
@@ -100,7 +100,7 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Category:</label>
+            <label>Category <span class="required-asterisk">*</span></label>
             <select [(ngModel)]="permissionCategory" name="permissionCategory" required
                     (focus)="categoryTouched = true"
                     (ngModelChange)="validateCategory()"
@@ -111,7 +111,7 @@
             <small class="error-text" *ngIf="categoryError">{{ categoryError }}</small>
           </div>
           <div class="form-group">
-            <label>Status:</label>
+            <label>Status <span class="required-asterisk">*</span></label>
             <select [(ngModel)]="permissionStatus" name="permissionStatus" required>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
@@ -119,7 +119,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Description:</label>
+          <label>Description <span class="required-asterisk">*</span></label>
           <textarea [(ngModel)]="permissionDescription" name="permissionDescription" rows="3"
                     placeholder="Describe what this permission allows..."
                     (focus)="descriptionTouched = true"
