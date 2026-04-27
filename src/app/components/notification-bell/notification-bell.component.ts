@@ -43,11 +43,8 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     // Initial data load
     this.notificationService.refreshNotifications();
 
-    // Connect WebSocket (will fallback to polling if unavailable)
+    // Connect WebSocket (will fallback to polling if connection fails)
     this.webSocketService.connect();
-
-    // Start polling as fallback
-    this.notificationService.startPolling(30000);
   }
 
   ngOnDestroy(): void {
