@@ -271,3 +271,77 @@ input[type="file"].input-error {
 .upload-disclaimer .disclaimer-icon {
   flex-shrink: 0;
 }
+
+/* Modal Workflow Progress Indicator */
+.modal-workflow-progress {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.modal-progress-steps {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.modal-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.modal-step-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #ecf0f1;
+  color: #7f8c8d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+  z-index: 2;
+  position: relative;
+}
+
+.modal-step.active .modal-step-circle {
+  background: #3498db;
+  color: white;
+  box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
+}
+
+.modal-step-label {
+  text-align: center;
+  font-size: 0.7rem;
+  color: #7f8c8d;
+  font-weight: 500;
+  max-width: 100px;
+}
+
+.modal-step.active .modal-step-label {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.modal-step-line {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: #ecf0f1;
+  z-index: 1;
+}
+
+.modal-step:last-child .modal-step-line {
+  display: none;
+}
