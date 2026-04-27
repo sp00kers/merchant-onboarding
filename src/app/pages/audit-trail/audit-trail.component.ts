@@ -20,7 +20,7 @@ export class AuditTrailComponent implements OnInit {
 
   // Pagination
   currentPage = 0;
-  pageSize = 20;
+  pageSize = 10;
   totalElements = 0;
   totalPages = 0;
 

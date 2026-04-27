@@ -304,7 +304,7 @@ export class RoleManagementComponent implements OnInit {
   deleteRole(roleId: string): void {
     const role = this.allRoles.find(r => r.id === roleId);
     if (!role) return;
-    const isSystemRole = ['admin', 'onboarding_officer', 'compliance_reviewer', 'verifier'].includes(roleId);
+    const isSystemRole = ['admin', 'onboarding_officer', 'compliance_reviewer'].includes(roleId);
     let msg = `Are you sure you want to delete the role "${role.name}"? This action cannot be undone.`;
     if (isSystemRole) {
       msg = `WARNING: You are about to delete a system role "${role.name}". This may affect system functionality. Are you sure?`;

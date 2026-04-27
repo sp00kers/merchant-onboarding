@@ -9,16 +9,18 @@ export interface Case {
   directorIC: string;
   directorPhone: string;
   directorEmail: string;
+  ownershipPercentage: number | null;
   status: string;
+  rejectedAtStage?: string;
   createdDate: string;
   assignedTo: string;
-  priority: string;
   lastUpdated: string;
   documents: CaseDocument[];
   history: CaseHistoryItem[];
 }
 
 export interface CaseDocument {
+  id: number;
   name: string;
   type: string;
   uploadedAt?: string;

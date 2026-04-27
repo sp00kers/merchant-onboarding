@@ -6,34 +6,25 @@
       <h1>View Case Details</h1>
       <button class="btn-secondary" (click)="goBackToCases()" style="margin-top: 1rem;">Back to Cases</button>
     </div>
-    <div class="header-actions">
+    <div class="header-actions" *ngIf="workflowStep !== -1 && workflowStep !== 4">
       <div class="action-dropdown-container">
         <div class="dropdown">
           <button class="btn-primary dropdown-toggle" (click)="toggleActionDropdown()">
             <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
           </button>
           <div class="dropdown-menu" [class.show]="showActionDropdown">
-            <button class="dropdown-item" (click)="exportToCsv()">
-              <span class="dropdown-icon">📊</span>Export to CSV
-            </button>
-            <button class="dropdown-item" (click)="exportToPdf()">
-              <span class="dropdown-icon">📄</span>Export to PDF
-            </button>
-            <button *ngIf="showReassign" class="dropdown-item" (click)="assignCase()">
+            <button *ngIf="workflowStep < 2 && showReassign" class="dropdown-item" (click)="assignCase()">
               <span class="dropdown-icon">👥</span>Reassign Case
+            </button>
+            <button *ngIf="workflowStep < 2 && canEditCase" class="dropdown-item" (click)="openEditModal()">
+              <span class="dropdown-icon">✏️</span>Edit Case
+            </button>
+            <button *ngIf="canDeleteCase" class="dropdown-item" (click)="deleteCase()">
+              <span class="dropdown-icon">🗑️</span>Delete Case
             </button>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Role Access Banner -->
-  <div *ngIf="roleBanner" class="access-info-banner" [ngClass]="roleBanner.bannerClass">
-    <div class="banner-icon">{{ roleBanner.icon }}</div>
-    <div class="banner-text">
-      <strong>{{ roleBanner.title }}</strong>
-      <p>{{ roleBanner.message }}</p>
     </div>
   </div>
 
@@ -44,28 +35,41 @@
       <div class="step" [ngClass]="getStepClass(0)">
         <div class="step-circle">{{ getStepCircle(0) }}</div>
         <div class="step-label">Data Entry</div>
-        <div class="step-line" [ngClass]="getStepClass(0)"></div>
+        <div class="step-line" [ngClass]="getStepLineClass(0)"></div>
       </div>
-      <div class="step" [ngClass]="getStepClass(1)">
+      <div class="step" [ngClass]="getStepClass(1)" [class.clickable]="isStepClickable(1)" (click)="navigateToStep(1)">
         <div class="step-circle">{{ getStepCircle(1) }}</div>
-        <div class="step-label">Compliance Review</div>
-        <div class="step-line" [ngClass]="getStepClass(1)"></div>
+        <div class="step-label">Pending Review</div>
+        <div class="step-line" [ngClass]="getStepLineClass(1)"></div>
       </div>
-      <div class="step" [ngClass]="getStepClass(2)">
+      <div class="step" [ngClass]="getStepClass(2)" [class.clickable]="isStepClickable(2)" (click)="navigateToStep(2)">
         <div class="step-circle">{{ getStepCircle(2) }}</div>
         <div class="step-label">Background Verification</div>
-        <div class="step-line" [ngClass]="getStepClass(2)"></div>
+        <div class="step-line" [ngClass]="getStepLineClass(2)"></div>
       </div>
-      <div class="step" [ngClass]="getStepClass(3)">
+      <div class="step" [ngClass]="getStepClass(3)" [class.clickable]="isStepClickable(3)" (click)="navigateToStep(3)">
         <div class="step-circle">{{ getStepCircle(3) }}</div>
-        <div class="step-label">Final Approval</div>
-        <div class="step-line" [ngClass]="getStepClass(3)"></div>
+        <div class="step-label">Compliance Review</div>
+        <div class="step-line" [ngClass]="getStepLineClass(3)"></div>
       </div>
+    </div>
+
+    <!-- Previous / Next Navigation -->
+    <div class="step-navigation" *ngIf="maxViewableStep > 1">
+      <button class="btn-secondary btn-nav" (click)="previousStep()" [disabled]="viewStep <= 1">
+        ← Previous
+      </button>
+      <span class="step-nav-label">{{ viewStep === 1 ? 'Pending Review' : viewStep === 2 ? 'Background Verification' : 'Compliance Review' }}</span>
+      <button class="btn-secondary btn-nav" (click)="nextStep()" [disabled]="viewStep >= maxViewableStep">
+        Next →
+      </button>
     </div>
   </div>
 
   <div class="case-content">
-    <div class="case-main-content">
+
+    <!-- ═══ VIEW STEP 1: Pending Review ═══ -->
+    <ng-container *ngIf="viewStep === 1">
       <div class="info-section">
         <h3>Business Information</h3>
         <div class="info-grid">
@@ -93,6 +97,32 @@
       </div>
 
       <div class="info-section">
+        <h3>Case Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Case ID:</label>
+            <span>{{ caseData.caseId }}</span>
+          </div>
+          <div class="info-item">
+            <label>Created:</label>
+            <span>{{ caseData.createdDate }}</span>
+          </div>
+          <div class="info-item">
+            <label>Assigned To:</label>
+            <span>{{ caseData.assignedTo }}</span>
+          </div>
+          <div class="info-item">
+            <label>Last Updated:</label>
+            <span>{{ caseData.lastUpdated }}</span>
+          </div>
+          <div class="info-item">
+            <label>Status:</label>
+            <span>{{ caseData.status }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
         <h3>Director Information</h3>
         <div class="info-grid">
           <div class="info-item">
@@ -111,16 +141,73 @@
             <label>Email:</label>
             <span>{{ caseData.directorEmail }}</span>
           </div>
+
         </div>
       </div>
 
       <div class="info-section">
-        <h3>Documents</h3>
-        <div class="documents-list">
-          <div class="document-item" *ngFor="let doc of caseData.documents">
-            <span class="doc-name">{{ doc.name }}</span>
-            <button class="btn-small">Download</button>
+        <h3>Case History</h3>
+        <div class="history-list">
+          <div class="history-item" *ngFor="let item of caseData.history">
+            <div class="history-time">{{ item.time }}</div>
+            <div class="history-action">{{ item.action }}</div>
           </div>
+        </div>
+
+        <div class="add-comment-form" *ngIf="workflowStep !== -1 && workflowStep !== 4">
+          <h4>Add Comment</h4>
+          <div class="comment-form">
+            <textarea [(ngModel)]="commentText" placeholder="Enter your comment here..." rows="4"></textarea>
+            <div class="comment-actions">
+              <button class="btn-primary" (click)="submitComment()">Add Comment</button>
+              <button class="btn-secondary" (click)="clearComment()">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>Documents — Background Verification</h3>
+        <div class="documents-list">
+          <div class="document-item" *ngFor="let doc of backgroundVerificationDocs">
+            <div class="doc-info">
+              <span class="doc-type">{{ doc.type }}</span>
+              <span class="doc-name">{{ doc.name }}</span>
+            </div>
+            <button *ngIf="workflowStep !== 4 && workflowStep !== -1" class="btn-small" (click)="downloadDocument(doc)">Download</button>
+          </div>
+          <p *ngIf="backgroundVerificationDocs.length === 0" class="no-documents">No background verification documents uploaded.</p>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>Documents — Compliance Review</h3>
+        <div class="documents-list">
+          <div class="document-item" *ngFor="let doc of complianceReviewDocs">
+            <div class="doc-info">
+              <span class="doc-type">{{ doc.type }}</span>
+              <span class="doc-name">{{ doc.name }}</span>
+            </div>
+            <button *ngIf="workflowStep !== 4 && workflowStep !== -1" class="btn-small" (click)="downloadDocument(doc)">Download</button>
+          </div>
+          <p *ngIf="complianceReviewDocs.length === 0" class="no-documents">No compliance review documents uploaded.</p>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ═══ VIEW STEP 2: Background Verification ═══ -->
+    <ng-container *ngIf="viewStep === 2">
+      <div class="info-section">
+        <h3>Documents — Background Verification</h3>
+        <div class="documents-list">
+          <div class="document-item" *ngFor="let doc of backgroundVerificationDocs">
+            <div class="doc-info">
+              <span class="doc-type">{{ doc.type }}</span>
+              <span class="doc-name">{{ doc.name }}</span>
+            </div>
+            <button *ngIf="workflowStep !== 4 && workflowStep !== -1" class="btn-small" (click)="downloadDocument(doc)">Download</button>
+          </div>
+          <p *ngIf="backgroundVerificationDocs.length === 0" class="no-documents">No background verification documents uploaded.</p>
         </div>
       </div>
 
@@ -128,40 +215,23 @@
       <div class="info-section verification-section">
         <div class="section-header">
           <h3>Background Verification</h3>
-          <button
-            *ngIf="canTriggerVerification"
-            class="btn-primary"
-            (click)="triggerAllVerifications()"
-            [disabled]="isTriggering"
-          >
-            {{ isTriggering ? 'Triggering...' : 'Trigger All Verifications' }}
-          </button>
         </div>
 
         <!-- Verification Summary -->
-        <div class="verification-summary" *ngIf="verificationSummary">
+        <div class="verification-summary" *ngIf="verificationSummary && verificationResults.length > 0">
           <div class="summary-stats">
-            <div class="summary-stat">
+            <div class="summary-stat stat-passed">
               <span class="stat-value">{{ verificationSummary.completedCount }}</span>
-              <span class="stat-label">Completed</span>
+              <span class="stat-label">Passed</span>
             </div>
-            <div class="summary-stat">
+            <div class="summary-stat stat-pending">
               <span class="stat-value">{{ verificationSummary.pendingCount }}</span>
               <span class="stat-label">Pending</span>
             </div>
-            <div class="summary-stat">
+            <div class="summary-stat stat-failed">
               <span class="stat-value">{{ verificationSummary.failedCount }}</span>
               <span class="stat-label">Failed</span>
             </div>
-            <div class="summary-stat">
-              <span class="stat-value" [ngClass]="getConfidenceClass(verificationSummary.averageConfidenceScore)">
-                {{ verificationSummary.averageConfidenceScore }}%
-              </span>
-              <span class="stat-label">Avg Score</span>
-            </div>
-          </div>
-          <div class="recommendation-badge" [ngClass]="getRecommendationClass(verificationSummary.recommendation)">
-            {{ getRecommendationText(verificationSummary.recommendation) }}
           </div>
         </div>
 
@@ -175,299 +245,151 @@
                 <span class="status-badge" [ngClass]="getVerificationStatusClass(result.status)">
                   {{ result.status }}
                 </span>
-                <span class="confidence-score" *ngIf="result.confidenceScore !== null" [ngClass]="getConfidenceClass(result.confidenceScore)">
-                  {{ result.confidenceScore }}%
-                </span>
               </div>
               <div class="verification-notes" *ngIf="result.notes">{{ result.notes }}</div>
             </div>
             <button
-              *ngIf="canTriggerVerification && (result.status === 'COMPLETED' || result.status === 'FAILED')"
+              *ngIf="canTriggerVerification && result.status === 'FAILED' && workflowStep !== -1"
               class="btn-small btn-secondary"
               (click)="triggerSingleVerification(result.verificationType)"
             >
-              Re-run
+              Recheck
             </button>
           </div>
         </div>
 
-        <!-- Empty state -->
+        <!-- Empty state / Start Verification -->
         <div class="empty-verification" *ngIf="verificationResults.length === 0 && !isLoadingVerifications">
-          <p>No verification checks have been run for this case.</p>
-          <button *ngIf="canTriggerVerification" class="btn-primary" (click)="triggerAllVerifications()">
-            Start Verification Checks
-          </button>
+          <div *ngIf="!hasBgDocuments" class="no-docs-warning">
+            <p>⚠️ No background verification documents have been uploaded for this case.</p>
+            <p>Please upload the required documents (Business Registration Certificate, Director Government ID, Beneficial Ownership Declaration) before starting verification.</p>
+          </div>
+          <div *ngIf="hasBgDocuments">
+            <p>No verification checks have been run for this case.</p>
+            <button *ngIf="canTriggerVerification" class="btn-primary" (click)="triggerAllVerifications()" [disabled]="isTriggering">
+              {{ isTriggering ? 'Starting...' : 'Start Verification' }}
+            </button>
+          </div>
         </div>
 
         <!-- Loading state -->
         <div class="loading-verification" *ngIf="isLoadingVerifications">
           <p>Loading verification results...</p>
         </div>
+
+        <!-- Polling indicator -->
+        <div class="polling-indicator" *ngIf="hasAnyPendingVerification">
+          <span class="spinner"></span> Checking verification status...
+        </div>
       </div>
+    </ng-container>
 
-      <!-- Risk Score Section -->
-      <div class="info-section risk-section">
-        <div class="section-header">
-          <h3>Risk Assessment</h3>
-          <button
-            *ngIf="canCalculateRisk"
-            class="btn-primary"
-            (click)="calculateRiskScore()"
-            [disabled]="isCalculatingRisk"
-          >
-            {{ isCalculatingRisk ? 'Calculating...' : 'Calculate Risk Score' }}
-          </button>
-        </div>
-
-        <!-- Risk Score Card -->
-        <div class="risk-score-card" *ngIf="riskScore">
-          <div class="risk-score-header">
-            <div class="risk-gauge">
-              <div class="gauge-circle" [ngClass]="getRiskLevelClass(riskScore.riskLevel)">
-                <span class="gauge-value">{{ riskScore.totalScore }}</span>
-                <span class="gauge-label">/ 100</span>
-              </div>
+    <!-- ═══ VIEW STEP 3: Compliance Review ═══ -->
+    <ng-container *ngIf="viewStep === 3">
+      <div class="info-section">
+        <h3>Documents — Compliance Review</h3>
+        <div class="documents-list">
+          <div class="document-item" *ngFor="let doc of complianceReviewDocs">
+            <div class="doc-info">
+              <span class="doc-type">{{ doc.type }}</span>
+              <span class="doc-name">{{ doc.name }}</span>
             </div>
-            <div class="risk-level-info">
-              <div class="risk-level-badge" [ngClass]="getRiskLevelClass(riskScore.riskLevel)">
-                {{ riskLevelLabels[riskScore.riskLevel] || riskScore.riskLevel }}
-              </div>
-              <div class="risk-recommendation" [ngClass]="getRecommendationClass(riskScore.recommendation)">
-                {{ recommendationLabels[riskScore.recommendation] || riskScore.recommendation }}
-              </div>
-              <div class="risk-calculated-at">
-                Calculated: {{ riskScore.calculatedAt | date:'medium' }}
-              </div>
-            </div>
+            <button *ngIf="workflowStep !== 4 && workflowStep !== -1" class="btn-small" (click)="downloadDocument(doc)">Download</button>
           </div>
-
-          <!-- Risk Factors Breakdown -->
-          <div class="risk-factors">
-            <h4>Risk Factors Breakdown</h4>
-            <div class="factors-list">
-              <div class="factor-item" *ngFor="let factor of riskScore.factors">
-                <div class="factor-header">
-                  <div class="factor-icon">{{ factorCategoryIcons[factor.category] || '📊' }}</div>
-                  <div class="factor-name">{{ factor.name }}</div>
-                  <div class="factor-impact" [ngClass]="getImpactClass(factor.impact)">
-                    {{ getImpactIcon(factor.impact) }}
-                  </div>
-                </div>
-                <div class="factor-score">
-                  <div class="score-bar">
-                    <div
-                      class="score-fill"
-                      [ngClass]="getImpactClass(factor.impact)"
-                      [style.width.%]="(factor.score / factor.maxScore) * 100"
-                    ></div>
-                  </div>
-                  <span class="score-text">{{ factor.score }} / {{ factor.maxScore }}</span>
-                </div>
-                <div class="factor-description">{{ factor.description }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty state -->
-        <div class="empty-risk" *ngIf="!riskScore && !isLoadingRisk">
-          <p>Risk score has not been calculated for this case.</p>
-          <button *ngIf="canCalculateRisk" class="btn-primary" (click)="calculateRiskScore()">
-            Calculate Risk Score
-          </button>
-        </div>
-
-        <!-- Loading state -->
-        <div class="loading-risk" *ngIf="isLoadingRisk">
-          <p>Loading risk assessment...</p>
+          <p *ngIf="complianceReviewDocs.length === 0" class="no-documents">No compliance review documents uploaded.</p>
         </div>
       </div>
 
-      <!-- Document OCR/Extraction Section -->
-      <div class="info-section extraction-section">
+      <!-- Compliance Review Section -->
+      <div class="info-section verification-section">
         <div class="section-header">
-          <h3>Document Content Analysis (OCR)</h3>
-          <button
-            *ngIf="canExtractDocuments && caseData.documents && caseData.documents.length > 0"
-            class="btn-primary"
-            (click)="extractAllDocuments()"
-            [disabled]="isExtractingDocuments"
-          >
-            {{ isExtractingDocuments ? 'Processing...' : 'Extract All Documents' }}
-          </button>
+          <h3>Compliance Review</h3>
         </div>
 
-        <!-- Extraction Summary -->
-        <div class="extraction-summary" *ngIf="documentExtractions.length > 0">
+        <!-- Compliance Summary -->
+        <div class="verification-summary" *ngIf="complianceSummary && complianceResults.length > 0">
           <div class="summary-stats">
-            <div class="summary-stat">
-              <span class="stat-value">{{ documentExtractions.length }}</span>
-              <span class="stat-label">Processed</span>
+            <div class="summary-stat stat-passed">
+              <span class="stat-value">{{ complianceSummary.passedCount }}</span>
+              <span class="stat-label">Passed</span>
             </div>
-            <div class="summary-stat">
-              <span class="stat-value extraction-validated">{{ extractedCount }}</span>
-              <span class="stat-label">Validated</span>
+            <div class="summary-stat stat-pending">
+              <span class="stat-value">{{ complianceSummary.pendingCount }}</span>
+              <span class="stat-label">Pending</span>
             </div>
-            <div class="summary-stat">
-              <span class="stat-value extraction-mismatch">{{ mismatchCount }}</span>
-              <span class="stat-label">Mismatches</span>
+            <div class="summary-stat stat-failed">
+              <span class="stat-value">{{ complianceSummary.failedCount }}</span>
+              <span class="stat-label">Failed</span>
             </div>
           </div>
         </div>
 
-        <!-- Extraction Results List -->
-        <div class="extraction-list" *ngIf="documentExtractions.length > 0">
-          <div class="extraction-item" *ngFor="let extraction of documentExtractions">
-            <div class="extraction-icon">{{ validationStatusIcons[extraction.validationStatus] || '📄' }}</div>
-            <div class="extraction-info">
-              <div class="extraction-doc-name">{{ extraction.documentName }}</div>
-              <div class="extraction-meta">
-                <span class="status-badge" [ngClass]="getExtractionStatusClass(extraction.validationStatus)">
-                  {{ validationStatusLabels[extraction.validationStatus] || extraction.validationStatus }}
-                </span>
-                <span class="confidence-score" *ngIf="extraction.confidenceScore" [ngClass]="getConfidenceClass(extraction.confidenceScore)">
-                  {{ extraction.confidenceScore }}% confidence
+        <!-- Compliance Results List -->
+        <div class="verification-list" *ngIf="complianceResults.length > 0">
+          <div class="verification-item" *ngFor="let result of complianceResults">
+            <div class="verification-icon">{{ complianceTypeIcons[result.documentType] || '📋' }}</div>
+            <div class="verification-info">
+              <div class="verification-type">{{ complianceTypeLabels[result.documentType] || result.documentType }}</div>
+              <div class="verification-meta">
+                <span class="status-badge" [ngClass]="getVerificationStatusClass(result.status)">
+                  {{ result.status }}
                 </span>
               </div>
-              <div class="extraction-notes" *ngIf="extraction.validationNotes">{{ extraction.validationNotes }}</div>
+              <div class="verification-notes" *ngIf="result.reason">{{ result.reason }}</div>
             </div>
-            <button class="btn-small btn-secondary" (click)="viewExtractionDetails(extraction)">
-              View Details
+            <button
+              *ngIf="canTriggerCompliance && result.status === 'FAILED' && workflowStep !== -1"
+              class="btn-small btn-secondary"
+              (click)="triggerSingleComplianceReview(result.documentType)"
+            >
+              Recheck
             </button>
           </div>
         </div>
 
-        <!-- Empty state -->
-        <div class="empty-extraction" *ngIf="documentExtractions.length === 0 && !isLoadingExtractions">
-          <p>No documents have been processed with OCR yet.</p>
-          <p *ngIf="caseData.documents && caseData.documents.length > 0">
-            Click "Extract All Documents" to analyze uploaded documents.
-          </p>
-          <p *ngIf="!caseData.documents || caseData.documents.length === 0">
-            Upload documents first to enable content analysis.
-          </p>
+        <!-- Empty state / Start Review -->
+        <div class="empty-verification" *ngIf="complianceResults.length === 0 && !isLoadingCompliance">
+          <div *ngIf="!hasComplianceDocs" class="no-docs-warning">
+            <p>⚠️ No compliance review documents have been uploaded for this case.</p>
+            <p>Please upload the required documents (Business License, PCI DSS SAQ, Terms of Service) before starting compliance review.</p>
+          </div>
+          <div *ngIf="hasComplianceDocs">
+            <p>No compliance reviews have been run for this case.</p>
+            <button *ngIf="canTriggerCompliance" class="btn-primary" (click)="triggerAllComplianceReviews()" [disabled]="isStartingCompliance">
+              {{ isStartingCompliance ? 'Starting...' : 'Start Review' }}
+            </button>
+          </div>
         </div>
 
         <!-- Loading state -->
-        <div class="loading-extraction" *ngIf="isLoadingExtractions">
-          <p>Loading document extractions...</p>
+        <div class="loading-verification" *ngIf="isLoadingCompliance">
+          <p>Loading compliance review results...</p>
         </div>
-      </div>
-    </div>
 
-    <div class="case-sidebar">
-      <div class="case-info">
-        <h3>Case Information</h3>
-        <div class="case-meta">
-          <div class="meta-item">
-            <label>Case ID:</label>
-            <span>{{ caseData.caseId }}</span>
-          </div>
-          <div class="meta-item">
-            <label>Created:</label>
-            <span>{{ caseData.createdDate }}</span>
-          </div>
-          <div class="meta-item">
-            <label>Assigned To:</label>
-            <span>{{ caseData.assignedTo }}</span>
-          </div>
-          <div class="meta-item">
-            <label>Priority:</label>
-            <span>{{ caseData.priority }}</span>
-          </div>
-          <div class="meta-item">
-            <label>Last Updated:</label>
-            <span>{{ caseData.lastUpdated }}</span>
-          </div>
-          <div class="meta-item">
-            <label>Status:</label>
-            <span>{{ caseData.status }}</span>
-          </div>
+        <!-- Polling indicator -->
+        <div class="polling-indicator" *ngIf="hasAnyPendingCompliance">
+          <span class="spinner"></span> Checking compliance review status...
         </div>
       </div>
-
-      <div class="case-history">
-        <h3>Case History</h3>
-        <div class="history-list">
-          <div class="history-item" *ngFor="let item of caseData.history">
-            <div class="history-time">{{ item.time }}</div>
-            <div class="history-action">{{ item.action }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Add Comment Section -->
-      <div class="add-comment-section">
-        <h3>Add Comment</h3>
-        <div class="comment-form">
-          <textarea [(ngModel)]="commentText" placeholder="Enter your comment here..." rows="4"></textarea>
-          <div class="comment-actions">
-            <button class="btn-primary" (click)="submitComment()">Add Comment</button>
-            <button class="btn-secondary" (click)="clearComment()">Clear</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </ng-container>
   </div>
 
   <!-- Available Actions Section at Bottom -->
-  <div class="available-actions-section">
-    <h3>Available Actions</h3>
+  <div class="available-actions-section" *ngIf="isComplianceOrAdmin && viewStep === workflowStep && workflowStep !== 4 && workflowStep !== -1">
     <div class="actions-layout">
 
       <!-- Compliance Reviewer actions (only assigned reviewer) -->
       <ng-container *ngIf="canAuthorizeCase">
-        <button class="btn-success btn-large" (click)="approveStep()">
-          <span class="btn-icon">✅</span>Approve
+        <button class="btn-success btn-large" (click)="approveStep()"
+          [disabled]="(workflowStep === 2 && !allVerificationsPassed) || (workflowStep === 3 && !allComplianceReviewsPassed)">
+          Approve
         </button>
         <button class="btn-danger btn-large" (click)="rejectCase()">
-          <span class="btn-icon">❌</span>Reject
+          Reject
         </button>
       </ng-container>
       <ng-container *ngIf="isComplianceOrAdmin && !canAuthorizeCase">
         <p class="info-text">You can only view this case. Approve/reject is reserved for the assigned compliance reviewer.</p>
-      </ng-container>
-
-      <!-- Verifier actions -->
-      <ng-container *ngIf="isVerifier">
-        <button class="btn-success btn-large" (click)="completeVerification()">
-          <span class="btn-icon">🔍</span>Complete Verification
-        </button>
-        <div class="center-actions">
-          <div class="action-dropdown-container">
-            <div class="dropdown">
-              <button class="btn-secondary dropdown-toggle" (click)="toggleActionDropdown2()">
-                <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
-              </button>
-              <div class="dropdown-menu" [class.show]="showActionDropdown2">
-                <button class="dropdown-item" (click)="requestReview()">
-                  <span class="dropdown-icon">📞</span>Request Review
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button class="btn-warning btn-large" (click)="flagForReview()">
-          <span class="btn-icon">🚩</span>Flag for Review
-        </button>
-      </ng-container>
-
-      <!-- Onboarding Officer actions -->
-      <ng-container *ngIf="isOnboardingOfficer">
-        <div class="center-actions full-width">
-          <div class="action-dropdown-container">
-            <div class="dropdown">
-              <button class="btn-secondary dropdown-toggle" (click)="toggleActionDropdown2()">
-                <span class="btn-icon">⚙️</span>Actions <span class="dropdown-arrow">▼</span>
-              </button>
-              <div class="dropdown-menu" [class.show]="showActionDropdown2">
-                <button class="dropdown-item" (click)="requestReview()">
-                  <span class="dropdown-icon">📞</span>Request Review
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       </ng-container>
 
     </div>
@@ -483,8 +405,11 @@
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label for="reviewerSelect">Select Compliance Reviewer *</label>
-        <select id="reviewerSelect" [(ngModel)]="selectedReviewerId" [disabled]="isLoadingReviewers">
+        <label for="reviewerSelect">Select Compliance Reviewer <span class="required-asterisk">*</span></label>
+        <select id="reviewerSelect" [(ngModel)]="selectedReviewerId" [disabled]="isLoadingReviewers"
+                (focus)="expandSelect($event)"
+                (change)="collapseSelect($event)"
+                (blur)="collapseSelect($event)">
           <option value="">-- Select a Reviewer --</option>
           <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.id">
             {{ reviewer.name }} ({{ reviewer.email }})
@@ -510,70 +435,144 @@
   </div>
 </div>
 
-<!-- Document Extraction Details Modal -->
-<div *ngIf="showExtractionModal && selectedExtraction" class="modal" (click)="onExtractionModalBackdropClick($event)">
-  <div class="modal-content modal-large">
+<!-- Edit Case Modal -->
+<div *ngIf="showEditModal" class="modal" (click)="onEditModalBackdropClick($event)">
+  <div class="modal-content large-modal">
     <div class="modal-header">
-      <h3>Document Extraction Details</h3>
-      <span class="close" (click)="closeExtractionModal()">&times;</span>
+      <h3>Edit Merchant Onboarding Case</h3>
+      <span class="close" (click)="closeEditModal()">&times;</span>
     </div>
     <div class="modal-body">
-      <div class="extraction-details">
-        <div class="extraction-header-info">
-          <h4>{{ selectedExtraction.documentName }}</h4>
-          <div class="extraction-meta">
-            <span class="status-badge" [ngClass]="getExtractionStatusClass(selectedExtraction.validationStatus)">
-              {{ validationStatusLabels[selectedExtraction.validationStatus] }}
-            </span>
-            <span class="confidence-score" *ngIf="selectedExtraction.confidenceScore" [ngClass]="getConfidenceClass(selectedExtraction.confidenceScore)">
-              {{ selectedExtraction.confidenceScore }}% OCR Confidence
-            </span>
+      <form class="case-form">
+        <div class="form-section">
+          <h4>Business Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editBusinessName">Business Name <span class="required-asterisk">*</span></label>
+              <input type="text" id="editBusinessName" [(ngModel)]="editCaseData.businessName" name="editBusinessName" required
+                     (focus)="editTouched.businessName = true"
+                     (ngModelChange)="validateEditField('businessName')"
+                     [class.input-error]="editErrors.businessName">
+              <small class="error-text" *ngIf="editErrors.businessName">{{ editErrors.businessName }}</small>
+            </div>
+            <div class="form-group">
+              <label for="editRegistrationNumber">Registration Number <span class="required-asterisk">*</span></label>
+              <input type="text" id="editRegistrationNumber" [(ngModel)]="editCaseData.registrationNumber" name="editRegistrationNumber" required
+                     maxlength="12"
+                     (focus)="editTouched.registrationNumber = true"
+                     (ngModelChange)="validateEditField('registrationNumber')"
+                     [class.input-error]="editErrors.registrationNumber">
+              <small class="error-text" *ngIf="editErrors.registrationNumber">{{ editErrors.registrationNumber }}</small>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editBusinessType">Business Type <span class="required-asterisk">*</span></label>
+              <select id="editBusinessType" [(ngModel)]="editCaseData.businessType" name="editBusinessType" required
+                      (focus)="editTouched.businessType = true; expandSelect($event)"
+                      (change)="collapseSelect($event)"
+                      (blur)="collapseSelect($event)"
+                      (ngModelChange)="validateEditField('businessType')"
+                      [class.input-error]="editErrors.businessType">
+                <option value="">Select Business Type</option>
+                <option *ngFor="let bt of businessTypes" [value]="bt.name">{{ bt.name }}</option>
+              </select>
+              <small class="error-text" *ngIf="editErrors.businessType">{{ editErrors.businessType }}</small>
+            </div>
+            <div class="form-group">
+              <label for="editMerchantCategory">Merchant Category <span class="required-asterisk">*</span></label>
+              <select id="editMerchantCategory" [(ngModel)]="editCaseData.merchantCategory" name="editMerchantCategory" required
+                      (focus)="editTouched.merchantCategory = true; expandSelect($event)"
+                      (change)="collapseSelect($event)"
+                      (blur)="collapseSelect($event)"
+                      (ngModelChange)="validateEditField('merchantCategory')"
+                      [class.input-error]="editErrors.merchantCategory">
+                <option value="">Select Category</option>
+                <option *ngFor="let mc of merchantCategories" [value]="mc.name">{{ mc.name }}</option>
+              </select>
+              <small class="error-text" *ngIf="editErrors.merchantCategory">{{ editErrors.merchantCategory }}</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editBusinessAddress">Business Address <span class="required-asterisk">*</span></label>
+            <textarea id="editBusinessAddress" [(ngModel)]="editCaseData.businessAddress" name="editBusinessAddress" rows="3" required
+                      (focus)="editTouched.businessAddress = true"
+                      (ngModelChange)="validateEditField('businessAddress')"
+                      [class.input-error]="editErrors.businessAddress"></textarea>
+            <small class="error-text" *ngIf="editErrors.businessAddress">{{ editErrors.businessAddress }}</small>
           </div>
         </div>
 
-        <div class="extraction-fields">
-          <h5>Extracted Information</h5>
-          <div class="field-comparison-grid">
-            <div class="field-row" *ngIf="selectedExtraction.extractedBusinessName">
-              <div class="field-label">Business Name:</div>
-              <div class="field-extracted">{{ selectedExtraction.extractedBusinessName }}</div>
-              <div class="field-case" *ngIf="caseData">{{ caseData.businessName }}</div>
+        <div class="form-section">
+          <h4>Director Information</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editDirectorName">Director Name <span class="required-asterisk">*</span></label>
+              <input type="text" id="editDirectorName" [(ngModel)]="editCaseData.directorName" name="editDirectorName" required
+                     (focus)="editTouched.directorName = true"
+                     (ngModelChange)="validateEditField('directorName')"
+                     [class.input-error]="editErrors.directorName">
+              <small class="error-text" *ngIf="editErrors.directorName">{{ editErrors.directorName }}</small>
             </div>
-            <div class="field-row" *ngIf="selectedExtraction.extractedRegistrationNumber">
-              <div class="field-label">Registration No:</div>
-              <div class="field-extracted">{{ selectedExtraction.extractedRegistrationNumber }}</div>
-              <div class="field-case" *ngIf="caseData">{{ caseData.registrationNumber }}</div>
+            <div class="form-group">
+              <label for="editDirectorIC">Director IC Number <span class="required-asterisk">*</span></label>
+              <input type="text" id="editDirectorIC" [(ngModel)]="editCaseData.directorIC" name="editDirectorIC" required
+                     (focus)="editTouched.directorIC = true"
+                     (ngModelChange)="validateEditField('directorIC')"
+                     [class.input-error]="editErrors.directorIC">
+              <small class="error-text" *ngIf="editErrors.directorIC">{{ editErrors.directorIC }}</small>
             </div>
-            <div class="field-row" *ngIf="selectedExtraction.extractedDirectorName">
-              <div class="field-label">Director Name:</div>
-              <div class="field-extracted">{{ selectedExtraction.extractedDirectorName }}</div>
-              <div class="field-case" *ngIf="caseData">{{ caseData.directorName }}</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editDirectorPhone">Phone Number <span class="required-asterisk">*</span></label>
+              <input type="tel" id="editDirectorPhone" [(ngModel)]="editCaseData.directorPhone" name="editDirectorPhone" required
+                     (focus)="editTouched.directorPhone = true"
+                     (ngModelChange)="validateEditField('directorPhone')"
+                     [class.input-error]="editErrors.directorPhone">
+              <small class="error-text" *ngIf="editErrors.directorPhone">{{ editErrors.directorPhone }}</small>
             </div>
-            <div class="field-row" *ngIf="selectedExtraction.extractedDirectorIC">
-              <div class="field-label">Director IC:</div>
-              <div class="field-extracted">{{ selectedExtraction.extractedDirectorIC }}</div>
-              <div class="field-case" *ngIf="caseData">{{ caseData.directorIC }}</div>
-            </div>
-            <div class="field-row full-width" *ngIf="selectedExtraction.extractedAddress">
-              <div class="field-label">Address:</div>
-              <div class="field-extracted">{{ selectedExtraction.extractedAddress }}</div>
+            <div class="form-group">
+              <label for="editDirectorEmail">Email Address <span class="required-asterisk">*</span></label>
+              <input type="email" id="editDirectorEmail" [(ngModel)]="editCaseData.directorEmail" name="editDirectorEmail" required
+                     (focus)="editTouched.directorEmail = true"
+                     (ngModelChange)="validateEditField('directorEmail')"
+                     [class.input-error]="editErrors.directorEmail">
+              <small class="error-text" *ngIf="editErrors.directorEmail">{{ editErrors.directorEmail }}</small>
             </div>
           </div>
         </div>
 
-        <div class="validation-notes-section" *ngIf="selectedExtraction.validationNotes">
-          <h5>Validation Notes</h5>
-          <p>{{ selectedExtraction.validationNotes }}</p>
+        <div class="form-section">
+          <h4>Case Assignment</h4>
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label for="editAssignedTo">Assign to Compliance Reviewer <span class="required-asterisk">*</span></label>
+              <select id="editAssignedTo" [(ngModel)]="editCaseData.assignedTo" name="editAssignedTo" required
+                      [disabled]="isLoadingReviewers"
+                      (focus)="editTouched.assignedTo = true; expandSelect($event)"
+                      (change)="collapseSelect($event)"
+                      (blur)="collapseSelect($event)"
+                      (ngModelChange)="validateEditField('assignedTo')"
+                      [class.input-error]="editErrors.assignedTo">
+                <option value="">-- Select a Reviewer --</option>
+                <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.name">
+                  {{ reviewer.name }} ({{ reviewer.email }})
+                </option>
+              </select>
+              <small class="error-text" *ngIf="editErrors.assignedTo">{{ editErrors.assignedTo }}</small>
+              <small *ngIf="isLoadingReviewers" class="loading-text">Loading reviewers...</small>
+            </div>
+          </div>
         </div>
-
-        <div class="raw-text-section" *ngIf="selectedExtraction.rawText">
-          <h5>Raw Extracted Text</h5>
-          <pre class="raw-text-content">{{ selectedExtraction.rawText }}</pre>
-        </div>
-      </div>
+      </form>
     </div>
     <div class="modal-footer">
-      <button type="button" (click)="closeExtractionModal()" class="btn-secondary">Close</button>
+      <button type="button" (click)="closeEditModal()" class="btn-secondary">Cancel</button>
+      <button type="button" (click)="saveEditCase()" class="btn-primary" [disabled]="hasEditFormErrors">Save Changes</button>
     </div>
   </div>
 </div>

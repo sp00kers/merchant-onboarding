@@ -15,7 +15,7 @@ export class NavbarComponent {
   constructor(public authService: AuthService) {}
 
   get showCases(): boolean {
-    return this.authService.hasAnyPermission(['case_view', 'case_management', 'case_creation', 'all_modules']);
+    return this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
   }
 
   get showBusinessParams(): boolean {
@@ -26,8 +26,28 @@ export class NavbarComponent {
     return this.authService.hasAnyPermission(['user_management', 'role_management', 'permission_management', 'all_modules']);
   }
 
+  get showUserManagement(): boolean {
+    return this.authService.hasAnyPermission(['user_management', 'all_modules']);
+  }
+
+  get showRoleManagement(): boolean {
+    return this.authService.hasAnyPermission(['role_management', 'all_modules']);
+  }
+
+  get showPermissionManagement(): boolean {
+    return this.authService.hasAnyPermission(['permission_management', 'all_modules']);
+  }
+
   get showAuditTrail(): boolean {
     return this.authService.hasAnyPermission(['audit_view', 'all_modules']);
+  }
+
+  get userName(): string {
+    return this.authService.getCurrentUser()?.user?.name || '';
+  }
+
+  get userRole(): string {
+    return this.authService.getCurrentUser()?.user?.role?.name || '';
   }
 
   logout(): void {

@@ -51,8 +51,16 @@ export class CaseService {
     return this.http.post<Case>(this.apiUrl, caseData);
   }
 
+  saveDraftCase(caseData: Partial<Case>): Observable<Case> {
+    return this.http.post<Case>(`${this.apiUrl}/draft`, caseData);
+  }
+
   updateCase(caseId: string, caseData: Partial<Case>): Observable<Case> {
     return this.http.put<Case>(`${this.apiUrl}/${caseId}`, caseData);
+  }
+
+  updateDraftCase(caseId: string, caseData: Partial<Case>): Observable<Case> {
+    return this.http.put<Case>(`${this.apiUrl}/${caseId}/draft`, caseData);
   }
 
   deleteCase(caseId: string): Observable<void> {
@@ -78,13 +86,19 @@ export class CaseService {
     return this.http.post<Case>(`${this.apiUrl}/${caseId}/documents`, formData);
   }
 
+  downloadDocument(caseId: string, documentId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${caseId}/documents/${documentId}/download`, {
+      responseType: 'blob'
+    });
+  }
+
   getRoleBanner(roleId: string, context: 'list' | 'detail'): RoleBanner | null {
     const banners: Record<string, Record<string, RoleBanner>> = {
       onboarding_officer: {
         list: {
           icon: '👁️',
           title: 'Onboarding Officer Mode',
-          message: 'You can view all cases and create new ones. Click "View" to review case details and take actions where permitted.',
+          message: 'You can view, create, edit, and draft cases. Click "View" to review case details.',
           bannerClass: 'info-banner'
         },
         detail: {
@@ -106,20 +120,6 @@ export class CaseService {
           title: 'Compliance Reviewer Access',
           message: 'You can view, approve, reject, or request more information for this case. You have full control over the compliance review process.',
           bannerClass: 'success-banner'
-        }
-      },
-      verifier: {
-        list: {
-          icon: '🔍',
-          title: 'Verifier Mode',
-          message: 'You can view cases for verification purposes. Click "View" to review case details and perform background verification tasks.',
-          bannerClass: 'warning-banner'
-        },
-        detail: {
-          icon: '🔍',
-          title: 'Verifier Access',
-          message: 'You can view case details and perform background verification tasks. Contact Compliance Reviewers for case status changes.',
-          bannerClass: 'warning-banner'
         }
       },
       admin: {

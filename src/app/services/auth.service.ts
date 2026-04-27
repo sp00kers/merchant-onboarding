@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, BehaviorSubject, of, throwError } from 'rxjs';
-import { tap, map, catchError, switchMap } from 'rxjs/operators';
-import { Role } from '../models/role.model';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface LoginRequest {
@@ -27,6 +26,7 @@ export interface UserInfo {
     permissions: string[];
   };
   permissions: string[];
+  customPermissions?: string[];
 }
 
 export interface AuthResponse {
@@ -45,6 +45,11 @@ export class AuthService {
 
   private currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+
+  // Throttle: track last refresh time to avoid excessive API calls
+  private lastRefreshTime = 0;
+  private readonly REFRESH_INTERVAL_MS = 30000; // 30 seconds
+  private refreshInProgress = false;
 
   constructor(
     private http: HttpClient,
@@ -76,6 +81,13 @@ export class AuthService {
   }
 
   logout(): void {
+    // Notify backend to clear active session token
+    const token = this.getToken();
+    if (token) {
+      this.http.post(`${environment.apiUrl}/auth/logout`, {}).subscribe({
+        error: () => {} // Ignore errors — still proceed with client-side logout
+      });
+    }
     sessionStorage.removeItem(this.TOKEN_KEY);
     sessionStorage.removeItem(this.USER_KEY);
     sessionStorage.removeItem(this.USER_ROLE_KEY);
@@ -135,15 +147,52 @@ export class AuthService {
     return user?.user?.permissions || [];
   }
 
+  /**
+   * Refresh current user data from backend (fetches fresh permissions).
+   * Throttled to max once per 30 seconds.
+   * Returns Observable<boolean> — true if refresh succeeded or was skipped (throttled).
+   */
+  refreshCurrentUser(): Observable<boolean> {
+    if (!this.isLoggedIn() || !this.getToken()) {
+      return of(false);
+    }
+
+    const now = Date.now();
+    if (this.refreshInProgress || (now - this.lastRefreshTime < this.REFRESH_INTERVAL_MS)) {
+      return of(true); // Skip — already refreshed recently or in progress
+    }
+
+    this.refreshInProgress = true;
+    return this.http.get<UserInfo>(`${environment.apiUrl}/users/me`).pipe(
+      map(freshUser => {
+        // Rebuild the AuthResponse with fresh user data but keep existing token
+        const currentAuth = this.getCurrentUser();
+        if (currentAuth) {
+          const updatedAuth: AuthResponse = {
+            token: currentAuth.token,
+            type: currentAuth.type,
+            user: freshUser
+          };
+          sessionStorage.setItem(this.USER_KEY, JSON.stringify(updatedAuth));
+          sessionStorage.setItem(this.USER_ROLE_KEY, freshUser.roleId);
+          this.currentUserSubject.next(updatedAuth);
+        }
+        this.lastRefreshTime = Date.now();
+        this.refreshInProgress = false;
+        return true;
+      }),
+      catchError(() => {
+        this.refreshInProgress = false;
+        return of(false);
+      })
+    );
+  }
+
   canViewCases(): boolean {
-    const roleId = this.getCurrentRoleId();
-    if (!roleId) return false;
-    return ['admin', 'onboarding_officer', 'compliance_reviewer', 'verifier'].includes(roleId);
+    return this.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
   }
 
   canEditCases(): boolean {
-    const roleId = this.getCurrentRoleId();
-    if (!roleId) return false;
-    return ['admin', 'onboarding_officer', 'compliance_reviewer'].includes(roleId);
+    return this.hasAnyPermission(['case_management', 'all_modules']);
   }
 }
