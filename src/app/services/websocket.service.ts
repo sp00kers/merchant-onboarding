@@ -1,11 +1,11 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, Subject } from 'rxjs';
 import { Client, IMessage } from '@stomp/stompjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import SockJS from 'sockjs-client';
+import { environment } from '../../environments/environment';
 import { Notification } from '../models/notification.model';
 import { AuthService } from './auth.service';
 import { InAppNotificationService } from './in-app-notification.service';
-import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
