@@ -1,7 +1,6 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { Client, IMessage } from '@stomp/stompjs';
 import { BehaviorSubject, Subject } from 'rxjs';
-import SockJS from 'sockjs-client';
 import { environment } from '../../environments/environment';
 import { Notification } from '../models/notification.model';
 import { AuthService } from './auth.service';
@@ -20,7 +19,8 @@ export class WebSocketService implements OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private notificationService: InAppNotificationService
+    private notificationService: InAppNotificationService,
+    private ngZone: NgZone
   ) {}
 
   connect(): void {
@@ -35,10 +35,13 @@ export class WebSocketService implements OnDestroy {
       this.stompClient.deactivate();
     }
 
-    const wsUrl = environment.apiUrl.replace('/api', '/ws');
+    // Convert http(s) API URL to ws(s) WebSocket URL
+    const wsUrl = environment.apiUrl
+      .replace('/api', '/ws')
+      .replace(/^http/, 'ws');
 
     this.stompClient = new Client({
-      webSocketFactory: () => new SockJS(wsUrl),
+      brokerURL: wsUrl,
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },
@@ -47,28 +50,36 @@ export class WebSocketService implements OnDestroy {
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
       onConnect: () => {
-        this.connected.next(true);
-        console.log('WebSocket connected');
+        this.ngZone.run(() => {
+          this.connected.next(true);
+          console.log('WebSocket connected');
+        });
 
         // Subscribe to user-specific notification queue
         this.stompClient!.subscribe('/user/queue/notifications', (message: IMessage) => {
-          try {
-            const notification = JSON.parse(message.body) as Notification;
-            this.messageSubject.next(notification);
-            this.notificationService.addNotification(notification);
-          } catch (e) {
-            console.error('Failed to parse notification message', e);
-          }
+          this.ngZone.run(() => {
+            try {
+              const notification = JSON.parse(message.body) as Notification;
+              this.messageSubject.next(notification);
+              this.notificationService.addNotification(notification);
+            } catch (e) {
+              console.error('Failed to parse notification message', e);
+            }
+          });
         });
       },
       onStompError: (frame) => {
         console.error('STOMP error:', frame.headers['message']);
-        this.connected.next(false);
-        // Fallback to polling
-        this.notificationService.startPolling(15000);
+        this.ngZone.run(() => {
+          this.connected.next(false);
+          // Fallback to polling
+          this.notificationService.startPolling(15000);
+        });
       },
       onWebSocketClose: () => {
-        this.connected.next(false);
+        this.ngZone.run(() => {
+          this.connected.next(false);
+        });
       }
     });
 
