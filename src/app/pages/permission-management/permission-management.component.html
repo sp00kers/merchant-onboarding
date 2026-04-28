@@ -16,10 +16,6 @@
   <div class="search-filters">
     <div class="filter-controls">
       <input type="text" [(ngModel)]="searchTerm" placeholder="Name">
-      <select [(ngModel)]="categoryFilter">
-        <option value="">All Categories</option>
-        <option *ngFor="let cat of categoryOptions" [value]="cat.value">{{ cat.label }}</option>
-      </select>
       <select [(ngModel)]="statusFilter">
         <option value="">All Status</option>
         <option value="active">Active</option>
@@ -37,9 +33,7 @@
           <th>Permission ID</th>
           <th>Name</th>
           <th>Description</th>
-          <th>Category</th>
           <th>Status</th>
-          <th>Used In Roles</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -48,9 +42,7 @@
           <td>{{ perm.id }}</td>
           <td>{{ perm.name }}</td>
           <td>{{ perm.description }}</td>
-          <td>{{ getCategoryLabel(perm.category) }}</td>
           <td><span [class]="'status-' + (perm.isActive !== false ? 'active' : 'inactive')">{{ perm.isActive !== false ? 'Active' : 'Inactive' }}</span></td>
-          <td>{{ getUsedInRolesCount(perm.id) }} roles</td>
           <td>
             <button class="btn-icon btn-view-icon" (click)="openViewPermission(perm.id)" title="View">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -64,7 +56,7 @@
           </td>
         </tr>
         <tr *ngIf="filteredPermissions.length === 0">
-          <td colspan="7" style="text-align: center; padding: 20px;">No permissions found</td>
+          <td colspan="5" style="text-align: center; padding: 20px;">No permissions found</td>
         </tr>
       </tbody>
     </table>
