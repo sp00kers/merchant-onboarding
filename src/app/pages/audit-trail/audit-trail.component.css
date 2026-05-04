@@ -443,6 +443,11 @@
   color: #333;
 }
 
+.detail-item .action-badge,
+.detail-item .status-badge {
+  width: fit-content;
+}
+
 .json-view {
   background: #f8f9fa;
   padding: 12px;
