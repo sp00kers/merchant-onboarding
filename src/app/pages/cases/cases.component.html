@@ -237,7 +237,7 @@
           <h4>Case Assignment</h4>
           <div class="form-row">
             <div class="form-group" style="flex: 1;">
-              <label for="assignedTo">Assign to Compliance Reviewer <span class="required-asterisk">*</span></label>
+              <label for="assignedTo">Assign to Compliance Reviewer / Admin <span class="required-asterisk">*</span></label>
               <select id="assignedTo" [(ngModel)]="newCase.assignedTo" name="assignedTo" required
                       [disabled]="isLoadingReviewers"
                       (focus)="assignedToTouched = true; expandSelect($event)"
@@ -245,9 +245,9 @@
                       (blur)="collapseSelect($event)"
                       (ngModelChange)="validateAssignedTo()"
                       [class.input-error]="assignedToError">
-                <option value="">-- Select a Reviewer --</option>
+                <option value="">-- Select a Reviewer / Admin --</option>
                 <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.name">
-                  {{ reviewer.name }} ({{ reviewer.email }})
+                  {{ reviewer.name }} ({{ reviewer.email }}) - {{ reviewer.roleId === 'admin' ? 'Admin' : 'Reviewer' }}
                 </option>
               </select>
               <small class="error-text" *ngIf="assignedToError">{{ assignedToError }}</small>
@@ -467,7 +467,7 @@
           <h4>Case Assignment</h4>
           <div class="form-row">
             <div class="form-group" style="flex: 1;">
-              <label for="editAssignedTo">Assign to Compliance Reviewer <span class="required-asterisk">*</span></label>
+              <label for="editAssignedTo">Assign to Compliance Reviewer / Admin <span class="required-asterisk">*</span></label>
               <select id="editAssignedTo" [(ngModel)]="editCase.assignedTo" name="editAssignedTo" required
                       [disabled]="isLoadingReviewers"
                       (focus)="assignedToTouched = true; expandSelect($event)"
@@ -475,9 +475,9 @@
                       (blur)="collapseSelect($event)"
                       (ngModelChange)="validateEditAssignedTo()"
                       [class.input-error]="editAssignedToError">
-                <option value="">-- Select a Reviewer --</option>
+                <option value="">-- Select a Reviewer / Admin --</option>
                 <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.name">
-                  {{ reviewer.name }} ({{ reviewer.email }})
+                  {{ reviewer.name }} ({{ reviewer.email }}) - {{ reviewer.roleId === 'admin' ? 'Admin' : 'Reviewer' }}
                 </option>
               </select>
               <small class="error-text" *ngIf="editAssignedToError">{{ editAssignedToError }}</small>

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface User {
@@ -31,6 +31,11 @@ export class UserService {
   }
 
   getComplianceReviewers(): Observable<User[]> {
-    return this.getUsersByRole('compliance_reviewer');
+    return forkJoin([
+      this.getUsersByRole('compliance_reviewer'),
+      this.getUsersByRole('admin')
+    ]).pipe(
+      map(([reviewers, admins]) => [...reviewers, ...admins])
+    );
   }
 }
