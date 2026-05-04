@@ -165,6 +165,12 @@ export class AuthService {
     this.refreshInProgress = true;
     return this.http.get<UserInfo>(`${environment.apiUrl}/users/me`).pipe(
       map(freshUser => {
+        // Check if user has been deactivated
+        if (freshUser.status !== 'active') {
+          this.refreshInProgress = false;
+          this.forceLogout('Your account has been deactivated. Please contact an administrator.');
+          return false;
+        }
         // Rebuild the AuthResponse with fresh user data but keep existing token
         const currentAuth = this.getCurrentUser();
         if (currentAuth) {
@@ -181,8 +187,50 @@ export class AuthService {
         this.refreshInProgress = false;
         return true;
       }),
-      catchError(() => {
+      catchError((error) => {
         this.refreshInProgress = false;
+        if (error.status === 401) {
+          this.forceLogout('Your session has expired or your account has been deactivated.');
+        }
+        return of(false);
+      })
+    );
+  }
+
+  /**
+   * Force logout without calling backend (session is already invalid).
+   */
+  forceLogout(message: string): void {
+    sessionStorage.removeItem(this.TOKEN_KEY);
+    sessionStorage.removeItem(this.USER_KEY);
+    sessionStorage.removeItem(this.USER_ROLE_KEY);
+    this.currentUserSubject.next(null);
+    alert(message);
+    this.router.navigate(['/login']);
+  }
+
+  /**
+   * Validate session with backend immediately (bypasses throttle).
+   * Used on app init/page refresh to catch deactivated users.
+   */
+  validateSession(): Observable<boolean> {
+    if (!this.isLoggedIn() || !this.getToken()) {
+      return of(false);
+    }
+
+    return this.http.get<UserInfo>(`${environment.apiUrl}/users/me`).pipe(
+      map(freshUser => {
+        if (freshUser.status !== 'active') {
+          this.forceLogout('Your account has been deactivated. Please contact an administrator.');
+          return false;
+        }
+        this.lastRefreshTime = Date.now();
+        return true;
+      }),
+      catchError((error) => {
+        if (error.status === 401) {
+          this.forceLogout('Your session has expired or your account has been deactivated.');
+        }
         return of(false);
       })
     );

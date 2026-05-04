@@ -20,6 +20,11 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // On page load/refresh, immediately validate session with backend
+    if (this.authService.isLoggedIn()) {
+      this.authService.validateSession().subscribe();
+    }
+
     // Refresh user permissions on every navigation (throttled inside AuthService)
     this.routerSub = this.router.events.pipe(
       filter(event => event instanceof NavigationStart)
