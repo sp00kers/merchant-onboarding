@@ -1143,6 +1143,7 @@ body {
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
+    width: fit-content;
 }
 
 .status-inactive {
@@ -1152,6 +1153,7 @@ body {
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
+    width: fit-content;
 }
 
 /* Responsive Design */
@@ -1953,6 +1955,7 @@ body {
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
+    width: fit-content;
 }
 
 .status-inactive {
@@ -1963,6 +1966,7 @@ body {
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
+    width: fit-content;
 }
 
 .risk-low {
