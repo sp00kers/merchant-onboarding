@@ -7,10 +7,10 @@ import { NavbarComponent } from '../../components/navbar/navbar.component';
 import { BusinessType, MerchantCategory } from '../../models/business-params.model';
 import { Case, RoleBanner } from '../../models/case.model';
 import {
-    COMPLIANCE_TYPE_ICONS,
-    COMPLIANCE_TYPE_LABELS,
-    ComplianceReviewResult, ComplianceReviewSummary,
-    VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary
+  COMPLIANCE_TYPE_ICONS,
+  COMPLIANCE_TYPE_LABELS,
+  ComplianceReviewResult, ComplianceReviewSummary,
+  VERIFICATION_TYPE_ICONS, VERIFICATION_TYPE_LABELS, VerificationResult, VerificationSummary
 } from '../../models/verification.model';
 import { AuthService } from '../../services/auth.service';
 import { BusinessParamsService } from '../../services/business-params.service';
@@ -734,6 +734,8 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   }
 
   get canTriggerVerification(): boolean {
+    // Onboarding officers cannot trigger verification
+    if (this.isOnboardingOfficer && !this.authService.hasAnyPermission(['all_modules'])) return false;
     return this.authService.hasAnyPermission(['background_check', 'compliance_check', 'external_api_access', 'all_modules']);
   }
 
@@ -848,6 +850,8 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   }
 
   get canTriggerCompliance(): boolean {
+    // Onboarding officers cannot trigger compliance review
+    if (this.isOnboardingOfficer && !this.authService.hasAnyPermission(['all_modules'])) return false;
     return this.authService.hasAnyPermission(['compliance_check', 'risk_assessment', 'case_management', 'all_modules']);
   }
 
