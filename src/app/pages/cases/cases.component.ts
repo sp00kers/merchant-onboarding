@@ -189,7 +189,7 @@ export class CasesComponent implements OnInit, OnDestroy {
   private updatePermissionFlags(): void {
     this.canCreateCase = this.authService.hasAnyPermission(['case_creation', 'all_modules']);
     this.canEditCase = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
-    this.canDeleteCase = this.authService.hasAnyPermission(['case_creation', 'case_management', 'all_modules']);
+    this.canDeleteCase = this.authService.hasAnyPermission(['case_creation', 'all_modules']);
     this.canUploadDocuments = this.authService.hasAnyPermission(['document_upload', 'case_creation', 'all_modules']);
   }
 
@@ -691,6 +691,8 @@ export class CasesComponent implements OnInit, OnDestroy {
   canEditCaseByStatus(c: Case): boolean {
     if (!this.canEditCase) return false;
     const status = c.status?.toLowerCase().replace(/[\s_]+/g, '_');
+    // Only officers and admins can edit cases
+    if (!this.authService.hasAnyPermission(['case_creation', 'all_modules'])) return false;
     return status === 'draft' || status === 'pending_review';
   }
 

@@ -861,7 +861,7 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
     if (!this.caseData) return false;
     const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
     if (status === 'approved' || status === 'rejected') return false;
-    return this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
+    return this.authService.hasAnyPermission(['case_creation', 'all_modules']);
   }
 
   deleteCase(): void {
@@ -889,7 +889,8 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
     if (!this.caseData) return false;
     const status = this.caseData.status?.toLowerCase().replace(/[\s_]+/g, '_');
     if (status !== 'draft' && status !== 'pending_review') return false;
-    return this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
+    // Only officers and admins can edit cases
+    return this.authService.hasAnyPermission(['case_creation', 'all_modules']);
   }
 
   openEditModal(): void {
