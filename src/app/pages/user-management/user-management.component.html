@@ -152,12 +152,12 @@
               </select>
             </div>
           </div>
-          <!-- Password fields - only shown when adding a new user -->
-          <div class="form-row" *ngIf="!currentEditingId">
+          <!-- Password fields - required for new user, optional for editing -->
+          <div class="form-row">
             <div class="form-group">
-              <label>Password <span class="required-asterisk">*</span></label>
+              <label>Password <span class="required-asterisk" *ngIf="!currentEditingId">*</span><span *ngIf="currentEditingId"> (Optional)</span></label>
               <div class="password-wrapper">
-                <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="userPassword" name="userPassword" required
+                <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="userPassword" name="userPassword" [required]="!currentEditingId"
                        placeholder="Password"
                        (focus)="passwordTouched = true"
                        (ngModelChange)="validatePassword()"
@@ -170,9 +170,9 @@
               <small class="error-text" *ngIf="passwordError">{{ passwordError }}</small>
             </div>
             <div class="form-group">
-              <label>Re-enter Password <span class="required-asterisk">*</span></label>
+              <label>Re-enter Password <span class="required-asterisk" *ngIf="!currentEditingId">*</span><span *ngIf="currentEditingId"> (Optional)</span></label>
               <div class="password-wrapper">
-                <input [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="userConfirmPassword" name="userConfirmPassword" required
+                <input [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="userConfirmPassword" name="userConfirmPassword" [required]="!currentEditingId"
                        placeholder="Re-enter Password"
                        (focus)="confirmPasswordTouched = true"
                        (ngModelChange)="validateConfirmPassword()"

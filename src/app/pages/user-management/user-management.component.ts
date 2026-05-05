@@ -219,7 +219,10 @@ export class UserManagementComponent implements OnInit {
   validatePassword(): void {
     if (!this.passwordTouched) return;
     const password = this.userPassword;
-    if (!password) {
+    // Password is optional when editing
+    if (!password && this.currentEditingId) {
+      this.passwordError = '';
+    } else if (!password) {
       this.passwordError = 'This field is required.';
     } else if (password.length < 6) {
       this.passwordError = 'Password must be at least 6 characters';
@@ -234,7 +237,10 @@ export class UserManagementComponent implements OnInit {
 
   validateConfirmPassword(): void {
     if (!this.confirmPasswordTouched) return;
-    if (!this.userConfirmPassword) {
+    // If editing and both fields are empty, no error
+    if (this.currentEditingId && !this.userPassword && !this.userConfirmPassword) {
+      this.confirmPasswordError = '';
+    } else if (!this.userConfirmPassword) {
       this.confirmPasswordError = 'This field is required.';
     } else if (this.userConfirmPassword !== this.userPassword) {
       this.confirmPasswordError = 'Passwords do not match';
@@ -292,10 +298,15 @@ export class UserManagementComponent implements OnInit {
     if (!this.currentEditingId) {
       this.validatePassword();
       this.validateConfirmPassword();
+    } else if (this.userPassword) {
+      // When editing, only validate password if a new one was entered
+      this.validatePassword();
+      this.validateConfirmPassword();
     }
 
     if (this.nameError || this.emailError || this.roleError || this.departmentError || this.phoneError
-        || (!this.currentEditingId && (this.passwordError || this.confirmPasswordError))) {
+        || (!this.currentEditingId && (this.passwordError || this.confirmPasswordError))
+        || (this.currentEditingId && this.userPassword && (this.passwordError || this.confirmPasswordError))) {
       this.notificationService.error('Please fix the errors before saving');
       return;
     }
@@ -310,8 +321,10 @@ export class UserManagementComponent implements OnInit {
       notes: this.userNotes
     };
 
-    // Include password only when creating a new user
+    // Include password when creating or when admin provides a new password during edit
     if (!this.currentEditingId) {
+      userData.password = this.userPassword;
+    } else if (this.userPassword) {
       userData.password = this.userPassword;
     }
 
