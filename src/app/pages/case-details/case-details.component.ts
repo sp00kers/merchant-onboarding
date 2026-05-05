@@ -220,13 +220,10 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * The assigned compliance reviewer or an admin can approve/reject cases.
+   * Only the assigned user (admin or compliance reviewer) can approve/reject cases.
    */
   get canAuthorizeCase(): boolean {
-    if (this.authService.hasPermissionSync('all_modules')) {
-      return true;
-    }
-    if (this.authService.hasPermissionSync('case_management')) {
+    if (this.authService.hasAnyPermission(['case_management', 'all_modules'])) {
       const currentUserName = this.authService.getCurrentUser()?.user?.name;
       return !!currentUserName && currentUserName === this.caseData?.assignedTo;
     }

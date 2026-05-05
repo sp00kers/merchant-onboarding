@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, interval, startWith, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, interval, startWith, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Notification, NotificationPage, UnreadCount } from '../models/notification.model';
 
@@ -16,15 +16,27 @@ export class InAppNotificationService {
   private notificationsSubject = new BehaviorSubject<Notification[]>([]);
   public notifications$ = this.notificationsSubject.asObservable();
 
+  private pollingSub: Subscription | null = null;
+
   constructor(private http: HttpClient) {}
 
   startPolling(intervalMs: number = 30000): void {
-    interval(intervalMs).pipe(
-      startWith(0),
-      switchMap(() => this.getUnreadCount())
-    ).subscribe(response => {
-      this.unreadCountSubject.next(response.count);
+    // Prevent multiple polling subscriptions
+    if (this.pollingSub) {
+      return;
+    }
+    this.pollingSub = interval(intervalMs).pipe(
+      startWith(0)
+    ).subscribe(() => {
+      this.refreshNotifications();
     });
+  }
+
+  stopPolling(): void {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+      this.pollingSub = null;
+    }
   }
 
   refreshNotifications(): void {

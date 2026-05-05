@@ -412,7 +412,7 @@
                 (blur)="collapseSelect($event)">
           <option value="">-- Select a Reviewer / Admin --</option>
           <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.id">
-            {{ reviewer.name }} ({{ reviewer.email }}) - {{ reviewer.roleId === 'admin' ? 'Admin' : 'Reviewer' }}
+            {{ reviewer.name }} - {{ reviewer.roleId === 'admin' ? 'Admin' : 'Reviewer' }}
           </option>
         </select>
         <small *ngIf="isLoadingReviewers" class="loading-text">Loading reviewers...</small>
