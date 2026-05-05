@@ -71,32 +71,6 @@
     <!-- ═══ VIEW STEP 1: Pending Review ═══ -->
     <ng-container *ngIf="viewStep === 1">
       <div class="info-section">
-        <h3>Business Information</h3>
-        <div class="info-grid">
-          <div class="info-item">
-            <label>Business Name:</label>
-            <span>{{ caseData.businessName }}</span>
-          </div>
-          <div class="info-item">
-            <label>Registration Number:</label>
-            <span>{{ caseData.registrationNumber }}</span>
-          </div>
-          <div class="info-item">
-            <label>Business Type:</label>
-            <span>{{ caseData.businessType }}</span>
-          </div>
-          <div class="info-item">
-            <label>Merchant Category:</label>
-            <span>{{ caseData.merchantCategory }}</span>
-          </div>
-          <div class="info-item full-width">
-            <label>Business Address:</label>
-            <span>{{ caseData.businessAddress }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="info-section">
         <h3>Case Information</h3>
         <div class="info-grid">
           <div class="info-item">
@@ -118,6 +92,32 @@
           <div class="info-item">
             <label>Status:</label>
             <span>{{ caseData.status }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>Business Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Business Name:</label>
+            <span>{{ caseData.businessName }}</span>
+          </div>
+          <div class="info-item">
+            <label>Registration Number:</label>
+            <span>{{ caseData.registrationNumber }}</span>
+          </div>
+          <div class="info-item">
+            <label>Business Type:</label>
+            <span>{{ caseData.businessType }}</span>
+          </div>
+          <div class="info-item">
+            <label>Merchant Category:</label>
+            <span>{{ caseData.merchantCategory }}</span>
+          </div>
+          <div class="info-item full-width">
+            <label>Business Address:</label>
+            <span>{{ caseData.businessAddress }}</span>
           </div>
         </div>
       </div>
