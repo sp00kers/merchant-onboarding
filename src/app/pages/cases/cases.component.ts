@@ -700,7 +700,7 @@ export class CasesComponent implements OnInit, OnDestroy {
   canDeleteCaseByStatus(c: Case): boolean {
     if (!this.canDeleteCase) return false;
     const status = c.status?.toLowerCase().replace(/[\s_]+/g, '_');
-    return status !== 'approved' && status !== 'rejected';
+    return status === 'draft' || status === 'pending_review';
   }
 
   deleteCase(caseId: string, businessName: string): void {
