@@ -135,7 +135,6 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.roleBanner = this.caseService.getRoleBanner(this.roleId, 'detail');
     this.showReassign = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
     this.loadBusinessTypes();
     this.loadMerchantCategories();
