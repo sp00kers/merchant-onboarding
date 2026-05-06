@@ -188,7 +188,7 @@ export class CasesComponent implements OnInit, OnDestroy {
   private updatePermissionFlags(): void {
     this.canCreateCase = this.authService.hasAnyPermission(['case_creation', 'all_modules']);
     this.canEditCase = this.authService.hasAnyPermission(['case_management', 'case_creation', 'all_modules']);
-    this.canDeleteCase = this.authService.hasAnyPermission(['case_creation', 'all_modules']);
+    this.canDeleteCase = this.authService.hasAnyPermission(['case_creation', 'case_management', 'all_modules']);
     this.canUploadDocuments = this.authService.hasAnyPermission(['document_upload', 'case_creation', 'all_modules']);
   }
 
