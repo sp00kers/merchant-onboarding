@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { Case, RoleBanner } from '../models/case.model';
+import { Case } from '../models/case.model';
 
 @Injectable({
   providedIn: 'root'
@@ -90,54 +90,5 @@ export class CaseService {
     return this.http.get(`${this.apiUrl}/${caseId}/documents/${documentId}/download`, {
       responseType: 'blob'
     });
-  }
-
-  getRoleBanner(roleId: string, context: 'list' | 'detail'): RoleBanner | null {
-    const banners: Record<string, Record<string, RoleBanner>> = {
-      onboarding_officer: {
-        list: {
-          icon: '👁️',
-          title: 'Onboarding Officer Mode',
-          message: 'You can view, create, edit, and draft cases. Click "View" to review case details.',
-          bannerClass: 'info-banner'
-        },
-        detail: {
-          icon: 'ℹ️',
-          title: 'Onboarding Officer Access',
-          message: 'You can view case details and add comments. For approvals or rejections, please contact a Compliance Reviewer.',
-          bannerClass: 'info-banner'
-        }
-      },
-      compliance_reviewer: {
-        list: {
-          icon: '✏️',
-          title: 'Compliance Reviewer Mode',
-          message: 'You can view and manage all cases. Click "View" to review case details and approve, reject, or request more information.',
-          bannerClass: 'success-banner'
-        },
-        detail: {
-          icon: '✏️',
-          title: 'Compliance Reviewer Access',
-          message: 'You can view, approve, reject, or request more information for this case. You have full control over the compliance review process.',
-          bannerClass: 'success-banner'
-        }
-      },
-      admin: {
-        list: {
-          icon: '⚙️',
-          title: 'Administrator Mode',
-          message: 'You have full system access. Click "View" to review case details and perform all available actions.',
-          bannerClass: 'admin-banner'
-        },
-        detail: {
-          icon: '⚙️',
-          title: 'Administrator Access',
-          message: 'You have full access to all case functions including approval, rejection, and case management.',
-          bannerClass: 'admin-banner'
-        }
-      }
-    };
-
-    return banners[roleId]?.[context] || null;
   }
 }
