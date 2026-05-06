@@ -83,7 +83,7 @@
           </div>
           <div class="info-item">
             <label>Assigned To:</label>
-            <span>{{ caseData.assignedTo }}</span>
+            <span>{{ caseData.assignedToName || caseData.assignedTo }}</span>
           </div>
           <div class="info-item">
             <label>Last Updated:</label>
@@ -423,7 +423,7 @@
       <div class="case-summary" *ngIf="caseData">
         <p><strong>Case ID:</strong> {{ caseData.caseId }}</p>
         <p><strong>Business Name:</strong> {{ caseData.businessName }}</p>
-        <p><strong>Current Assignee:</strong> {{ caseData.assignedTo || 'Unassigned' }}</p>
+        <p><strong>Current Assignee:</strong> {{ caseData.assignedToName || caseData.assignedTo || 'Unassigned' }}</p>
       </div>
     </div>
     <div class="modal-footer">
@@ -559,7 +559,7 @@
                       (ngModelChange)="validateEditField('assignedTo')"
                       [class.input-error]="editErrors.assignedTo">
                 <option value="">-- Select a Reviewer --</option>
-                <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.name">
+                <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.id">
                   {{ reviewer.name }} ({{ reviewer.email }})
                 </option>
               </select>

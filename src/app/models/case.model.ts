@@ -14,6 +14,7 @@ export interface Case {
   rejectedAtStage?: string;
   createdDate: string;
   assignedTo: string;
+  assignedToName: string;
   lastUpdated: string;
   documents: CaseDocument[];
   history: CaseHistoryItem[];

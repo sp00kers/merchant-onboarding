@@ -869,6 +869,15 @@ export class CasesComponent implements OnInit, OnDestroy {
     this.validateEditAssignedTo();
     this.validateAllEditDocuments();
 
+    // Check if all required documents are present (either newly selected or already uploaded)
+    const missingDocs = this.requiredDocuments.filter(
+      doc => !this.editSelectedFiles[doc] && !this.existingDocuments[doc]
+    );
+    if (missingDocs.length > 0) {
+      this.notificationService.show('Please upload all required documents before submitting', 'error');
+      return;
+    }
+
     if (this.hasEditSubmitErrors) {
       this.notificationService.show('Please fix the errors before submitting', 'error');
       return;

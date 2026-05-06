@@ -61,7 +61,7 @@
           <td>{{ c.businessType }}</td>
           <td><span>{{ c.status }}</span></td>
           <td>{{ c.createdDate | date:'dd/MM/yyyy' }}</td>
-          <td>{{ c.assignedTo }}</td>
+          <td>{{ c.assignedToName || c.assignedTo }}</td>
           <td>
             <button *ngIf="c.status !== 'Draft'" class="btn-icon btn-view-icon" (click)="viewCase(c.caseId)" title="View">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -246,7 +246,7 @@
                       (ngModelChange)="validateAssignedTo()"
                       [class.input-error]="assignedToError">
                 <option value="">-- Select a Reviewer / Admin --</option>
-                <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.name">
+                <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.id">
                   {{ reviewer.name }} - {{ reviewer.roleId === 'admin' ? 'Admin' : 'Reviewer' }}
                 </option>
               </select>
@@ -476,7 +476,7 @@
                       (ngModelChange)="validateEditAssignedTo()"
                       [class.input-error]="editAssignedToError">
                 <option value="">-- Select a Reviewer / Admin --</option>
-                <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.name">
+                <option *ngFor="let reviewer of complianceReviewers" [value]="reviewer.id">
                   {{ reviewer.name }} - {{ reviewer.roleId === 'admin' ? 'Admin' : 'Reviewer' }}
                 </option>
               </select>
@@ -495,7 +495,6 @@
           <div class="upload-area">
             <div class="upload-group">
               <label for="editBusinessRegCert">Business Registration Certificate <span class="required-asterisk">*</span></label>
-              <span class="existing-doc" *ngIf="existingDocuments['Business Registration Certificate']">✅ Uploaded: {{ existingDocuments['Business Registration Certificate'] }}</span>
               <input type="file" id="editBusinessRegCert" name="editBusinessRegCert" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Business Registration Certificate')"
                      [class.input-error]="editBusinessRegCertError">
@@ -503,7 +502,6 @@
             </div>
             <div class="upload-group">
               <label for="editDirectorGovId">Director's Government ID <span class="required-asterisk">*</span></label>
-              <span class="existing-doc" *ngIf="existingDocuments['Director Government ID']">✅ Uploaded: {{ existingDocuments['Director Government ID'] }}</span>
               <input type="file" id="editDirectorGovId" name="editDirectorGovId" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Director Government ID')"
                      [class.input-error]="editDirectorGovIdError">
@@ -511,7 +509,6 @@
             </div>
             <div class="upload-group">
               <label for="editBeneficialOwnership">Beneficial Ownership Declaration <span class="required-asterisk">*</span></label>
-              <span class="existing-doc" *ngIf="existingDocuments['Beneficial Ownership Declaration']">✅ Uploaded: {{ existingDocuments['Beneficial Ownership Declaration'] }}</span>
               <input type="file" id="editBeneficialOwnership" name="editBeneficialOwnership" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Beneficial Ownership Declaration')"
                      [class.input-error]="editBeneficialOwnershipError">
@@ -529,7 +526,6 @@
           <div class="upload-area">
             <div class="upload-group">
               <label for="editBusinessLicense">Business License <span class="required-asterisk">*</span></label>
-              <span class="existing-doc" *ngIf="existingDocuments['Business License']">✅ Uploaded: {{ existingDocuments['Business License'] }}</span>
               <input type="file" id="editBusinessLicense" name="editBusinessLicense" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Business License')"
                      [class.input-error]="editBusinessLicenseError">
@@ -537,7 +533,6 @@
             </div>
             <div class="upload-group">
               <label for="editPciDssSaq">PCI DSS Self-Assessment Questionnaire <span class="required-asterisk">*</span></label>
-              <span class="existing-doc" *ngIf="existingDocuments['PCI DSS SAQ']">✅ Uploaded: {{ existingDocuments['PCI DSS SAQ'] }}</span>
               <input type="file" id="editPciDssSaq" name="editPciDssSaq" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'PCI DSS SAQ')"
                      [class.input-error]="editPciDssSaqError">
@@ -545,7 +540,6 @@
             </div>
             <div class="upload-group">
               <label for="editTermsOfService">Terms of Service <span class="required-asterisk">*</span></label>
-              <span class="existing-doc" *ngIf="existingDocuments['Terms of Service']">✅ Uploaded: {{ existingDocuments['Terms of Service'] }}</span>
               <input type="file" id="editTermsOfService" name="editTermsOfService" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Terms of Service')"
                      [class.input-error]="editTermsOfServiceError">

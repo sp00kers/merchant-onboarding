@@ -223,8 +223,8 @@ export class CaseDetailsComponent implements OnInit, OnDestroy {
    */
   get canAuthorizeCase(): boolean {
     if (this.authService.hasAnyPermission(['case_management', 'all_modules'])) {
-      const currentUserName = this.authService.getCurrentUser()?.user?.name;
-      return !!currentUserName && currentUserName === this.caseData?.assignedTo;
+      const currentUserId = this.authService.getCurrentUser()?.user?.id;
+      return !!currentUserId && currentUserId === this.caseData?.assignedTo;
     }
     return false;
   }
