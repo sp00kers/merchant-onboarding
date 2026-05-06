@@ -883,39 +883,37 @@ export class CasesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const submitData = { ...this.editCase, status: 'Pending Review' };
-    this.caseService.updateCase(this.editingCaseId, submitData).subscribe({
-      next: () => {
-        const files = Object.values(this.editSelectedFiles);
-        const types = Object.keys(this.editSelectedFiles);
-        if (files.length > 0) {
-          this.caseService.uploadDocuments(this.editingCaseId, files, types).subscribe({
-            next: () => {
-              this.caseService.addHistoryItem(this.editingCaseId, 'Draft submitted — Status changed to Pending Review').subscribe();
-              this.notificationService.show('Case submitted successfully!', 'success');
-              this.closeEditModal();
-              this.loadCases();
-            },
-            error: (err) => {
-              console.error('Document upload failed:', err);
-              this.caseService.addHistoryItem(this.editingCaseId, 'Draft submitted — Status changed to Pending Review').subscribe();
-              this.notificationService.show('Case submitted but failed to upload documents. Please try re-uploading.', 'error');
-              this.closeEditModal();
-              this.loadCases();
-            }
-          });
-        } else {
+    const files = Object.values(this.editSelectedFiles);
+    const types = Object.keys(this.editSelectedFiles);
+
+    const doStatusUpdate = () => {
+      const submitData = { ...this.editCase, status: 'Pending Review' };
+      this.caseService.updateCase(this.editingCaseId, submitData).subscribe({
+        next: () => {
           this.caseService.addHistoryItem(this.editingCaseId, 'Draft submitted — Status changed to Pending Review').subscribe();
           this.notificationService.show('Case submitted successfully!', 'success');
           this.closeEditModal();
           this.loadCases();
+        },
+        error: (error) => {
+          console.error('Error submitting case:', error);
+          this.notificationService.show(error?.error?.message || 'Failed to submit case', 'error');
         }
-      },
-      error: (error) => {
-        console.error('Error submitting case:', error);
-        this.notificationService.show(error?.error?.message || 'Failed to submit case', 'error');
-      }
-    });
+      });
+    };
+
+    // Upload documents first, then change status
+    if (files.length > 0) {
+      this.caseService.uploadDocuments(this.editingCaseId, files, types).subscribe({
+        next: () => doStatusUpdate(),
+        error: (err) => {
+          console.error('Document upload failed:', err);
+          this.notificationService.show('Failed to upload documents. Please try again.', 'error');
+        }
+      });
+    } else {
+      doStatusUpdate();
+    }
   }
 
   onEditFileSelected(event: Event, fileType: string): void {
