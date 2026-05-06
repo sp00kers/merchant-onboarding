@@ -495,6 +495,7 @@
           <div class="upload-area">
             <div class="upload-group">
               <label for="editBusinessRegCert">Business Registration Certificate <span class="required-asterisk">*</span></label>
+              <small class="existing-doc" *ngIf="existingDocuments['Business Registration Certificate']">Current: {{ existingDocuments['Business Registration Certificate'] }}</small>
               <input type="file" id="editBusinessRegCert" name="editBusinessRegCert" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Business Registration Certificate')"
                      [class.input-error]="editBusinessRegCertError">
@@ -502,6 +503,7 @@
             </div>
             <div class="upload-group">
               <label for="editDirectorGovId">Director's Government ID <span class="required-asterisk">*</span></label>
+              <small class="existing-doc" *ngIf="existingDocuments['Director Government ID']">Current: {{ existingDocuments['Director Government ID'] }}</small>
               <input type="file" id="editDirectorGovId" name="editDirectorGovId" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Director Government ID')"
                      [class.input-error]="editDirectorGovIdError">
@@ -509,6 +511,7 @@
             </div>
             <div class="upload-group">
               <label for="editBeneficialOwnership">Beneficial Ownership Declaration <span class="required-asterisk">*</span></label>
+              <small class="existing-doc" *ngIf="existingDocuments['Beneficial Ownership Declaration']">Current: {{ existingDocuments['Beneficial Ownership Declaration'] }}</small>
               <input type="file" id="editBeneficialOwnership" name="editBeneficialOwnership" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Beneficial Ownership Declaration')"
                      [class.input-error]="editBeneficialOwnershipError">
@@ -526,6 +529,7 @@
           <div class="upload-area">
             <div class="upload-group">
               <label for="editBusinessLicense">Business License <span class="required-asterisk">*</span></label>
+              <small class="existing-doc" *ngIf="existingDocuments['Business License']">Current: {{ existingDocuments['Business License'] }}</small>
               <input type="file" id="editBusinessLicense" name="editBusinessLicense" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Business License')"
                      [class.input-error]="editBusinessLicenseError">
@@ -533,6 +537,7 @@
             </div>
             <div class="upload-group">
               <label for="editPciDssSaq">PCI DSS Self-Assessment Questionnaire <span class="required-asterisk">*</span></label>
+              <small class="existing-doc" *ngIf="existingDocuments['PCI DSS SAQ']">Current: {{ existingDocuments['PCI DSS SAQ'] }}</small>
               <input type="file" id="editPciDssSaq" name="editPciDssSaq" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'PCI DSS SAQ')"
                      [class.input-error]="editPciDssSaqError">
@@ -540,6 +545,7 @@
             </div>
             <div class="upload-group">
               <label for="editTermsOfService">Terms of Service <span class="required-asterisk">*</span></label>
+              <small class="existing-doc" *ngIf="existingDocuments['Terms of Service']">Current: {{ existingDocuments['Terms of Service'] }}</small>
               <input type="file" id="editTermsOfService" name="editTermsOfService" accept=".pdf,.jpg,.jpeg,.png"
                      (change)="onEditFileSelected($event, 'Terms of Service')"
                      [class.input-error]="editTermsOfServiceError">

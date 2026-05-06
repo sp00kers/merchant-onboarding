@@ -138,6 +138,14 @@
   display: block;
 }
 
+.existing-doc {
+  color: #2e7d32;
+  font-size: 12px;
+  display: block;
+  margin-bottom: 4px;
+  font-style: italic;
+}
+
 .required-asterisk {
   color: #dc3545;
   margin-left: 2px;
