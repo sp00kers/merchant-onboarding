@@ -171,7 +171,6 @@ export class CasesComponent implements OnInit, OnDestroy {
     }
 
     this.updatePermissionFlags();
-    this.roleBanner = this.caseService.getRoleBanner(roleId, 'list');
     this.loadCases();
     this.loadBusinessTypes();
     this.loadMerchantCategories();
